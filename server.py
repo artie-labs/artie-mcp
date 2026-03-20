@@ -1,8 +1,37 @@
+import asyncio
+import contextlib
+import hashlib
+import logging
+import os
+import signal
+
 import httpx
 import yaml
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.dependencies import get_http_headers
+from starlette.responses import Response
+
+logger = logging.getLogger("artie-mcp")
+
+_SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
+_SPEC_POLL_INTERVAL = 120
+_DRAIN_DELAY = 5
+
+_shutting_down = False
+
+
+def _fetch_spec_text() -> str:
+    return httpx.get(_SPEC_URL).raise_for_status().text
+
+
+def _hash(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+_spec_text = _fetch_spec_text()
+_spec_hash = _hash(_spec_text)
+openapi_spec = yaml.safe_load(_spec_text)
 
 
 class _ForwardAuth(httpx.Auth):
@@ -20,9 +49,6 @@ client = httpx.AsyncClient(
     auth=_ForwardAuth(),
 )
 
-_SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
-openapi_spec = yaml.safe_load(httpx.get(_SPEC_URL).raise_for_status().text)
-
 mcp = FastMCP.from_openapi(
     openapi_spec=openapi_spec,
     client=client,
@@ -30,5 +56,52 @@ mcp = FastMCP.from_openapi(
     auth=DebugTokenVerifier(),
 )
 
+
+async def _poll_spec():
+    global _shutting_down
+    while not _shutting_down:
+        await asyncio.sleep(_SPEC_POLL_INTERVAL)
+        try:
+            new_hash = _hash(_fetch_spec_text())
+        except Exception:
+            logger.exception("Failed to fetch spec for change detection")
+            continue
+
+        if new_hash != _spec_hash:
+            logger.info("OpenAPI spec changed, initiating graceful shutdown")
+            _shutting_down = True
+            await asyncio.sleep(_DRAIN_DELAY)
+            os.kill(os.getpid(), signal.SIGTERM)
+            return
+
+
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(_request):
+    return Response(status_code=200)
+
+
+@mcp.custom_route("/ready", methods=["GET"])
+async def ready_check(_request):
+    if _shutting_down:
+        return Response(status_code=503)
+    return Response(status_code=200)
+
+
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)
+    import uvicorn
+
+    app = mcp.http_app(transport="streamable-http")
+
+    _original_lifespan = app.lifespan
+
+    @contextlib.asynccontextmanager
+    async def _lifespan(a):
+        async with _original_lifespan(a):
+            task = asyncio.create_task(_poll_spec())
+            try:
+                yield
+            finally:
+                task.cancel()
+
+    app.router.lifespan_context = _lifespan
+    uvicorn.run(app, host="0.0.0.0", port=8000, timeout_graceful_shutdown=30)
