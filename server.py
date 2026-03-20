@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import httpx
 import yaml
 from fastmcp import FastMCP
@@ -22,9 +20,8 @@ client = httpx.AsyncClient(
     auth=_ForwardAuth(),
 )
 
-spec_path = Path(__file__).parent / "openapi.yaml"
-with open(spec_path) as f:
-    openapi_spec = yaml.safe_load(f)
+_SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
+openapi_spec = yaml.safe_load(httpx.get(_SPEC_URL).raise_for_status().text)
 
 mcp = FastMCP.from_openapi(
     openapi_spec=openapi_spec,
