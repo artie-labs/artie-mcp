@@ -4,16 +4,6 @@ MCP server for managing your real-time data pipelines in Artie
 
 [API Reference](https://www.artie.com/docs/api/overview)
 
-## Setup
-```bash
-uv sync
-```
-
-## Run Server Locally
-```bash
-uv run server.py
-```
-
 ## MCP Client Configuration
 
 ```json
@@ -27,4 +17,19 @@ uv run server.py
     }
   }
 }
+```
+
+## Setup
+```bash
+uv sync
+```
+
+## Run Server Locally
+```bash
+uv run server.py
+```
+
+## Release
+```bash
+./release.sh
 ```
