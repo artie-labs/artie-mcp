@@ -20,7 +20,7 @@ uv run server.py
 {
   "mcpServers": {
     "artie": {
-      "url": "https://your-deployed-host.com/mcp",
+      "url": "https://artie-real-time.fastmcp.app/mcp",
       "headers": {
         "Authorization": "Bearer <artie-api-key>"
       }
