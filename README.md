@@ -10,7 +10,7 @@ MCP server for managing your real-time data pipelines in Artie
 {
   "mcpServers": {
     "artie": {
-      "url": "https://artie-real-time.fastmcp.app/mcp",
+      "url": "https://mcp.artie.com/mcp",
       "headers": {
         "Authorization": "Bearer <artie-api-key>"
       }
