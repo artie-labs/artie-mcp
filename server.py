@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
     logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
 
-    app = mcp.http_app(transport="streamable-http")
+    app = mcp.http_app(transport="streamable-http", stateless_http=True)
 
     _original_lifespan = app.lifespan
 
