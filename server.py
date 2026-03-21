@@ -87,8 +87,16 @@ async def ready_check(_request):
     return Response(status_code=200)
 
 
+class _HealthCheckFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return not any(p in msg for p in ("/health", "/ready"))
+
+
 if __name__ == "__main__":
     import uvicorn
+
+    logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
 
     app = mcp.http_app(transport="streamable-http")
 
