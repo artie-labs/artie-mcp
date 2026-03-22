@@ -44,6 +44,27 @@ class _ForwardAuth(httpx.Auth):
         yield request
 
 
+def _clear_output_schema_for_optional_body(route, component):
+    """Remove output_schema from tools whose endpoint may return 204 (No Content).
+
+    FastMCP's parser drops bodiless responses from route.responses, so we look
+    up the original spec. The MCP protocol requires structured output whenever
+    an outputSchema is declared, but a 204 has no body to return.
+    """
+    from fastmcp.tools.tool import Tool
+
+    if not isinstance(component, Tool) or component.output_schema is None:
+        return
+    spec_responses = (
+        openapi_spec.get("paths", {})
+        .get(route.path, {})
+        .get(route.method.lower(), {})
+        .get("responses", {})
+    )
+    if "204" in spec_responses:
+        component.output_schema = None
+
+
 client = httpx.AsyncClient(
     base_url="https://api.artie.com",
     auth=_ForwardAuth(),
@@ -54,6 +75,7 @@ mcp = FastMCP.from_openapi(
     client=client,
     name="Artie",
     auth=DebugTokenVerifier(),
+    mcp_component_fn=_clear_output_schema_for_optional_body,
 )
 
 
