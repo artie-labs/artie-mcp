@@ -26,7 +26,7 @@ uv sync
 
 ## Run Server Locally
 ```bash
-uv run server.py
+uvicorn server:app --reload
 ```
 
 ## Release

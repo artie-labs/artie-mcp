@@ -115,23 +115,25 @@ class _HealthCheckFilter(logging.Filter):
         return not any(p in msg for p in ("/health", "/ready"))
 
 
+app = mcp.http_app(transport="streamable-http", stateless_http=True)
+
+_original_lifespan = app.lifespan
+
+
+@contextlib.asynccontextmanager
+async def _lifespan(a):
+    async with _original_lifespan(a):
+        task = asyncio.create_task(_poll_spec())
+        try:
+            yield
+        finally:
+            task.cancel()
+
+
+app.router.lifespan_context = _lifespan
+
 if __name__ == "__main__":
     import uvicorn
 
     logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
-
-    app = mcp.http_app(transport="streamable-http", stateless_http=True)
-
-    _original_lifespan = app.lifespan
-
-    @contextlib.asynccontextmanager
-    async def _lifespan(a):
-        async with _original_lifespan(a):
-            task = asyncio.create_task(_poll_spec())
-            try:
-                yield
-            finally:
-                task.cancel()
-
-    app.router.lifespan_context = _lifespan
     uvicorn.run(app, host="0.0.0.0", port=8000, timeout_graceful_shutdown=30)
