@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import hashlib
+import json
 import logging
 import os
 import signal
@@ -10,6 +11,7 @@ import yaml
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.dependencies import get_http_headers
+from fastmcp.server.openapi import MCPType, RouteMap
 from starlette.responses import Response
 
 logger = logging.getLogger("artie-mcp")
@@ -44,6 +46,35 @@ class _ForwardAuth(httpx.Auth):
         yield request
 
 
+_REDACTED_KEYS = frozenset({"sharedConfig"})
+
+
+def _strip_secrets(obj):
+    """Recursively remove keys that may contain credentials from a JSON structure."""
+    if isinstance(obj, dict):
+        return {
+            k: _strip_secrets(v)
+            for k, v in obj.items()
+            if k not in _REDACTED_KEYS
+        }
+    if isinstance(obj, list):
+        return [_strip_secrets(item) for item in obj]
+    return obj
+
+
+async def _redact_response(response: httpx.Response):
+    """Strip credentials from API responses so the LLM never sees them."""
+    content_type = response.headers.get("content-type", "")
+    if "application/json" not in content_type:
+        return
+    await response.aread()
+    try:
+        body = json.loads(response.content)
+        response._content = json.dumps(_strip_secrets(body)).encode()
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        pass
+
+
 def _clear_output_schema_for_optional_body(route, component):
     """Remove output_schema from tools whose endpoint may return 204 (No Content).
 
@@ -68,6 +99,12 @@ def _clear_output_schema_for_optional_body(route, component):
 client = httpx.AsyncClient(
     base_url="https://api.artie.com",
     auth=_ForwardAuth(),
+    event_hooks={"response": [_redact_response]},
+)
+
+_raw_client = httpx.AsyncClient(
+    base_url="https://api.artie.com",
+    auth=_ForwardAuth(),
 )
 
 mcp = FastMCP.from_openapi(
@@ -76,7 +113,24 @@ mcp = FastMCP.from_openapi(
     name="Artie",
     auth=DebugTokenVerifier(),
     mcp_component_fn=_clear_output_schema_for_optional_body,
+    route_maps=[
+        RouteMap(pattern=r"^/connectors/ping$", mcp_type=MCPType.EXCLUDE),
+    ],
 )
+
+
+@mcp.tool(name="Ping_a_connector")
+async def ping_connector(
+    uuid: str
+) -> str:
+    """Tests network connectivity and authentication for a saved connector."""
+    get_resp = await _raw_client.get(f"/connectors/{uuid}")
+    get_resp.raise_for_status()
+    connector = get_resp.json()
+
+    ping_resp = await _raw_client.post("/connectors/ping", json=connector)
+    ping_resp.raise_for_status()
+    return ping_resp.text or "Ping successful"
 
 
 async def _poll_spec():
