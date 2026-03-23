@@ -39,7 +39,10 @@ uvicorn server:app --reload
    ```
 
 3. Commit with message "Release vx.x.x"
-
+   ```
+   git add pyproject.toml uv.lock
+   git commit --message "Release vx.x.x"
+   ```
 4. Run release script which builds and pushes a Docker image.
    ```bash
    ./release.sh
