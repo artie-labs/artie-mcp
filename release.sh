@@ -10,4 +10,4 @@ print(data['project']['version'])
 IMAGE="artielabs/artie-mcp"
 
 echo "Building ${IMAGE}:${VERSION}"
-docker build --platform linux/amd64,linux/arm64 -t "${IMAGE}:${VERSION}" -t "${IMAGE}:latest" -t "${IMAGE}:prod" --push .
+docker build --platform linux/amd64,linux/arm64 -t "${IMAGE}:${VERSION}" -t "${IMAGE}:latest" --push .
