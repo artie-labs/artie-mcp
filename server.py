@@ -11,7 +11,7 @@ import yaml
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.dependencies import get_http_headers
-from fastmcp.server.openapi import MCPType, RouteMap
+from fastmcp.server.providers.openapi import MCPType, RouteMap
 from starlette.responses import Response
 
 logger = logging.getLogger("artie-mcp")
