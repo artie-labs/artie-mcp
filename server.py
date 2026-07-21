@@ -79,6 +79,9 @@ async def _redact_response(response: httpx.Response):
 _MCP_ANNOTATION_KEYS = frozenset(
     {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"}
 )
+_OPENAPI_HTTP_METHODS = frozenset(
+    {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
+)
 
 
 def _tool_annotations(route_extensions: dict[str, Any]) -> ToolAnnotations:
@@ -95,6 +98,20 @@ def _tool_annotations(route_extensions: dict[str, Any]) -> ToolAnnotations:
         )
 
     return ToolAnnotations(**annotations)
+
+
+def _validate_openapi_annotations(spec: dict[str, Any]) -> None:
+    for path, path_item in spec.get("paths", {}).items():
+        if not isinstance(path_item, dict):
+            raise ValueError(f"OpenAPI path {path} must be an object")
+        for method, operation in path_item.items():
+            if method.lower() not in _OPENAPI_HTTP_METHODS:
+                continue
+            if not isinstance(operation, dict):
+                raise ValueError(
+                    f"OpenAPI operation {method.upper()} {path} must be an object"
+                )
+            _tool_annotations(operation)
 
 
 def _configure_tool(route, component):
@@ -120,6 +137,8 @@ def _configure_tool(route, component):
     if "204" in spec_responses:
         component.output_schema = None
 
+
+_validate_openapi_annotations(openapi_spec)
 
 client = httpx.AsyncClient(
     base_url="https://api.artie.com",
