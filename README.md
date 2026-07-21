@@ -19,6 +19,10 @@ MCP server for managing your real-time data pipelines in Artie
 }
 ```
 
+## OpenAPI contract
+
+`openapi.yaml` is the pinned `artie-api-spec` release used at runtime. Update it only from a released, immutable `artie-api-spec` version.
+
 ## Setup
 ```bash
 uv sync
