@@ -40,6 +40,9 @@ uv run python -m unittest discover -s tests -v
 ```
 
 ## Smoke-test the production image
+
+This check verifies that `tools/list` renders the OpenAPI `x-artie-mcp` annotations for `List_column_hashing_salts`.
+
 ```bash
 docker build --tag artie-mcp:local .
 docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:local
