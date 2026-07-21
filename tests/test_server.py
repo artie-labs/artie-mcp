@@ -1,7 +1,18 @@
 import asyncio
+import importlib
+import os
+import tempfile
 import unittest
+from pathlib import Path
 
-import server
+from scripts.download_openapi_spec import download_openapi_spec
+
+
+with tempfile.TemporaryDirectory() as temporary_directory:
+    spec_path = Path(temporary_directory) / "openapi.yaml"
+    download_openapi_spec(spec_path)
+    os.environ["ARTIE_MCP_OPENAPI_SPEC_PATH"] = str(spec_path)
+    server = importlib.import_module("server")
 
 
 class TestMCPToolAnnotations(unittest.TestCase):

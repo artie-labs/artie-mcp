@@ -21,7 +21,7 @@ MCP server for managing your real-time data pipelines in Artie
 
 ## OpenAPI contract
 
-`openapi.yaml` is the pinned `artie-api-spec` release used at runtime. Update it only from a released, immutable `artie-api-spec` version.
+The Docker build downloads the pinned `artie-api-spec` release into the image and verifies its SHA-256 before the server starts. The OpenAPI document is not checked into this repository.
 
 ## Setup
 ```bash

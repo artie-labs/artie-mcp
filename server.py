@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,7 @@ from starlette.responses import Response
 
 logger = logging.getLogger("artie-mcp")
 
-_SPEC_PATH = Path(__file__).with_name("openapi.yaml")
+_SPEC_PATH = Path(os.environ.get("ARTIE_MCP_OPENAPI_SPEC_PATH", "/app/openapi.yaml"))
 _MCP_ANNOTATION_KEYS = frozenset(
     {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"}
 )
