@@ -20,8 +20,23 @@ _MCP_ANNOTATION_KEYS = frozenset(
     {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"}
 )
 
-with _SPEC_PATH.open() as spec_file:
-    openapi_spec = yaml.safe_load(spec_file)
+
+def _load_openapi_spec(spec_path: Path) -> dict[str, Any]:
+    try:
+        with spec_path.open() as spec_file:
+            openapi_spec = yaml.safe_load(spec_file)
+    except OSError as error:
+        raise RuntimeError(f"failed to read OpenAPI spec at {spec_path}") from error
+    except yaml.YAMLError as error:
+        raise RuntimeError(f"failed to parse OpenAPI spec at {spec_path}") from error
+
+    if not isinstance(openapi_spec, dict):
+        raise ValueError(f"OpenAPI spec at {spec_path} must be an object")
+
+    return openapi_spec
+
+
+openapi_spec = _load_openapi_spec(_SPEC_PATH)
 
 
 class _ForwardAuth(httpx.Auth):

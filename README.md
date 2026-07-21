@@ -33,6 +33,16 @@ uv sync
 uvicorn server:app --reload
 ```
 
+## Verify
+```bash
+uv sync --locked --all-groups
+uv lock --check
+uv run ruff format --check .
+uv run ruff check .
+uv run python -m compileall -q server.py scripts tests
+uv run python -m unittest discover -s tests -v
+```
+
 ## Release
 
 1. Update version in pyproject.toml

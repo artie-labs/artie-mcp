@@ -44,3 +44,11 @@ class TestMCPToolAnnotations(unittest.TestCase):
                     }
                 }
             )
+
+    def test_invalid_openapi_yaml_has_actionable_error(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            spec_path = Path(temporary_directory) / "invalid-openapi.yaml"
+            spec_path.write_text("invalid: [")
+
+            with self.assertRaisesRegex(RuntimeError, "failed to parse OpenAPI spec"):
+                server._load_openapi_spec(spec_path)

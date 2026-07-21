@@ -8,7 +8,13 @@ OPENAPI_SPEC_SHA256 = "fbd57a5d2b0a741022df2f577c7fd98647989cb93cbc292a182498a7f
 
 
 def download_openapi_spec(destination: Path) -> None:
-    spec = urllib.request.urlopen(OPENAPI_SPEC_URL, timeout=30).read()
+    try:
+        spec = urllib.request.urlopen(OPENAPI_SPEC_URL, timeout=30).read()
+    except OSError as error:
+        raise RuntimeError(
+            f"failed to download OpenAPI spec from {OPENAPI_SPEC_URL}"
+        ) from error
+
     actual_checksum = hashlib.sha256(spec).hexdigest()
     if actual_checksum != OPENAPI_SPEC_SHA256:
         raise ValueError(
