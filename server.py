@@ -40,7 +40,9 @@ class _ForwardAuth(httpx.Auth):
     """Forward the MCP client's bearer token to the upstream Artie API."""
 
     def auth_flow(self, request):
-        auth_header = get_http_headers(include={"authorization"}).get("authorization", "")
+        auth_header = get_http_headers(include={"authorization"}).get(
+            "authorization", ""
+        )
         if auth_header:
             request.headers["Authorization"] = auth_header
         yield request
@@ -52,11 +54,7 @@ _REDACTED_KEYS = frozenset({"sharedConfig"})
 def _strip_secrets(obj):
     """Recursively remove keys that may contain credentials from a JSON structure."""
     if isinstance(obj, dict):
-        return {
-            k: _strip_secrets(v)
-            for k, v in obj.items()
-            if k not in _REDACTED_KEYS
-        }
+        return {k: _strip_secrets(v) for k, v in obj.items() if k not in _REDACTED_KEYS}
     if isinstance(obj, list):
         return [_strip_secrets(item) for item in obj]
     return obj
@@ -71,7 +69,7 @@ async def _redact_response(response: httpx.Response):
     try:
         body = json.loads(response.content)
         response._content = json.dumps(_strip_secrets(body)).encode()
-    except (json.JSONDecodeError, UnicodeDecodeError):
+    except json.JSONDecodeError, UnicodeDecodeError:
         pass
 
 
@@ -120,9 +118,7 @@ mcp = FastMCP.from_openapi(
 
 
 @mcp.tool(name="Ping_a_connector")
-async def ping_connector(
-    uuid: str
-) -> str:
+async def ping_connector(uuid: str) -> str:
     """Tests network connectivity and authentication for a saved connector."""
     get_resp = await _raw_client.get(f"/connectors/{uuid}")
     get_resp.raise_for_status()
