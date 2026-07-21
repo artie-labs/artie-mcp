@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import json
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -24,6 +25,28 @@ async def smoke_test(url: str):
     tool_names = {tool.name for tool in tools.tools}
     if "Ping_a_connector" not in tool_names:
         raise AssertionError("MCP tools/list response is missing Ping_a_connector")
+
+    tool = next(
+        (tool for tool in tools.tools if tool.name == "List_column_hashing_salts"),
+        None,
+    )
+    if tool is None:
+        raise AssertionError(
+            "MCP tools/list response is missing List_column_hashing_salts"
+        )
+    if tool.annotations is None:
+        raise AssertionError("List_column_hashing_salts is missing annotations")
+
+    annotations = tool.annotations.model_dump(exclude_none=True)
+    print(json.dumps({"tool": tool.name, "annotations": annotations}, sort_keys=True))
+    expected_annotations = {
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
+    if annotations != expected_annotations:
+        raise AssertionError(f"unexpected annotations for {tool.name}: {annotations!r}")
 
 
 if __name__ == "__main__":

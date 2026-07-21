@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import signal
+from typing import Any
 
 import httpx
 import yaml
@@ -12,6 +13,7 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
+from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
 logger = logging.getLogger("artie-mcp")
@@ -73,16 +75,38 @@ async def _redact_response(response: httpx.Response):
         pass
 
 
-def _clear_output_schema_for_optional_body(route, component):
-    """Remove output_schema from tools whose endpoint may return 204 (No Content).
+_MCP_ANNOTATION_KEYS = frozenset(
+    {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"}
+)
 
-    FastMCP's parser drops bodiless responses from route.responses, so we look
-    up the original spec. The MCP protocol requires structured output whenever
-    an outputSchema is declared, but a 204 has no body to return.
-    """
+
+def _tool_annotations(route_extensions: dict[str, Any]) -> ToolAnnotations:
+    annotations = route_extensions.get("x-artie-mcp")
+    if not isinstance(annotations, dict):
+        raise ValueError("x-artie-mcp must be an object")
+    if set(annotations) != _MCP_ANNOTATION_KEYS:
+        raise ValueError(
+            "x-artie-mcp must contain exactly the MCP tool annotation fields"
+        )
+    if any(type(value) is not bool for value in annotations.values()):
+        raise ValueError("x-artie-mcp tool annotation fields must be booleans")
+
+    return ToolAnnotations(**annotations)
+
+
+def _configure_tool(route, component):
+    """Apply the OpenAPI tool contract to each generated FastMCP tool."""
     from fastmcp.tools.tool import Tool
 
-    if not isinstance(component, Tool) or component.output_schema is None:
+    if not isinstance(component, Tool):
+        return
+
+    component.annotations = _tool_annotations(route.extensions)
+
+    # FastMCP's parser drops bodiless responses from route.responses, so we look
+    # up the original spec. The MCP protocol requires structured output whenever
+    # an outputSchema is declared, but a 204 has no body to return.
+    if component.output_schema is None:
         return
     spec_responses = (
         openapi_spec.get("paths", {})
@@ -110,7 +134,7 @@ mcp = FastMCP.from_openapi(
     client=client,
     name="Artie",
     auth=DebugTokenVerifier(),
-    mcp_component_fn=_clear_output_schema_for_optional_body,
+    mcp_component_fn=_configure_tool,
     route_maps=[
         RouteMap(pattern=r"^/connectors/ping$", mcp_type=MCPType.EXCLUDE),
     ],
