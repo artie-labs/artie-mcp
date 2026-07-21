@@ -21,6 +21,7 @@ logger = logging.getLogger("artie-mcp")
 _SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
 _SPEC_POLL_INTERVAL = 120
 _DRAIN_DELAY = 5
+_MCP_ANNOTATION_EXTENSION = "x-artie-mcp"
 
 _shutting_down = False
 
@@ -81,15 +82,17 @@ _MCP_ANNOTATION_KEYS = frozenset(
 
 
 def _tool_annotations(route_extensions: dict[str, Any]) -> ToolAnnotations:
-    annotations = route_extensions.get("x-artie-mcp")
+    annotations = route_extensions.get(_MCP_ANNOTATION_EXTENSION)
     if not isinstance(annotations, dict):
-        raise ValueError("x-artie-mcp must be an object")
+        raise ValueError(f"{_MCP_ANNOTATION_EXTENSION} must be an object")
     if set(annotations) != _MCP_ANNOTATION_KEYS:
         raise ValueError(
-            "x-artie-mcp must contain exactly the MCP tool annotation fields"
+            f"{_MCP_ANNOTATION_EXTENSION} must contain exactly the MCP tool annotation fields"
         )
     if any(type(value) is not bool for value in annotations.values()):
-        raise ValueError("x-artie-mcp tool annotation fields must be booleans")
+        raise ValueError(
+            f"{_MCP_ANNOTATION_EXTENSION} tool annotation fields must be booleans"
+        )
 
     return ToolAnnotations(**annotations)
 
