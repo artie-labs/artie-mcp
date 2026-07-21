@@ -145,6 +145,21 @@ class TestServer(unittest.TestCase):
             tool.annotations.model_dump(exclude_none=True),
         )
 
+    def test_malformed_openapi_fails_during_server_construction(self):
+        malformed_response = _OpenAPIResponse()
+        malformed_response.text = malformed_response.text.replace(
+            "readOnlyHint: true", "readOnlyHint: invalid", 1
+        )
+        sys.modules.pop("server", None)
+
+        try:
+            with patch.object(httpx, "get", return_value=malformed_response):
+                with self.assertRaisesRegex(ValueError, "fields must be booleans"):
+                    importlib.import_module("server")
+        finally:
+            sys.modules.pop("server", None)
+            sys.modules["server"] = self.server
+
     def test_annotations_reject_malformed_openapi_extensions(self):
         valid_annotations = {
             "readOnlyHint": True,
