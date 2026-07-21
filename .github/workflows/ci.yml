@@ -25,3 +25,40 @@ jobs:
       - run: uv run ruff check .
       - run: uv run python -m compileall -q server.py tests
       - run: uv run python -m unittest discover -s tests -v
+
+  container-smoke:
+    name: container-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: "0.11.6"
+          python-version: "3.14"
+          enable-cache: true
+      - run: uv sync --locked --all-groups
+      - name: Build, start, and smoke-test image
+        run: |
+          set -euo pipefail
+          container_name=artie-mcp-ci
+          cleanup() {
+            docker logs "$container_name" || true
+            docker rm --force "$container_name" || true
+          }
+          trap cleanup EXIT
+
+          docker build --tag "artie-mcp:${GITHUB_SHA}" .
+          docker run --detach --name "$container_name" -p 127.0.0.1::8000 "artie-mcp:${GITHUB_SHA}"
+          port="$(docker port "$container_name" 8000/tcp | awk -F: '{print $NF}')"
+          base_url="http://127.0.0.1:${port}"
+
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error "$base_url/health" && curl --fail --silent --show-error "$base_url/ready"; then
+              uv run --no-sync python tests/smoke_client.py --url "$base_url/mcp"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "container did not become healthy" >&2
+          exit 1
