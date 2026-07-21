@@ -28,10 +28,16 @@ paths:
 class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        sys.modules.pop("server", None)
+        cls._previous_server = sys.modules.pop("server", None)
         with patch.object(httpx, "get", return_value=_OpenAPIResponse()) as get:
             cls.server = importlib.import_module("server")
         get.assert_called_once_with(cls.server._SPEC_URL)
+
+    @classmethod
+    def tearDownClass(cls):
+        sys.modules.pop("server", None)
+        if cls._previous_server is not None:
+            sys.modules["server"] = cls._previous_server
 
     def test_hash_is_deterministic(self):
         self.assertEqual(
