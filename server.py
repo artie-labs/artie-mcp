@@ -11,7 +11,7 @@ import yaml
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.auth.providers.workos import AuthKitProvider
-from fastmcp.server.dependencies import get_http_headers
+from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
 from starlette.responses import Response
 
@@ -20,6 +20,8 @@ logger = logging.getLogger("artie-mcp")
 _SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
 _SPEC_POLL_INTERVAL = 120
 _DRAIN_DELAY = 5
+_DIAGNOSTIC_CLAIMS_ENABLED = "WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS"
+_DIAGNOSTIC_CLAIM_NAMES = frozenset({"iss", "aud", "sub", "sid", "scope", "org_id", "exp", "iat"})
 
 _shutting_down = False
 
@@ -147,6 +149,26 @@ async def ping_connector(uuid: str) -> str:
     ping_resp = await _raw_client.post("/connectors/ping", json=connector)
     ping_resp.raise_for_status()
     return ping_resp.text or "Ping successful"
+
+
+@mcp.tool(name="AuthKit_token_diagnostics")
+def authkit_token_diagnostics() -> dict:
+    """Returns a safe summary of the verified token for non-production OAuth diagnostics."""
+    if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) != "true":
+        raise RuntimeError("AuthKit token diagnostics are disabled")
+
+    token = get_access_token()
+    if token is None:
+        raise RuntimeError("No authenticated access token is available")
+
+    claims = {name: token.claims[name] for name in _DIAGNOSTIC_CLAIM_NAMES if name in token.claims}
+    return {
+        "claims": claims,
+        "client_id": token.client_id,
+        "resource": token.resource,
+        "scopes": token.scopes,
+        "token_fingerprint": hashlib.sha256(token.token.encode()).hexdigest()[:16],
+    }
 
 
 async def _poll_spec():
