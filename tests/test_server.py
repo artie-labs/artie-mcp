@@ -64,3 +64,29 @@ class TestServer(unittest.TestCase):
                 }
             ),
         )
+
+    def test_authkit_provider_requires_both_settings(self):
+        with patch.dict(
+            "os.environ",
+            {"WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app"},
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "must be set together"):
+                self.server._build_auth_provider()
+
+    def test_authkit_provider_uses_public_mcp_resource_url(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
+                "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app/",
+            },
+            clear=True,
+        ):
+            provider = self.server._build_auth_provider()
+
+        self.assertEqual("https://example.authkit.app", provider.authkit_domain)
+        self.assertEqual(
+            "https://example.ngrok.app", str(provider.base_url).rstrip("/")
+        )
+        self.assertEqual("Artie MCP", provider.resource_name)

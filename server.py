@@ -10,6 +10,7 @@ import httpx
 import yaml
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
+from fastmcp.server.auth.providers.workos import AuthKitProvider
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
 from starlette.responses import Response
@@ -34,6 +35,25 @@ def _hash(text: str) -> str:
 _spec_text = _fetch_spec_text()
 _spec_hash = _hash(_spec_text)
 openapi_spec = yaml.safe_load(_spec_text)
+
+
+def _build_auth_provider():
+    authkit_domain = os.getenv("WORKOS_AUTHKIT_DOMAIN", "").rstrip("/")
+    public_base_url = os.getenv("MCP_PUBLIC_BASE_URL", "").rstrip("/")
+
+    if not authkit_domain and not public_base_url:
+        return DebugTokenVerifier()
+    if not authkit_domain or not public_base_url:
+        raise RuntimeError(
+            "WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL must be set together"
+        )
+
+    return AuthKitProvider(
+        authkit_domain=authkit_domain,
+        base_url=public_base_url,
+        resource_base_url=f"{public_base_url}/mcp",
+        resource_name="Artie MCP",
+    )
 
 
 class _ForwardAuth(httpx.Auth):
@@ -109,7 +129,7 @@ mcp = FastMCP.from_openapi(
     openapi_spec=openapi_spec,
     client=client,
     name="Artie",
-    auth=DebugTokenVerifier(),
+    auth=_build_auth_provider(),
     mcp_component_fn=_clear_output_schema_for_optional_body,
     route_maps=[
         RouteMap(pattern=r"^/connectors/ping$", mcp_type=MCPType.EXCLUDE),
