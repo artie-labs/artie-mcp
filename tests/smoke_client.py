@@ -56,14 +56,22 @@ async def smoke_test(url: str, openapi_url: str):
     if not tools.tools:
         raise AssertionError("MCP tools/list response is empty")
 
-    rendered_annotations = Counter(
-        annotation_fingerprint(tool.annotations.model_dump(exclude_none=True))
-        for tool in tools.tools
-        if tool.annotations is not None
-    )
+    missing_annotations = [
+        tool.name for tool in tools.tools if tool.annotations is None
+    ]
+    if missing_annotations:
+        raise AssertionError(
+            f"MCP tools/list response is missing annotations: {missing_annotations!r}"
+        )
+
+    rendered_annotations = Counter()
+    for tool in tools.tools:
+        assert tool.annotations is not None
+        rendered_annotations[
+            annotation_fingerprint(tool.annotations.model_dump(exclude_none=True))
+        ] += 1
+
     expected_annotations = openapi_annotation_counts(openapi_url)
-    unexpected_annotations = rendered_annotations - expected_annotations
-    missing_annotation_shapes = set(expected_annotations) - set(rendered_annotations)
     print(
         json.dumps(
             {
@@ -77,9 +85,9 @@ async def smoke_test(url: str, openapi_url: str):
             sort_keys=True,
         )
     )
-    if unexpected_annotations or missing_annotation_shapes:
+    if rendered_annotations != expected_annotations:
         raise AssertionError(
-            "MCP tools/list annotations do not match the OpenAPI annotation shapes"
+            "MCP tools/list annotation counts do not match the OpenAPI contract"
         )
 
 

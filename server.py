@@ -114,6 +114,11 @@ def _validate_openapi_annotations(spec: dict[str, Any]) -> None:
             _tool_annotations(operation)
 
 
+def _operation_annotations(path: str, method: str) -> ToolAnnotations:
+    operation = openapi_spec["paths"][path][method]
+    return _tool_annotations(operation)
+
+
 def _configure_tool(route, component):
     """Apply the OpenAPI tool contract to each generated FastMCP tool."""
     from fastmcp.tools.tool import Tool
@@ -163,7 +168,10 @@ mcp = FastMCP.from_openapi(
 )
 
 
-@mcp.tool(name="Ping_a_connector")
+@mcp.tool(
+    name="Ping_a_connector",
+    annotations=_operation_annotations("/connectors/ping", "post"),
+)
 async def ping_connector(uuid: str) -> str:
     """Tests network connectivity and authentication for a saved connector."""
     get_resp = await _raw_client.get(f"/connectors/{uuid}")

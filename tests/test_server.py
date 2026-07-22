@@ -61,6 +61,17 @@ paths:
         destructiveHint: true
         idempotentHint: true
         openWorldHint: false
+  /connectors/ping:
+    post:
+      operationId: pingConnector
+      responses:
+        '200':
+          description: OK
+      x-artie-mcp:
+        readOnlyHint: true
+        destructiveHint: false
+        idempotentHint: true
+        openWorldHint: true
 """
 
     def raise_for_status(self):
@@ -129,6 +140,17 @@ class TestServer(unittest.TestCase):
                 "openWorldHint": True,
             },
             self.tool("writeThing").annotations.model_dump(exclude_none=True),
+        )
+
+    def test_custom_ping_tool_receives_openapi_annotations(self):
+        self.assertEqual(
+            {
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": True,
+            },
+            self.tool("Ping_a_connector").annotations.model_dump(exclude_none=True),
         )
 
     def test_204_operations_keep_annotations_without_an_output_schema(self):
