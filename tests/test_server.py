@@ -89,4 +89,8 @@ class TestServer(unittest.TestCase):
         self.assertEqual(
             "https://example.ngrok.app", str(provider.base_url).rstrip("/")
         )
+        provider.set_mcp_path("/mcp")
+        self.assertEqual(
+            "https://example.ngrok.app/mcp", str(provider._resource_url).rstrip("/")
+        )
         self.assertEqual("Artie MCP", provider.resource_name)

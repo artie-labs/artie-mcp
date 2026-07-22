@@ -51,7 +51,7 @@ def _build_auth_provider():
     return AuthKitProvider(
         authkit_domain=authkit_domain,
         base_url=public_base_url,
-        resource_base_url=f"{public_base_url}/mcp",
+        resource_base_url=public_base_url,
         resource_name="Artie MCP",
     )
 
