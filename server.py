@@ -161,7 +161,11 @@ def authkit_token_diagnostics() -> dict:
     if token is None:
         raise RuntimeError("No authenticated access token is available")
 
-    claims = {name: token.claims[name] for name in _DIAGNOSTIC_CLAIM_NAMES if name in token.claims}
+    claims = {
+        name: value
+        for name, value in token.claims.items()
+        if name in _DIAGNOSTIC_CLAIM_NAMES or name.startswith("urn:artie:")
+    }
     return {
         "claims": claims,
         "client_id": token.client_id,
