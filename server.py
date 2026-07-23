@@ -11,6 +11,7 @@ import yaml
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.auth.providers.workos import AuthKitProvider
+from fastmcp.server.auth import require_scopes
 from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
 from starlette.responses import Response
@@ -22,6 +23,7 @@ _SPEC_POLL_INTERVAL = 120
 _DRAIN_DELAY = 5
 _DIAGNOSTIC_CLAIMS_ENABLED = "WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS"
 _DIAGNOSTIC_CLAIM_NAMES = frozenset({"iss", "aud", "sub", "sid", "scope", "org_id", "exp", "iat"})
+_ARTIE_SCOPES = ["artie:read", "artie:write"]
 
 _shutting_down = False
 
@@ -54,6 +56,7 @@ def _build_auth_provider():
         authkit_domain=authkit_domain,
         base_url=public_base_url,
         resource_base_url=public_base_url,
+        scopes_supported=_ARTIE_SCOPES,
         resource_name="Artie MCP",
     )
 
@@ -151,7 +154,7 @@ async def ping_connector(uuid: str) -> str:
     return ping_resp.text or "Ping successful"
 
 
-@mcp.tool(name="AuthKit_token_diagnostics")
+@mcp.tool(name="AuthKit_token_diagnostics", auth=require_scopes("artie:read"))
 def authkit_token_diagnostics() -> dict:
     """Returns a safe summary of the verified token for non-production OAuth diagnostics."""
     if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) != "true":
