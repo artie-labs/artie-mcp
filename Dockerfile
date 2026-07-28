@@ -8,6 +8,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY server.py ./
+COPY openapi/openapi.yaml ./openapi/openapi.yaml
 
 EXPOSE 8000
 

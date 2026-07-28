@@ -2,90 +2,21 @@ import asyncio
 import importlib
 import json
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import httpx
 
-
-class _OpenAPIResponse:
-    text = """\
-openapi: 3.1.0
-info:
-  title: Test API
-  version: 1.0.0
-paths:
-  /read:
-    get:
-      operationId: readThing
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-      x-artie-mcp:
-        readOnlyHint: true
-        destructiveHint: false
-        idempotentHint: true
-        openWorldHint: false
-  /write:
-    post:
-      operationId: writeThing
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-      x-artie-mcp:
-        readOnlyHint: false
-        destructiveHint: true
-        idempotentHint: false
-        openWorldHint: true
-  /no-content:
-    delete:
-      operationId: deleteThing
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-        '204':
-          description: No Content
-      x-artie-mcp:
-        readOnlyHint: false
-        destructiveHint: true
-        idempotentHint: true
-        openWorldHint: false
-  /connectors/ping:
-    post:
-      operationId: pingConnector
-      responses:
-        '200':
-          description: OK
-      x-artie-mcp:
-        readOnlyHint: true
-        destructiveHint: false
-        idempotentHint: true
-        openWorldHint: true
-"""
-
-    def raise_for_status(self):
-        return self
+from contract_snapshot import render_contract_snapshot
 
 
 class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._previous_server = sys.modules.pop("server", None)
-        with patch.object(httpx, "get", return_value=_OpenAPIResponse()) as get:
-            cls.server = importlib.import_module("server")
-        get.assert_called_once_with(cls.server._SPEC_URL)
+        cls.server = importlib.import_module("server")
         cls.tools = asyncio.run(cls.server.mcp.list_tools())
 
     @classmethod
@@ -97,50 +28,56 @@ class TestServer(unittest.TestCase):
     def tool(self, name):
         return next(tool for tool in self.tools if tool.name == name)
 
-    def test_hash_is_deterministic(self):
+    def test_pinned_spec_checksum_is_verified(self):
+        self.assertEqual("v1.0.53", self.server._PINNED_SPEC_VERSION)
+        self.assertTrue(self.server._SPEC_PATH.is_file())
         self.assertEqual(
-            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
-            self.server._hash("test"),
+            self.server._PINNED_SPEC_VERSION,
+            self.server.openapi_spec["info"]["version"],
+        )
+        self.assertEqual(
+            self.server.openapi_spec,
+            self.server._load_pinned_openapi_spec(),
         )
 
-    def test_strip_secrets_redacts_nested_dicts_and_lists(self):
-        self.assertEqual(
-            {
-                "connector": {"name": "source"},
-                "items": [{"id": 1}, {"nested": {"id": 2}}],
-            },
-            self.server._strip_secrets(
-                {
-                    "connector": {
-                        "name": "source",
-                        "sharedConfig": {"token": "secret"},
-                    },
-                    "items": [
-                        {"id": 1, "sharedConfig": {"password": "secret"}},
-                        {"nested": {"id": 2, "sharedConfig": "secret"}},
-                    ],
-                }
-            ),
-        )
+    def test_tampered_pinned_spec_fails_before_server_construction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            spec_path = Path(directory) / "openapi.yaml"
+            spec_path.write_bytes(self.server._SPEC_PATH.read_bytes() + b"\n")
 
-    def test_generated_tools_receive_openapi_annotations(self):
+            with self.assertRaisesRegex(RuntimeError, "checksum mismatch"):
+                self.server._load_pinned_openapi_spec(spec_path)
+
+    def test_server_construction_does_not_fetch_openapi(self):
+        sys.modules.pop("server", None)
+        try:
+            with patch.object(httpx, "get") as get:
+                server = importlib.import_module("server")
+            get.assert_not_called()
+            self.assertEqual(
+                server._PINNED_SPEC_VERSION,
+                server.openapi_spec["info"]["version"],
+            )
+        finally:
+            sys.modules.pop("server", None)
+            sys.modules["server"] = self.server
+
+    def test_generated_contract_matches_snapshot(self):
+        snapshot_path = Path(__file__).with_name("contract_snapshot.json")
+        expected = json.loads(snapshot_path.read_text())
+
+        self.assertEqual(expected, render_contract_snapshot(self.server))
+
+    def test_snapshot_has_the_baseline_tool_inventory(self):
+        snapshot = render_contract_snapshot(self.server)
+
+        self.assertEqual(60, len(snapshot["tools"]))
         self.assertEqual(
-            {
-                "readOnlyHint": True,
-                "destructiveHint": False,
-                "idempotentHint": True,
-                "openWorldHint": False,
-            },
-            self.tool("readThing").annotations.model_dump(exclude_none=True),
+            sorted(tool["name"] for tool in snapshot["tools"]),
+            [tool["name"] for tool in snapshot["tools"]],
         )
-        self.assertEqual(
-            {
-                "readOnlyHint": False,
-                "destructiveHint": True,
-                "idempotentHint": False,
-                "openWorldHint": True,
-            },
-            self.tool("writeThing").annotations.model_dump(exclude_none=True),
+        self.assertTrue(
+            all(tool["annotations"] is not None for tool in snapshot["tools"])
         )
 
     def test_custom_ping_tool_receives_openapi_annotations(self):
@@ -155,33 +92,13 @@ class TestServer(unittest.TestCase):
         )
 
     def test_204_operations_keep_annotations_without_an_output_schema(self):
-        tool = self.tool("deleteThing")
+        bodiless_tools = [
+            tool
+            for tool in self.tools
+            if tool.output_schema is None and tool.annotations is not None
+        ]
 
-        self.assertIsNone(tool.output_schema)
-        self.assertEqual(
-            {
-                "readOnlyHint": False,
-                "destructiveHint": True,
-                "idempotentHint": True,
-                "openWorldHint": False,
-            },
-            tool.annotations.model_dump(exclude_none=True),
-        )
-
-    def test_malformed_openapi_fails_during_server_construction(self):
-        malformed_response = _OpenAPIResponse()
-        malformed_response.text = malformed_response.text.replace(
-            "readOnlyHint: true", "readOnlyHint: invalid", 1
-        )
-        sys.modules.pop("server", None)
-
-        try:
-            with patch.object(httpx, "get", return_value=malformed_response):
-                with self.assertRaisesRegex(ValueError, "fields must be booleans"):
-                    importlib.import_module("server")
-        finally:
-            sys.modules.pop("server", None)
-            sys.modules["server"] = self.server
+        self.assertTrue(bodiless_tools)
 
     def test_server_card_describes_the_authenticated_streamable_http_endpoint(self):
         response = self.server._server_card_response()

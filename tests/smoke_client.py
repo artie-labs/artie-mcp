@@ -1,8 +1,8 @@
 import argparse
 import asyncio
 import json
-import urllib.request
 from collections import Counter
+from pathlib import Path
 
 import yaml
 from mcp import ClientSession
@@ -18,7 +18,7 @@ _HTTP_METHODS = frozenset(
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", required=True)
-    parser.add_argument("--openapi-url", required=True)
+    parser.add_argument("--openapi-path", type=Path, required=True)
     return parser.parse_args()
 
 
@@ -26,9 +26,9 @@ def annotation_fingerprint(annotations: dict) -> str:
     return json.dumps(annotations, sort_keys=True)
 
 
-def openapi_annotation_counts(openapi_url: str) -> Counter[str]:
-    with urllib.request.urlopen(openapi_url, timeout=30) as response:
-        spec = yaml.safe_load(response)
+def openapi_annotation_counts(openapi_path: Path) -> Counter[str]:
+    with openapi_path.open() as file:
+        spec = yaml.safe_load(file)
 
     annotations = Counter()
     for path_item in spec.get("paths", {}).values():
@@ -45,7 +45,7 @@ def openapi_annotation_counts(openapi_url: str) -> Counter[str]:
     return annotations
 
 
-async def smoke_test(url: str, openapi_url: str):
+async def smoke_test(url: str, openapi_path: Path):
     async with streamablehttp_client(
         url, headers={"Authorization": f"Bearer {_SMOKE_TOKEN}"}
     ) as (read_stream, write_stream, _):
@@ -71,7 +71,7 @@ async def smoke_test(url: str, openapi_url: str):
             annotation_fingerprint(tool.annotations.model_dump(exclude_none=True))
         ] += 1
 
-    expected_annotations = openapi_annotation_counts(openapi_url)
+    expected_annotations = openapi_annotation_counts(openapi_path)
     print(
         json.dumps(
             {
@@ -93,4 +93,4 @@ async def smoke_test(url: str, openapi_url: str):
 
 if __name__ == "__main__":
     arguments = parse_arguments()
-    asyncio.run(smoke_test(arguments.url, arguments.openapi_url))
+    asyncio.run(smoke_test(arguments.url, arguments.openapi_path))

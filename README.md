@@ -39,9 +39,16 @@ uv run python -m compileall -q server.py tests
 uv run python -m unittest discover -s tests -v
 ```
 
+## Pinned OpenAPI contract
+
+The image vendors `artie-api-spec` `v1.0.53` in `openapi/openapi.yaml`. `server.py`
+verifies its SHA-256 before constructing FastMCP, so startup does not require GitHub.
+Update the artifact, `_PINNED_SPEC_VERSION`, `_PINNED_SPEC_SHA256`, and
+`tests/contract_snapshot.json` together in a reviewed PR.
+
 ## Smoke-test the production image
 
-This check verifies that `tools/list` renders the OpenAPI `x-artie-mcp` annotation shapes without relying on a route or tool-name allowlist.
+This check verifies that `tools/list` renders the annotations from the pinned `artie-api-spec` artifact.
 
 ```bash
 docker build --tag artie-mcp:local .
@@ -49,7 +56,7 @@ docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:loc
 port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
 trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
 until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
-uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --openapi-url "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
+uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --openapi-path openapi/openapi.yaml
 ```
 
 ## Release

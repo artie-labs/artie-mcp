@@ -1,10 +1,7 @@
-import asyncio
-import contextlib
 import hashlib
 import json
 import logging
-import os
-import signal
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -16,11 +13,9 @@ from fastmcp.server.providers.openapi import MCPType, RouteMap
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
-logger = logging.getLogger("artie-mcp")
-
-_SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
-_SPEC_POLL_INTERVAL = 120
-_DRAIN_DELAY = 5
+_PINNED_SPEC_VERSION = "v1.0.53"
+_PINNED_SPEC_SHA256 = "fbd57a5d2b0a741022df2f577c7fd98647989cb93cbc292a182498a7fdc14495"
+_SPEC_PATH = Path(__file__).parent / "openapi" / "openapi.yaml"
 _MCP_ANNOTATION_EXTENSION = "x-artie-mcp"
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
 
@@ -67,11 +62,26 @@ _SERVER_CARD = {
 # TODO: Add supportedProtocolVersions after verifying the production MCP protocol version.
 # TODO: Add repository metadata after artie-mcp becomes public.
 
-_shutting_down = False
 
+def _load_pinned_openapi_spec(spec_path: Path = _SPEC_PATH) -> dict[str, Any]:
+    try:
+        spec_bytes = spec_path.read_bytes()
+    except OSError as exc:
+        raise RuntimeError(f"failed to read pinned OpenAPI spec: {spec_path}") from exc
 
-def _fetch_spec_text() -> str:
-    return httpx.get(_SPEC_URL).raise_for_status().text
+    actual_sha256 = hashlib.sha256(spec_bytes).hexdigest()
+    if actual_sha256 != _PINNED_SPEC_SHA256:
+        raise RuntimeError(
+            f"pinned OpenAPI spec checksum mismatch: expected {_PINNED_SPEC_SHA256}, got {actual_sha256}"
+        )
+
+    try:
+        spec = yaml.safe_load(spec_bytes)
+    except yaml.YAMLError as exc:
+        raise RuntimeError("failed to parse pinned OpenAPI spec") from exc
+    if not isinstance(spec, dict):
+        raise RuntimeError("pinned OpenAPI spec must be an object")
+    return spec
 
 
 def _hash(text: str) -> str:
@@ -82,9 +92,7 @@ _SERVER_CARD_BODY = json.dumps(_SERVER_CARD, separators=(",", ":"))
 _SERVER_CARD_ETAG = f'"{_hash(_SERVER_CARD_BODY)}"'
 
 
-_spec_text = _fetch_spec_text()
-_spec_hash = _hash(_spec_text)
-openapi_spec = yaml.safe_load(_spec_text)
+openapi_spec = _load_pinned_openapi_spec()
 
 
 class _ForwardAuth(httpx.Auth):
@@ -231,24 +239,6 @@ async def ping_connector(uuid: str) -> str:
     return ping_resp.text or "Ping successful"
 
 
-async def _poll_spec():
-    global _shutting_down
-    while not _shutting_down:
-        await asyncio.sleep(_SPEC_POLL_INTERVAL)
-        try:
-            new_hash = _hash(_fetch_spec_text())
-        except Exception:
-            logger.exception("Failed to fetch spec for change detection")
-            continue
-
-        if new_hash != _spec_hash:
-            logger.info("OpenAPI spec changed, initiating graceful shutdown")
-            _shutting_down = True
-            await asyncio.sleep(_DRAIN_DELAY)
-            os.kill(os.getpid(), signal.SIGTERM)
-            return
-
-
 def _server_card_headers():
     return {
         "access-control-allow-headers": "Content-Type, If-None-Match",
@@ -283,8 +273,6 @@ async def health_check(_request):
 
 @mcp.custom_route("/ready", methods=["GET"])
 async def ready_check(_request):
-    if _shutting_down:
-        return Response(status_code=503)
     return Response(status_code=200)
 
 
@@ -295,21 +283,6 @@ class _HealthCheckFilter(logging.Filter):
 
 
 app = mcp.http_app(transport="streamable-http", stateless_http=True)
-
-_original_lifespan = app.lifespan
-
-
-@contextlib.asynccontextmanager
-async def _lifespan(a):
-    async with _original_lifespan(a):
-        task = asyncio.create_task(_poll_spec())
-        try:
-            yield
-        finally:
-            task.cancel()
-
-
-app.router.lifespan_context = _lifespan
 
 if __name__ == "__main__":
     import uvicorn
