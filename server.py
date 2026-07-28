@@ -269,20 +269,11 @@ def _server_card_response(status_code=200):
     )
 
 
-async def _serve_server_card(request):
+@mcp.custom_route("/mcp/server-card", methods=["GET"])
+async def server_card(request):
     if request.headers.get("if-none-match") == _SERVER_CARD_ETAG:
         return _server_card_response(status_code=304)
     return _server_card_response()
-
-
-@mcp.custom_route("/mcp/server-card", methods=["GET"])
-async def server_card(request):
-    return await _serve_server_card(request)
-
-
-@mcp.custom_route("/.well-known/mcp/server-card.json", methods=["GET"])
-async def well_known_server_card(request):
-    return await _serve_server_card(request)
 
 
 @mcp.custom_route("/health", methods=["GET"])
