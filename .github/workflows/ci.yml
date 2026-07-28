@@ -51,10 +51,11 @@ jobs:
           docker run --detach --name "$container_name" -p 127.0.0.1::8000 "artie-mcp:${GITHUB_SHA}"
           port="$(docker port "$container_name" 8000/tcp | awk -F: '{print $NF}')"
           base_url="http://127.0.0.1:${port}"
+          openapi_url="https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
 
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error "$base_url/health" && curl --fail --silent --show-error "$base_url/ready"; then
-              uv run --no-sync python tests/smoke_client.py --url "$base_url/mcp"
+              uv run --no-sync python tests/smoke_client.py --url "$base_url/mcp" --openapi-url "$openapi_url"
               exit 0
             fi
             sleep 1
