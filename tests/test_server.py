@@ -232,6 +232,28 @@ class TestServer(unittest.TestCase):
             json.loads(response.body),
         )
 
+    def test_well_known_server_card_alias_matches_the_canonical_card(self):
+        async def request_cards():
+            transport = httpx.ASGITransport(app=self.server.app)
+            async with httpx.AsyncClient(
+                transport=transport, base_url="http://testserver"
+            ) as client:
+                canonical = await client.get("/mcp/server-card")
+                well_known = await client.get("/.well-known/mcp/server-card.json")
+                cached = await client.get(
+                    "/.well-known/mcp/server-card.json",
+                    headers={"If-None-Match": well_known.headers["etag"]},
+                )
+            return canonical, well_known, cached
+
+        canonical, well_known, cached = asyncio.run(request_cards())
+
+        self.assertEqual(200, canonical.status_code)
+        self.assertEqual(200, well_known.status_code)
+        self.assertEqual(canonical.content, well_known.content)
+        self.assertEqual(canonical.headers["etag"], well_known.headers["etag"])
+        self.assertEqual(304, cached.status_code)
+
     def test_annotations_reject_malformed_openapi_extensions(self):
         valid_annotations = {
             "readOnlyHint": True,
