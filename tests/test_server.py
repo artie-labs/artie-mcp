@@ -1,5 +1,6 @@
 import asyncio
 import importlib
+import json
 import sys
 import unittest
 from unittest.mock import patch
@@ -181,6 +182,55 @@ class TestServer(unittest.TestCase):
         finally:
             sys.modules.pop("server", None)
             sys.modules["server"] = self.server
+
+    def test_server_card_describes_the_authenticated_streamable_http_endpoint(self):
+        response = self.server._server_card_response()
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(
+            "application/mcp-server-card+json", response.headers["content-type"]
+        )
+        self.assertEqual("public, max-age=3600", response.headers["cache-control"])
+        self.assertEqual("*", response.headers["access-control-allow-origin"])
+        self.assertTrue(response.headers["etag"])
+        self.assertEqual(
+            {
+                "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+                "name": "com.artie/mcp",
+                "version": "0.1.7",
+                "description": "Manage, interact with, and provision Artie resources through the Artie MCP Server.",
+                "title": "Artie MCP Server",
+                "websiteUrl": "https://artie.com/docs/api/overview",
+                "icons": [
+                    {
+                        "src": "https://www.artie.com/brand/logo.svg",
+                        "mimeType": "image/svg+xml",
+                        "sizes": ["any"],
+                    }
+                ],
+                "remotes": [
+                    {
+                        "type": "streamable-http",
+                        "url": "https://mcp.artie.com/mcp",
+                        "headers": [
+                            {
+                                "name": "Authorization",
+                                "value": "Bearer {artie_api_key}",
+                                "variables": {
+                                    "artie_api_key": {
+                                        "description": "Artie API key",
+                                        "isRequired": True,
+                                        "isSecret": True,
+                                        "format": "string",
+                                    }
+                                },
+                            }
+                        ],
+                    }
+                ],
+            },
+            json.loads(response.body),
+        )
 
     def test_annotations_reject_malformed_openapi_extensions(self):
         valid_annotations = {
