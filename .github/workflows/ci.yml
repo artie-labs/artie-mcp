@@ -38,6 +38,7 @@ jobs:
           python-version: "3.14"
           enable-cache: true
       - run: uv sync --locked --all-groups
+      - run: python scripts/download_openapi.py
       - name: Build, start, and smoke-test image
         run: |
           set -euo pipefail
