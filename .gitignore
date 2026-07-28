@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Downloaded build artifacts
+openapi/openapi.yaml

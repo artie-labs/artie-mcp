@@ -21,6 +21,7 @@ jobs:
           enable-cache: true
       - run: uv lock --check
       - run: uv sync --locked --all-groups
+      - run: python scripts/download_openapi.py
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run python -m compileall -q server.py tests

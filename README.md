@@ -41,10 +41,10 @@ uv run python -m unittest discover -s tests -v
 
 ## Pinned OpenAPI contract
 
-The image vendors `artie-api-spec` `v1.0.53` in `openapi/openapi.yaml`. `server.py`
-verifies its SHA-256 before constructing FastMCP, so startup does not require GitHub.
-Update the artifact, `_PINNED_SPEC_VERSION`, `_PINNED_SPEC_SHA256`, and
-`tests/contract_snapshot.json` together in a reviewed PR.
+The image downloads the immutable `artie-api-spec` `v1.0.53` release artifact during
+its build, verifies its SHA-256, and bundles it into the image. Runtime startup does
+not require GitHub. Run `python scripts/download_openapi.py` before local tests.
+Update `openapi_contract.py` and `tests/contract_snapshot.json` together in a reviewed PR.
 
 ## Smoke-test the production image
 

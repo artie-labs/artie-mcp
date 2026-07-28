@@ -11,11 +11,16 @@ from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
 from mcp.types import ToolAnnotations
+from openapi_contract import (
+    ARTIE_API_SPEC_SHA256,
+    ARTIE_API_SPEC_VERSION,
+    PINNED_SPEC_PATH,
+)
 from starlette.responses import Response
 
-_PINNED_SPEC_VERSION = "v1.0.53"
-_PINNED_SPEC_SHA256 = "fbd57a5d2b0a741022df2f577c7fd98647989cb93cbc292a182498a7fdc14495"
-_SPEC_PATH = Path(__file__).parent / "openapi" / "openapi.yaml"
+_PINNED_SPEC_VERSION = ARTIE_API_SPEC_VERSION
+_PINNED_SPEC_SHA256 = ARTIE_API_SPEC_SHA256
+_SPEC_PATH = PINNED_SPEC_PATH
 _MCP_ANNOTATION_EXTENSION = "x-artie-mcp"
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
 
