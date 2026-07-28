@@ -22,6 +22,50 @@ _SPEC_URL = "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/he
 _SPEC_POLL_INTERVAL = 120
 _DRAIN_DELAY = 5
 _MCP_ANNOTATION_EXTENSION = "x-artie-mcp"
+_SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
+
+# Server Card names are stable reverse-DNS identities, not connection URLs.
+# The endpoint stays separately declared in remotes; see SEP-2127:
+# https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
+_SERVER_CARD = {
+    "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+    "name": "com.artie/mcp",
+    "version": "0.1.7",
+    "description": "Manage, interact with, and provision Artie resources through the Artie MCP Server.",
+    "title": "Artie MCP Server",
+    "websiteUrl": "https://artie.com/docs/api/overview",
+    "icons": [
+        {
+            "src": "https://www.artie.com/brand/logo.svg",
+            "mimeType": "image/svg+xml",
+            "sizes": ["any"],
+        }
+    ],
+    "remotes": [
+        {
+            "type": "streamable-http",
+            "url": "https://mcp.artie.com/mcp",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {artie_api_key}",
+                    "variables": {
+                        "artie_api_key": {
+                            "description": "Artie API key",
+                            "isRequired": True,
+                            "isSecret": True,
+                            "format": "string",
+                        }
+                    },
+                }
+            ],
+        }
+    ],
+}
+
+# TODO: Replace API-key connection guidance with approved OAuth metadata and flow.
+# TODO: Add supportedProtocolVersions after verifying the production MCP protocol version.
+# TODO: Add repository metadata after artie-mcp becomes public.
 
 _shutting_down = False
 
@@ -32,6 +76,10 @@ def _fetch_spec_text() -> str:
 
 def _hash(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
+
+
+_SERVER_CARD_BODY = json.dumps(_SERVER_CARD, separators=(",", ":"))
+_SERVER_CARD_ETAG = f'"{_hash(_SERVER_CARD_BODY)}"'
 
 
 _spec_text = _fetch_spec_text()
@@ -199,6 +247,33 @@ async def _poll_spec():
             await asyncio.sleep(_DRAIN_DELAY)
             os.kill(os.getpid(), signal.SIGTERM)
             return
+
+
+def _server_card_headers():
+    return {
+        "access-control-allow-headers": "Content-Type, If-None-Match",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "ETag",
+        "cache-control": "public, max-age=3600",
+        "etag": _SERVER_CARD_ETAG,
+    }
+
+
+def _server_card_response(status_code=200):
+    return Response(
+        content=None if status_code == 304 else _SERVER_CARD_BODY,
+        headers=_server_card_headers(),
+        media_type=_SERVER_CARD_MEDIA_TYPE,
+        status_code=status_code,
+    )
+
+
+@mcp.custom_route("/mcp/server-card", methods=["GET"])
+async def server_card(request):
+    if request.headers.get("if-none-match") == _SERVER_CARD_ETAG:
+        return _server_card_response(status_code=304)
+    return _server_card_response()
 
 
 @mcp.custom_route("/health", methods=["GET"])
