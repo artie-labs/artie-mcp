@@ -10,6 +10,9 @@ from mcp.client.streamable_http import streamablehttp_client
 
 _SMOKE_TOKEN = "container-smoke-test-token"
 _ANNOTATION_EXTENSION = "x-artie-mcp"
+_ANNOTATION_KEYS = frozenset(
+    {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"}
+)
 _HTTP_METHODS = frozenset(
     {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
 )
@@ -23,7 +26,11 @@ def parse_arguments():
 
 
 def annotation_fingerprint(annotations: dict) -> str:
-    return json.dumps(annotations, sort_keys=True)
+    if not _ANNOTATION_KEYS.issubset(annotations):
+        raise AssertionError("OpenAPI operation is missing MCP tool annotations")
+    return json.dumps(
+        {key: annotations[key] for key in _ANNOTATION_KEYS}, sort_keys=True
+    )
 
 
 def openapi_annotation_counts(openapi_url: str) -> Counter[str]:
