@@ -23,7 +23,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a column hashing salt",
-      "triggerDescription": "Use when you need to delete a column hashing salt."
+      "triggerDescription": "Use when you need to delete a column hashing salt.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -45,7 +47,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "fd11fc84376a52ae7dca5ec7ff350d473a6bebd323465511e7e8a21b0654062f",
       "title": "List column hashing salts",
-      "triggerDescription": "Use when you need to list column hashing salts."
+      "triggerDescription": "Use when you need to list column hashing salts.",
+      "publishedInputSchemaSHA256": "c8a1ac469a826ea3547ac220c7bbfdcd6b58080d4ec596ff2a0149c5ccb9b699",
+      "publishedOutputSchemaSHA256": "3ed9f60a731437e459803f0f2f6a9810940d6189fe9755163a60a8dbfd0cfe23"
     },
     {
       "annotations": {
@@ -67,7 +71,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "cb3aec278629a6b160633f319d251348d8fb360e43ea0c657b7803d9d0619a31",
       "title": "Preview a column hashing salt",
-      "triggerDescription": "Use when you need to preview a column hashing salt."
+      "triggerDescription": "Use when you need to preview a column hashing salt.",
+      "publishedInputSchemaSHA256": "082755354b142ba51a92e7136ce6c9ca54d3d9da2094d9cf2b4a8c1a8bd928ef",
+      "publishedOutputSchemaSHA256": "d76213bf45f7e41ecad20f3a2c74861ff3793296d2fe9b71734971eb19573c0a"
     },
     {
       "annotations": {
@@ -89,7 +95,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "8da01cc3a0de29d8d762d03c516f163c912ce759b46ffd85f9dbb44a13b5bd3e",
       "title": "Update a column hashing salt",
-      "triggerDescription": "Use when you need to update a column hashing salt."
+      "triggerDescription": "Use when you need to update a column hashing salt.",
+      "publishedInputSchemaSHA256": "2a6a8d39db76185620b239e4049ab3c8eb69aaef4baab71c000a5db45190d6b1",
+      "publishedOutputSchemaSHA256": "b33e348a1990d8b6b7029d38ad0b2eea2978418fa823196b6f26736acbe81168"
     },
     {
       "annotations": {
@@ -111,7 +119,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a connector",
-      "triggerDescription": "Use when you need to delete a connector."
+      "triggerDescription": "Use when you need to delete a connector.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -133,7 +143,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Drop a PostgreSQL replication slot",
-      "triggerDescription": "Use when you need to drop a PostgreSQL replication slot."
+      "triggerDescription": "Use when you need to drop a PostgreSQL replication slot.",
+      "publishedInputSchemaSHA256": "e8aed6b73624c1e2f4547bdaca73411ec9c51cd95a33a085a059fc61293eaa5a",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -155,7 +167,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "4eb913ada2be9138184d1111489a20b2a53a5dd772e3fbe2f6e569abd81f90b9",
       "title": "Fetch table detail for a saved connector",
-      "triggerDescription": "Use when you need to fetch table detail for a saved connector."
+      "triggerDescription": "Use when you need to fetch table detail for a saved connector.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "6152efaa951dd7565e9042788aa1f26470fff1f3d926f1cc7c0ac699d14987ad"
     },
     {
       "annotations": {
@@ -177,7 +191,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b3e1ee9f7de80a9546fb1ac5acdb7dcb80a4eb7583d5c931632d892f86b12fec",
       "title": "Generate Oracle shadow table script",
-      "triggerDescription": "Use when you need to generate Oracle shadow table script."
+      "triggerDescription": "Use when you need to generate Oracle shadow table script.",
+      "publishedInputSchemaSHA256": "8aa823f9b2343739eea7b4526601b9d5fffafceb4d5982355e6c2d94010cf1ca",
+      "publishedOutputSchemaSHA256": "f76e1894f1918b5cc3c59b23107b1660c15b4fca817bcf70d4d2aa615e5ca309"
     },
     {
       "annotations": {
@@ -199,7 +215,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "473dfd0473c3322ef49784e58d58b254c0556f037642935c3e25c72c016a6393",
       "title": "Start a DynamoDB export",
-      "triggerDescription": "Use when you need to start a DynamoDB export."
+      "triggerDescription": "Use when you need to start a DynamoDB export.",
+      "publishedInputSchemaSHA256": "bad884cbb8bc7d2ad29840a853683bcbbf76c2d5589efb164601713cf5ae4500",
+      "publishedOutputSchemaSHA256": "3cbe34ce475d93a28a966dd0bc21feeed1f55d03bc1c02f1e32c3064dbacaed8"
     },
     {
       "annotations": {
@@ -221,7 +239,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f7113bdd01be607d48a5d732c5c0ad49a611ffe5a9035375a0aab8ad57da20e7",
       "title": "Search the data catalog",
-      "triggerDescription": "Use when you need to search the data catalog."
+      "triggerDescription": "Use when you need to search the data catalog.",
+      "publishedInputSchemaSHA256": "6d1953906a1cf9576e042f4125c456fe33353e9617afe0e9de0f9574b566fdd5",
+      "publishedOutputSchemaSHA256": "970f9741826d001f971ca78b74282af5476e014e2c5cf54ecf609a515830f8f2"
     },
     {
       "annotations": {
@@ -243,7 +263,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an encryption key",
-      "triggerDescription": "Use when you need to delete an encryption key."
+      "triggerDescription": "Use when you need to delete an encryption key.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -265,7 +287,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "109e753364e1add34c73070b3d6700ba6a42d996c6b6682a2a0e4a77c707060c",
       "title": "List encryption keys",
-      "triggerDescription": "Use when you need to list encryption keys."
+      "triggerDescription": "Use when you need to list encryption keys.",
+      "publishedInputSchemaSHA256": "c8a1ac469a826ea3547ac220c7bbfdcd6b58080d4ec596ff2a0149c5ccb9b699",
+      "publishedOutputSchemaSHA256": "49675af30be2e0095f788f87c94405de95054fe8b64da59de1f32c7d522a92c4"
     },
     {
       "annotations": {
@@ -287,7 +311,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "b0d84f062fee3d43d5ed98fb7f3deb3c16933ba2bac246f047620442d8729034",
       "title": "Update an encryption key",
-      "triggerDescription": "Use when you need to update an encryption key."
+      "triggerDescription": "Use when you need to update an encryption key.",
+      "publishedInputSchemaSHA256": "2a6a8d39db76185620b239e4049ab3c8eb69aaef4baab71c000a5db45190d6b1",
+      "publishedOutputSchemaSHA256": "6eee1001738c7f884058153dddbbab4ef55fbdea5f1b0c7a8701576971143661"
     },
     {
       "annotations": {
@@ -309,7 +335,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an ingestion API key",
-      "triggerDescription": "Use when you need to delete an ingestion API key."
+      "triggerDescription": "Use when you need to delete an ingestion API key.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -331,7 +359,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "6790d03ccc110df09d0e0558d21388f48247dac4a625733939b61703d9bf8c39",
       "title": "Update an ingestion API key",
-      "triggerDescription": "Use when you need to update an ingestion API key."
+      "triggerDescription": "Use when you need to update an ingestion API key.",
+      "publishedInputSchemaSHA256": "ed38e45665d66f7d24a6578238148777feb7be722cc79f2b6b926ca2f61fe613",
+      "publishedOutputSchemaSHA256": "7be67a3cf277e266fa8130e0a23f7cc4e7b64ee8535beafd515e205832615067"
     },
     {
       "annotations": {
@@ -353,7 +383,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Cancel backfill",
-      "triggerDescription": "Use when you need to cancel backfill."
+      "triggerDescription": "Use when you need to cancel backfill.",
+      "publishedInputSchemaSHA256": "756dfa22a220aec9d741bb5cb3780512158d61f3cb2c4bcb6b9c315555964619",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -375,7 +407,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "cf25d17d608193bb9d9eeed80d83a9c33a102466c64fedfe1825ef06ac3b067e",
       "title": "Create a pipeline",
-      "triggerDescription": "Use when you need to create a pipeline."
+      "triggerDescription": "Use when you need to create a pipeline.",
+      "publishedInputSchemaSHA256": "39ee8610bcfbd798b6d753da6a0560d9590ce693e32595afa50939521b75a511",
+      "publishedOutputSchemaSHA256": "2ed44270ed0e068af5ae8be52682ebdbf74680111c0cbe5855bc4eec46dddc58"
     },
     {
       "annotations": {
@@ -397,7 +431,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "cf25d17d608193bb9d9eeed80d83a9c33a102466c64fedfe1825ef06ac3b067e",
       "title": "Create pipeline from source",
-      "triggerDescription": "Use when you need to create pipeline from source."
+      "triggerDescription": "Use when you need to create pipeline from source.",
+      "publishedInputSchemaSHA256": "d2b0e2e5453452d5ae1930e4fffad359ca90e2e4ffbd6a45e4d63c8340821e84",
+      "publishedOutputSchemaSHA256": "2ed44270ed0e068af5ae8be52682ebdbf74680111c0cbe5855bc4eec46dddc58"
     },
     {
       "annotations": {
@@ -419,7 +455,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete pipeline",
-      "triggerDescription": "Use when you need to delete pipeline."
+      "triggerDescription": "Use when you need to delete pipeline.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -441,7 +479,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Detect schema changes",
-      "triggerDescription": "Use when you need to detect schema changes."
+      "triggerDescription": "Use when you need to detect schema changes.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -463,7 +503,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "527f0e94edea8837c95721324782df90bdfb4502665e4620478d18e0a99def5f",
       "title": "List pipelines",
-      "triggerDescription": "Use when you need to list pipelines."
+      "triggerDescription": "Use when you need to list pipelines.",
+      "publishedInputSchemaSHA256": "c8a1ac469a826ea3547ac220c7bbfdcd6b58080d4ec596ff2a0149c5ccb9b699",
+      "publishedOutputSchemaSHA256": "669304139deca792edf45b7ef3fc70ebad469888e8f7e8f2764a9e0e308860b3"
     },
     {
       "annotations": {
@@ -485,7 +527,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Start pipeline",
-      "triggerDescription": "Use when you need to start pipeline."
+      "triggerDescription": "Use when you need to start pipeline.",
+      "publishedInputSchemaSHA256": "1eac8b590836dba9c95f73a0e74f145ba2b59dd30816d7ce8dcd10641ba85678",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -507,7 +551,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "cf25d17d608193bb9d9eeed80d83a9c33a102466c64fedfe1825ef06ac3b067e",
       "title": "Update pipeline",
-      "triggerDescription": "Use when you need to update pipeline."
+      "triggerDescription": "Use when you need to update pipeline.",
+      "publishedInputSchemaSHA256": "416f04a3830ad04de9951fafee259d0c3260c0ab632c4857e9fcad0b416d21e5",
+      "publishedOutputSchemaSHA256": "2ed44270ed0e068af5ae8be52682ebdbf74680111c0cbe5855bc4eec46dddc58"
     },
     {
       "annotations": {
@@ -529,7 +575,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "3455d7675efcb9068680fde0d29c42ca8f757782c59de47bffb3d27e533f9b4d",
       "title": "Update pipeline status",
-      "triggerDescription": "Use when you need to update pipeline status."
+      "triggerDescription": "Use when you need to update pipeline status.",
+      "publishedInputSchemaSHA256": "afa052aa69534c0d51d64da26f40a1fe0e5e6e9c4aa305a148b23a75270f111a",
+      "publishedOutputSchemaSHA256": "376a766f81edeac0f0c9ade5d43fcddcfac2c94a59c38fa1df810c34c9833b57"
     },
     {
       "annotations": {
@@ -551,7 +599,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
       "title": "Create a PrivateLink connection",
-      "triggerDescription": "Use when you need to create a PrivateLink connection."
+      "triggerDescription": "Use when you need to create a PrivateLink connection.",
+      "publishedInputSchemaSHA256": "9db2644237d6491479d18600f308101c40234103db20685f21b2b384fd5f36e1",
+      "publishedOutputSchemaSHA256": "490574f2a3778380054d7a169648798c3301214c36f7921404f45e85fb7a211d"
     },
     {
       "annotations": {
@@ -573,7 +623,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a PrivateLink connection",
-      "triggerDescription": "Use when you need to delete a PrivateLink connection."
+      "triggerDescription": "Use when you need to delete a PrivateLink connection.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -595,7 +647,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
       "title": "Get a PrivateLink connection",
-      "triggerDescription": "Use when you need to get a PrivateLink connection."
+      "triggerDescription": "Use when you need to get a PrivateLink connection.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "490574f2a3778380054d7a169648798c3301214c36f7921404f45e85fb7a211d"
     },
     {
       "annotations": {
@@ -617,7 +671,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
       "title": "Update a PrivateLink connection",
-      "triggerDescription": "Use when you need to update a PrivateLink connection."
+      "triggerDescription": "Use when you need to update a PrivateLink connection.",
+      "publishedInputSchemaSHA256": "8bed433a094082b29995bae621266666b85033a0dc4b71923ddbf5600527cc7c",
+      "publishedOutputSchemaSHA256": "490574f2a3778380054d7a169648798c3301214c36f7921404f45e85fb7a211d"
     },
     {
       "annotations": {
@@ -639,7 +695,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a source reader",
-      "triggerDescription": "Use when you need to delete a source reader."
+      "triggerDescription": "Use when you need to delete a source reader.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -661,7 +719,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Deploy a source reader",
-      "triggerDescription": "Use when you need to deploy a source reader."
+      "triggerDescription": "Use when you need to deploy a source reader.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -683,7 +743,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Create an SSH tunnel",
-      "triggerDescription": "Use when you need to create an SSH tunnel."
+      "triggerDescription": "Use when you need to create an SSH tunnel.",
+      "publishedInputSchemaSHA256": "0b368343946dedb9f49752772d0234800d96f7536eeedfc35c5f45537f1a07d3",
+      "publishedOutputSchemaSHA256": "328161900bcf769c6b1716c9288d2b28d04c71ea38fb6cb1583e30efcc793484"
     },
     {
       "annotations": {
@@ -705,7 +767,9 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an SSH tunnel",
-      "triggerDescription": "Use when you need to delete an SSH tunnel."
+      "triggerDescription": "Use when you need to delete an SSH tunnel.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "30bcc51547c13f989ed5ccec3f14fd29aa2e02472695de0a7a2915fa42909097"
     },
     {
       "annotations": {
@@ -727,7 +791,9 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Get an SSH tunnel",
-      "triggerDescription": "Use when you need to get an SSH tunnel."
+      "triggerDescription": "Use when you need to get an SSH tunnel.",
+      "publishedInputSchemaSHA256": "616b8b759b3ef61b91ec47cbc5f5127a76b3afdf87f5091ebd18a73117ab75db",
+      "publishedOutputSchemaSHA256": "328161900bcf769c6b1716c9288d2b28d04c71ea38fb6cb1583e30efcc793484"
     },
     {
       "annotations": {
@@ -749,7 +815,9 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Update an SSH tunnel",
-      "triggerDescription": "Use when you need to update an SSH tunnel."
+      "triggerDescription": "Use when you need to update an SSH tunnel.",
+      "publishedInputSchemaSHA256": "3f53bdadf83b6c2cf222caad32f77dda9c91524ece03229f81bcaa7e5195a13e",
+      "publishedOutputSchemaSHA256": "328161900bcf769c6b1716c9288d2b28d04c71ea38fb6cb1583e30efcc793484"
     }
   ]
 }

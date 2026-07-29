@@ -16,6 +16,7 @@ from policy_contract import (
     compile_policy,
     snapshot_policy_contract,
 )
+from published_contract import policy_snapshot_without_published_schema_signatures
 
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -50,7 +51,7 @@ def main() -> int:
         print(f"policy contract verification failed: {error}", file=sys.stderr)
         return 1
 
-    if actual != expected:
+    if actual != policy_snapshot_without_published_schema_signatures(expected):
         print(
             "policy contract verification failed: snapshot is out of date",
             file=sys.stderr,

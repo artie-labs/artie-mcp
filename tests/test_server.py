@@ -6,6 +6,11 @@ import unittest
 
 import httpx
 
+from published_contract import (
+    tool_schema_signatures,
+    verify_published_schema_signatures,
+)
+
 
 class TestServer(unittest.TestCase):
     @classmethod
@@ -39,6 +44,13 @@ class TestServer(unittest.TestCase):
                     contract.annotations,
                     tool.annotations.model_dump(exclude_none=True),
                 )
+
+    def test_published_tool_schemas_match_the_policy_contract_snapshot(self):
+        snapshot = json.loads(
+            (self.server._BUNDLE_DIR / "policy.contract.json").read_text()
+        )
+
+        verify_published_schema_signatures(snapshot, tool_schema_signatures(self.tools))
 
     def test_bodiless_policy_tools_publish_a_success_schema(self):
         tools = {tool.name: tool for tool in self.tools}

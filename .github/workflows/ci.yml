@@ -24,6 +24,7 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run python -m scripts.download_policy_bundle
+      - run: uv run python -m scripts.verify_published_tool_schemas
       - run: uv run python -m compileall -q server.py tests
       - run: uv run python -m unittest discover -s tests -v
 

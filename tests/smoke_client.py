@@ -2,9 +2,18 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
+import sys
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from published_contract import (
+    tool_schema_signatures,
+    verify_published_schema_signatures,
+)
+
 
 _SMOKE_TOKEN = "container-smoke-test-token"
 
@@ -17,7 +26,8 @@ def parse_arguments():
 
 
 async def smoke_test(url: str, contract_path: Path):
-    expected = json.loads(contract_path.read_text())["tools"]
+    snapshot = json.loads(contract_path.read_text())
+    expected = snapshot["tools"]
     expected_by_name = {tool["name"]: tool for tool in expected}
 
     async with streamablehttp_client(
@@ -51,6 +61,7 @@ async def smoke_test(url: str, contract_path: Path):
             raise AssertionError(
                 f"MCP tool {name} annotations do not match the policy contract"
             )
+    verify_published_schema_signatures(snapshot, tool_schema_signatures(tools.tools))
     print(json.dumps({"toolCount": len(actual_by_name)}, sort_keys=True))
 
 

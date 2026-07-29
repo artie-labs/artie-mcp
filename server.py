@@ -12,6 +12,7 @@ from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
+from published_contract import policy_snapshot_without_published_schema_signatures
 from policy_adapter import SafeTrafficAdapter
 from policy_contract import (
     PolicyContract,
@@ -81,7 +82,9 @@ def _load_contract() -> tuple[dict[str, Any], PolicyContract]:
     actual_snapshot = snapshot_policy_contract(
         bundle.release_tag, hashlib.sha256(policy_bytes).hexdigest(), contract
     )
-    if actual_snapshot != expected_snapshot:
+    if actual_snapshot != policy_snapshot_without_published_schema_signatures(
+        expected_snapshot
+    ):
         raise ValueError(
             "policy contract snapshot does not match the local policy bundle"
         )
