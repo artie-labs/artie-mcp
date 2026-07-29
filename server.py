@@ -12,7 +12,7 @@ from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
-from mcp_observability import MCPObservability, StatsdMetrics
+from mcp_observability import MCPObservability, OpenTelemetryMetrics
 from policy_adapter import SafeTrafficAdapter
 from policy_contract import (
     PolicyContract,
@@ -155,7 +155,7 @@ mcp = FastMCP.from_openapi(
 )
 mcp.add_middleware(
     MCPObservability(
-        StatsdMetrics.from_environment(),
+        OpenTelemetryMetrics.create(),
         frozenset(tool.name for tool in policy_contract.tools),
     )
 )

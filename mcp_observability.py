@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import socket
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
@@ -12,6 +10,10 @@ import httpx
 from fastmcp.exceptions import NotFoundError
 from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 from mcp import types
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from pydantic import ValidationError as PydanticValidationError
 
 
@@ -27,26 +29,19 @@ class MetricsSink(Protocol):
     ) -> None: ...
 
 
-class StatsdMetrics:
-    def __init__(self, address: tuple[str, int] | None) -> None:
-        self._address = address
-        self._socket = (
-            socket.socket(socket.AF_INET, socket.SOCK_DGRAM) if address else None
+class OpenTelemetryMetrics:
+    def __init__(self, meter: Any) -> None:
+        self._request_counter = meter.create_counter("mcp.request", unit="{request}")
+        self._duration_histogram = meter.create_histogram(
+            "mcp.request.duration", unit="ms"
         )
 
     @classmethod
-    def from_environment(cls) -> StatsdMetrics:
-        host = os.getenv("TELEMETRY_HOST")
-        port = os.getenv("TELEMETRY_PORT")
-        if not host or not port:
-            return cls(None)
-        try:
-            return cls((host, int(port)))
-        except ValueError:
-            logging.getLogger("artie-mcp").warning(
-                "MCP metrics disabled because TELEMETRY_PORT is invalid"
-            )
-            return cls(None)
+    def create(cls) -> OpenTelemetryMetrics:
+        resource = Resource.create({SERVICE_NAME: "artie-mcp"})
+        reader = PeriodicExportingMetricReader(OTLPMetricExporter())
+        provider = MeterProvider(resource=resource, metric_readers=[reader])
+        return cls(provider.get_meter("artie-mcp"))
 
     def record(
         self,
@@ -57,21 +52,11 @@ class StatsdMetrics:
         failure_class: str | None = None,
         tool: str | None = None,
     ) -> None:
-        tags = [f"operation:{operation}", f"outcome:{outcome}"]
+        attributes = {"mcp.operation": operation, "mcp.outcome": outcome}
         if failure_class:
-            tags.append(f"failure_class:{failure_class}")
-        if tool:
-            tags.append(f"tool:{tool}")
-        self._send(f"artie_mcp.mcp.request:1|c|#{','.join(tags)}")
-        self._send(f"artie_mcp.mcp.duration:{duration_ms:.3f}|ms|#{','.join(tags)}")
-
-    def _send(self, metric: str) -> None:
-        if not self._socket or not self._address:
-            return
-        try:
-            self._socket.sendto(metric.encode(), self._address)
-        except OSError:
-            logging.getLogger("artie-mcp").warning("failed to emit MCP metric")
+            attributes["mcp.failure_class"] = failure_class
+        self._request_counter.add(1, attributes)
+        self._duration_histogram.record(duration_ms, attributes)
 
 
 class MCPObservability(Middleware):

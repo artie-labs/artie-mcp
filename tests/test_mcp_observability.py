@@ -1,13 +1,12 @@
 import asyncio
 import json
 import unittest
-from unittest.mock import patch
 
 from fastmcp.server.middleware import MiddlewareContext
 from mcp import types
 from pydantic import ValidationError as PydanticValidationError
 
-from mcp_observability import MCPObservability, StatsdMetrics
+from mcp_observability import MCPObservability, OpenTelemetryMetrics
 
 
 class RecordingMetrics:
@@ -49,20 +48,20 @@ class TestMCPObservability(unittest.TestCase):
 
     def test_records_a_redacted_initialization_failure(self):
         async def call_next(_context):
-            raise RuntimeError("Authorization: Bearer secret-token")
+            raise RuntimeError("unlogged-error-detail")
 
         context = MiddlewareContext(
             message=types.InitializeRequest.model_construct(), method="initialize"
         )
         with self.assertLogs("artie-mcp", level="INFO") as logs:
-            with self.assertRaisesRegex(RuntimeError, "secret-token"):
+            with self.assertRaisesRegex(RuntimeError, "unlogged-error-detail"):
                 asyncio.run(self.middleware.on_initialize(context, call_next))
 
         record = self.metrics.records[0]
         self.assertEqual("initialize", record["operation"])
         self.assertEqual("error", record["outcome"])
         self.assertEqual("internal", record["failure_class"])
-        self.assertNotIn("secret-token", logs.output[0])
+        self.assertNotIn("unlogged-error-detail", logs.output[0])
 
     def test_records_a_redacted_tool_failure(self):
         async def call_next(_context):
@@ -102,29 +101,49 @@ class TestMCPObservability(unittest.TestCase):
         self.assertEqual("unknown", self.metrics.records[0]["tool"])
 
 
-class TestStatsdMetrics(unittest.TestCase):
-    def test_emits_count_and_duration_with_allowlisted_tags(self):
-        with patch("mcp_observability.socket.socket") as new_socket:
-            metric_socket = new_socket.return_value
-            metrics = StatsdMetrics(("127.0.0.1", 8125))
+class RecordingInstrument:
+    def __init__(self):
+        self.records = []
 
-            metrics.record(
-                "tool_call",
-                "error",
-                12.5,
-                failure_class="invalid_input",
-                tool="pipeline_list",
-            )
+    def add(self, value, attributes):
+        self.records.append((value, attributes))
 
-        payloads = [
-            call.args[0].decode() for call in metric_socket.sendto.call_args_list
-        ]
-        self.assertEqual(2, len(payloads))
-        self.assertTrue(all("secret" not in payload for payload in payloads))
-        self.assertTrue(all("tool:pipeline_list" in payload for payload in payloads))
-        self.assertTrue(
-            all("failure_class:invalid_input" in payload for payload in payloads)
+    def record(self, value, attributes):
+        self.records.append((value, attributes))
+
+
+class RecordingMeter:
+    def __init__(self):
+        self.counter = RecordingInstrument()
+        self.histogram = RecordingInstrument()
+
+    def create_counter(self, _name, **_kwargs):
+        return self.counter
+
+    def create_histogram(self, _name, **_kwargs):
+        return self.histogram
+
+
+class TestOpenTelemetryMetrics(unittest.TestCase):
+    def test_emits_count_and_duration_without_tool_name_attributes(self):
+        meter = RecordingMeter()
+        metrics = OpenTelemetryMetrics(meter)
+
+        metrics.record(
+            "tool_call",
+            "error",
+            12.5,
+            failure_class="invalid_input",
+            tool="pipeline_list",
         )
+
+        expected_attributes = {
+            "mcp.operation": "tool_call",
+            "mcp.outcome": "error",
+            "mcp.failure_class": "invalid_input",
+        }
+        self.assertEqual([(1, expected_attributes)], meter.counter.records)
+        self.assertEqual([(12.5, expected_attributes)], meter.histogram.records)
 
 
 if __name__ == "__main__":
