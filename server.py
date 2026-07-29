@@ -208,18 +208,21 @@ class _HealthCheckFilter(logging.Filter):
 
 
 def _configure_logging() -> None:
+    if any(handler.name == "artie-mcp-json" for handler in logger.handlers):
+        return
     handler = logging.StreamHandler()
+    handler.name = "artie-mcp-json"
     handler.setFormatter(logging.Formatter("%(message)s"))
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
 
+_configure_logging()
 app = mcp.http_app(transport="streamable-http", stateless_http=True)
 
 if __name__ == "__main__":
     import uvicorn
 
-    _configure_logging()
     logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
     uvicorn.run(app, host="0.0.0.0", port=8000, ws="none", timeout_graceful_shutdown=30)
