@@ -12,6 +12,7 @@ from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
+from mcp_observability import MCPObservability, StatsdMetrics
 from policy_adapter import SafeTrafficAdapter
 from policy_contract import (
     PolicyContract,
@@ -152,6 +153,12 @@ mcp = FastMCP.from_openapi(
     mcp_component_fn=_configure_tool,
     strict_input_validation=True,
 )
+mcp.add_middleware(
+    MCPObservability(
+        StatsdMetrics.from_environment(),
+        frozenset(tool.name for tool in policy_contract.tools),
+    )
+)
 
 _SERVER_CARD_BODY = json.dumps(_SERVER_CARD, separators=(",", ":"))
 _SERVER_CARD_ETAG = f'"{hashlib.sha256(_SERVER_CARD_BODY.encode()).hexdigest()}"'
@@ -200,10 +207,19 @@ class _HealthCheckFilter(logging.Filter):
         return not any(path in msg for path in ("/health", "/ready"))
 
 
+def _configure_logging() -> None:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+
 app = mcp.http_app(transport="streamable-http", stateless_http=True)
 
 if __name__ == "__main__":
     import uvicorn
 
+    _configure_logging()
     logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
     uvicorn.run(app, host="0.0.0.0", port=8000, ws="none", timeout_graceful_shutdown=30)
