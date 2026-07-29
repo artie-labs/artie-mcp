@@ -34,36 +34,6 @@ class SafeTrafficAdapter:
             )
         return matches[0]
 
-    def shape_request(
-        self, tool_name: str, arguments: Mapping[str, Any]
-    ) -> dict[str, Any]:
-        tool = self._tool(tool_name)
-        parameter_plans: dict[str, dict[str, Mapping[str, Any]]] = {}
-        for parameter in tool.request["parameters"]:
-            location = parameter["in"]
-            parameter_plans.setdefault(location, {})[parameter["name"]] = parameter
-
-        expected_locations = set(parameter_plans)
-        if "body" in tool.request:
-            expected_locations.add("body")
-        if set(arguments) - expected_locations:
-            raise PolicyAdapterError("request includes undeclared input")
-
-        shaped = {
-            location: _shape_parameters(arguments.get(location, {}), plans)
-            for location, plans in parameter_plans.items()
-        }
-        body_plan = tool.request.get("body")
-        if body_plan is None:
-            return shaped
-        body = arguments.get("body")
-        if body is None:
-            if body_plan["required"]:
-                raise PolicyAdapterError("request body is required")
-            return shaped
-        shaped["body"] = _shape_input(body, body_plan["schema"])
-        return shaped
-
     def shape_response(
         self,
         tool_name: str,
@@ -133,76 +103,6 @@ def _path_matches(template: str, path: str) -> bool:
 
 def _is_json(content_type: str) -> bool:
     return content_type.split(";", 1)[0].strip().lower() == "application/json"
-
-
-def _shape_parameters(
-    values: Any, parameter_plans: Mapping[str, Mapping[str, Any]]
-) -> dict[str, Any]:
-    if not isinstance(values, Mapping):
-        raise PolicyAdapterError("request parameters must be an object")
-    undeclared = set(values) - set(parameter_plans)
-    if undeclared:
-        raise PolicyAdapterError("request includes undeclared input")
-    missing = {
-        name
-        for name, parameter in parameter_plans.items()
-        if parameter["required"] and name not in values
-    }
-    if missing:
-        raise PolicyAdapterError(
-            f"request is missing required input: {sorted(missing)}"
-        )
-    return {
-        name: _shape_input(values[name], parameter["schema"])
-        for name, parameter in parameter_plans.items()
-        if name in values
-    }
-
-
-def _shape_input(value: Any, schema: Mapping[str, Any]) -> Any:
-    if "$ref" in schema:
-        return _shape_input(value, _nested_schema(schema))
-    if "allOf" in schema:
-        return _shape_input(value, _merge_all_of(schema))
-    if "oneOf" in schema or "anyOf" in schema:
-        branches = schema.get("oneOf", schema.get("anyOf"))
-        return _shape_input(value, _select_schema_branch(value, branches, "request"))
-
-    schema_type = _schema_type(schema, value, "request")
-    if schema_type == "object":
-        if not isinstance(value, Mapping):
-            raise PolicyAdapterError(
-                "request does not match the approved object schema"
-            )
-        properties = schema.get("properties", {})
-        undeclared = set(value) - set(properties)
-        if undeclared:
-            raise PolicyAdapterError("request includes undeclared input")
-        required = set(schema.get("required", []))
-        if missing := required - set(value):
-            raise PolicyAdapterError(
-                f"request is missing required input: {sorted(missing)}"
-            )
-        return {
-            name: _shape_input(value[name], property_schema)
-            for name, property_schema in properties.items()
-            if name in value
-        }
-    if schema_type == "array":
-        if not isinstance(value, list):
-            raise PolicyAdapterError("request does not match the approved array schema")
-        return [_shape_input(item, schema["items"]) for item in value]
-    if schema_type == "string" and not isinstance(value, str):
-        raise PolicyAdapterError("request does not match the approved string schema")
-    if schema_type == "boolean" and not isinstance(value, bool):
-        raise PolicyAdapterError("request does not match the approved boolean schema")
-    if schema_type == "integer" and not _is_integer(value):
-        raise PolicyAdapterError("request does not match the approved numeric schema")
-    if schema_type == "number" and not _is_number(value):
-        raise PolicyAdapterError("request does not match the approved numeric schema")
-    if schema_type == "null" and value is not None:
-        raise PolicyAdapterError("request does not match the approved null schema")
-    return value
 
 
 def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
