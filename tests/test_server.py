@@ -255,3 +255,33 @@ class TestServer(unittest.TestCase):
             with self.subTest(route_extensions=route_extensions):
                 with self.assertRaises(ValueError):
                     self.server._tool_annotations(route_extensions)
+
+    def test_annotations_accept_complete_policy_extensions(self):
+        annotations = self.server._tool_annotations(
+            {
+                "x-artie-mcp": {
+                    "exposure": "exposed",
+                    "operationId": "read_thing",
+                    "title": "Read thing",
+                    "triggerDescription": "Use when reading a thing.",
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
+                    "idempotentHint": True,
+                    "openWorldHint": False,
+                    "requiredScopes": ["things:read"],
+                    "retrySemantics": "safe",
+                    "inputSensitivity": "none",
+                    "outputSensitivity": "none",
+                }
+            }
+        )
+
+        self.assertEqual(
+            {
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
+            annotations.model_dump(exclude_none=True),
+        )
