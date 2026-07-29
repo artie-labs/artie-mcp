@@ -326,6 +326,36 @@ class TestPolicyContract(unittest.TestCase):
             list(tool.success),
         )
 
+    def test_compile_policy_rejects_bodiless_success_without_204(self):
+        spec = {
+            "paths": {
+                "/items": {
+                    "delete": {
+                        "operationId": "item_delete",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "item_delete",
+                            "title": "Delete item",
+                            "triggerDescription": "Use when deleting an item.",
+                            "readOnlyHint": False,
+                            "destructiveHint": True,
+                            "idempotentHint": False,
+                            "openWorldHint": False,
+                            "requiredScopes": ["items:write"],
+                            "retrySemantics": "unsafe",
+                            "inputSensitivity": "none",
+                            "outputSensitivity": "none",
+                            "bodilessSuccess": True,
+                        },
+                    }
+                }
+            }
+        }
+
+        with self.assertRaisesRegex(PolicyContractError, "bodilessSuccess"):
+            compile_policy(spec)
+
 
 if __name__ == "__main__":
     unittest.main()
