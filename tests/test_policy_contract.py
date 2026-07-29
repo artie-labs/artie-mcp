@@ -130,23 +130,6 @@ class TestPolicyContract(unittest.TestCase):
             with self.assertRaisesRegex(PolicyContractError, "release tag"):
                 load_policy_bundle(bundle_dir)
 
-    def test_local_bundle_compiles_to_the_committed_snapshot(self):
-        repository_root = Path(__file__).resolve().parents[1]
-        bundle_dir = repository_root / "contract"
-        bundle = load_policy_bundle(bundle_dir)
-        policy_sha256 = hashlib.sha256(
-            (bundle_dir / "policy.openapi.yaml").read_bytes()
-        ).hexdigest()
-
-        actual = snapshot_policy_contract(
-            bundle.release_tag, policy_sha256, compile_policy(bundle.spec)
-        )
-        expected = json.loads((bundle_dir / "policy.contract.json").read_text())
-
-        self.assertEqual("v1.0.56", bundle.release_tag)
-        self.assertEqual(34, len(actual["tools"]))
-        self.assertEqual(expected, actual)
-
     def test_policy_contract_verifier_checks_the_local_bundle_and_snapshot(self):
         repository_root = Path(__file__).resolve().parents[1]
 

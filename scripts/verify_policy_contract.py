@@ -6,12 +6,14 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import urllib.request
 from pathlib import Path
+
+import yaml
 
 from policy_contract import (
     PolicyContractError,
     compile_policy,
-    load_policy_bundle,
     snapshot_policy_contract,
 )
 
@@ -23,14 +25,25 @@ _SNAPSHOT_PATH = _BUNDLE_DIR / "policy.contract.json"
 
 def main() -> int:
     try:
-        bundle = load_policy_bundle(_BUNDLE_DIR)
-        policy_sha256 = hashlib.sha256(
-            (_BUNDLE_DIR / "policy.openapi.yaml").read_bytes()
-        ).hexdigest()
+        lock = json.loads((_BUNDLE_DIR / "policy.lock.json").read_text())
+        release = lock["release"]
+        with urllib.request.urlopen(release["url"], timeout=30) as response:
+            policy_bytes = response.read()
+        policy_sha256 = hashlib.sha256(policy_bytes).hexdigest()
+        if policy_sha256 != lock["policySHA256"]:
+            raise PolicyContractError(
+                "downloaded policy artifact checksum does not match policy lock"
+            )
+        spec = yaml.safe_load(policy_bytes)
+        if (
+            not isinstance(spec, dict)
+            or spec.get("info", {}).get("version") != release["tag"]
+        ):
+            raise PolicyContractError(
+                "downloaded policy artifact version does not match policy lock"
+            )
         actual = snapshot_policy_contract(
-            bundle.release_tag,
-            policy_sha256,
-            compile_policy(bundle.spec),
+            release["tag"], policy_sha256, compile_policy(spec)
         )
         expected = json.loads(_SNAPSHOT_PATH.read_text())
     except (OSError, json.JSONDecodeError, PolicyContractError) as error:
@@ -46,7 +59,7 @@ def main() -> int:
 
     print(
         "verified policy contract "
-        f"{bundle.release_tag} ({len(actual['tools'])} exposed tools)"
+        f"{release['tag']} ({len(actual['tools'])} exposed tools)"
     )
     return 0
 
