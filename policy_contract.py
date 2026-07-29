@@ -42,6 +42,8 @@ class PolicyContractError(ValueError):
 @dataclass(frozen=True)
 class ToolContract:
     name: str
+    method: str
+    path: str
     title: str
     trigger_description: str
     required_scopes: tuple[str, ...]
@@ -51,6 +53,7 @@ class ToolContract:
     output_sensitivity: str
     request: dict[str, Any]
     success: tuple[dict[str, Any], ...]
+    bodiless_success: bool
 
 
 @dataclass(frozen=True)
@@ -138,9 +141,19 @@ def _compile_operation(
     if policy["exposure"] == "excluded":
         return []
 
+    request = _request_plan(spec, path, method, operation)
+    success = _success_plan(spec, path, method, operation)
+    bodiless_success = policy.get("bodilessSuccess", False)
+    if bodiless_success and success != ({"status": "204"},):
+        raise PolicyContractError(
+            f"OpenAPI operation {method.upper()} {path} bodilessSuccess requires a bodyless 204 response"
+        )
+
     return [
         ToolContract(
             name=policy["operationId"],
+            method=method.lower(),
+            path=path,
             title=policy["title"],
             trigger_description=policy["triggerDescription"],
             required_scopes=tuple(policy["requiredScopes"]),
@@ -156,8 +169,9 @@ def _compile_operation(
             retry_semantics=policy["retrySemantics"],
             input_sensitivity=policy["inputSensitivity"],
             output_sensitivity=policy["outputSensitivity"],
-            request=_request_plan(spec, path, method, operation),
-            success=_success_plan(spec, path, method, operation),
+            request=request,
+            success=success,
+            bodiless_success=bodiless_success,
         )
     ]
 
@@ -416,6 +430,10 @@ def _validate_policy(
         if policy[field] not in _ALLOWED_SENSITIVITIES:
             raise PolicyContractError(f"{label} has invalid {field}")
 
+    bodiless_success = policy.get("bodilessSuccess", False)
+    if type(bodiless_success) is not bool:
+        raise PolicyContractError(f"{label} policy bodilessSuccess must be a boolean")
+
     if exposure == "excluded":
         for field in ("exclusionReason", "remediation"):
             if not isinstance(policy.get(field), str) or not policy[field]:
@@ -452,9 +470,12 @@ def snapshot_policy_contract(
         "tools": [
             {
                 "annotations": dict(sorted(tool.annotations.items())),
+                "bodilessSuccess": tool.bodiless_success,
                 "inputSensitivity": tool.input_sensitivity,
+                "method": tool.method,
                 "name": tool.name,
                 "outputSensitivity": tool.output_sensitivity,
+                "path": tool.path,
                 "requestSchemaSHA256": _canonical_sha256(tool.request),
                 "requiredScopes": list(tool.required_scopes),
                 "retrySemantics": tool.retry_semantics,
