@@ -4,7 +4,7 @@ import json
 import logging
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any, Protocol
+from typing import Any
 
 import httpx
 from fastmcp.exceptions import NotFoundError
@@ -15,18 +15,6 @@ from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from pydantic import ValidationError as PydanticValidationError
-
-
-class MetricsSink(Protocol):
-    def record(
-        self,
-        operation: str,
-        outcome: str,
-        duration_ms: float,
-        *,
-        failure_class: str | None = None,
-        tool: str | None = None,
-    ) -> None: ...
 
 
 class OpenTelemetryMetrics:
@@ -62,7 +50,7 @@ class OpenTelemetryMetrics:
 class MCPObservability(Middleware):
     def __init__(
         self,
-        metrics: MetricsSink,
+        metrics: OpenTelemetryMetrics,
         tool_names: frozenset[str],
         logger: logging.Logger | None = None,
     ) -> None:
