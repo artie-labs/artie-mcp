@@ -10,9 +10,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "column_hashing_salt_delete",
       "outputSensitivity": "none",
+      "path": "/column-hashing-salts/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "column_hashing_salts:write"
@@ -29,9 +32,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "get",
       "name": "column_hashing_salt_list",
       "outputSensitivity": "none",
+      "path": "/column-hashing-salts",
       "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
       "requiredScopes": [
         "column_hashing_salts:read"
@@ -48,9 +54,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "column_hashing_salt_preview",
       "outputSensitivity": "none",
+      "path": "/column-hashing-salts/{uuid}/preview",
       "requestSchemaSHA256": "f271a16fe606e941ddc008a7863ca3c025b0d59854fb3541f32a169c5dfe2594",
       "requiredScopes": [
         "column_hashing_salts:read"
@@ -67,9 +76,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "column_hashing_salt_update",
       "outputSensitivity": "none",
+      "path": "/column-hashing-salts/{uuid}",
       "requestSchemaSHA256": "87c7ea8d664af00cc4d10f5dee26e23f32febc82ea58c3f69a66efbfb190819a",
       "requiredScopes": [
         "column_hashing_salts:write"
@@ -86,9 +98,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "connector_delete",
       "outputSensitivity": "none",
+      "path": "/connectors/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "connectors:write"
@@ -105,9 +120,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "connector_drop_postgres_replication_slot",
       "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/postgres-drop-replication-slot",
       "requestSchemaSHA256": "e349a02e4a0a673c205fe550788f154189b54b3a9574c549e6deacbaa778c369",
       "requiredScopes": [
         "connectors:write"
@@ -124,9 +142,12 @@
         "openWorldHint": true,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "get",
       "name": "connector_fetch_table_detail",
       "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/detail",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "connectors:read"
@@ -143,9 +164,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "connector_generate_shadow_script",
       "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/generate-shadow-script",
       "requestSchemaSHA256": "f54fa9b5f3dccc9461fe5a61d4705d5ad452291065b75400d700866dddf4d92b",
       "requiredScopes": [
         "connectors:read"
@@ -162,9 +186,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "connector_start_dynamo_db_export",
       "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/start-dynamodb-export",
       "requestSchemaSHA256": "a14b4f545d7de777f9adb962e0379c97057495c07ecfd8b924c7d4ea81ee0867",
       "requiredScopes": [
         "connectors:write"
@@ -181,9 +208,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "data_catalog_search",
       "outputSensitivity": "none",
+      "path": "/data-catalog/search",
       "requestSchemaSHA256": "d351483e86d9875544b23e3029826cc6e849a8161695a72c9ff014bbfa067547",
       "requiredScopes": [
         "data_catalog:read"
@@ -200,9 +230,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "encryption_key_delete",
       "outputSensitivity": "none",
+      "path": "/encryption-keys/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "encryption_keys:write"
@@ -219,9 +252,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "get",
       "name": "encryption_key_list",
       "outputSensitivity": "none",
+      "path": "/encryption-keys",
       "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
       "requiredScopes": [
         "encryption_keys:read"
@@ -238,9 +274,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "encryption_key_update",
       "outputSensitivity": "none",
+      "path": "/encryption-keys/{uuid}",
       "requestSchemaSHA256": "d9cf5ddc3005655dcc5bcaf5287f098ec43796396bfa406538226297b325fb5b",
       "requiredScopes": [
         "encryption_keys:write"
@@ -257,9 +296,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "ingestion_api_key_delete",
       "outputSensitivity": "none",
+      "path": "/ingestion-api-keys/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "ingestion_api_keys:write"
@@ -276,9 +318,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "ingestion_api_key_update",
       "outputSensitivity": "none",
+      "path": "/ingestion-api-keys/{uuid}",
       "requestSchemaSHA256": "9127c3c34849dd18d0e26751baf48a69d080b154da105928400ef5abe9484562",
       "requiredScopes": [
         "ingestion_api_keys:write"
@@ -295,9 +340,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_cancel_backfill_tables",
       "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/backfill/cancel",
       "requestSchemaSHA256": "e819075dd12caf67fee519943f78fe2c63560f199be93d261b502aa8a9d57084",
       "requiredScopes": [
         "pipelines:write"
@@ -314,9 +362,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_create",
       "outputSensitivity": "none",
+      "path": "/pipelines",
       "requestSchemaSHA256": "1a551a576703495280e06e3cedd2bea9a7f9c82699eda7a57569b0fea2aac6f0",
       "requiredScopes": [
         "pipelines:write"
@@ -333,9 +384,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_create_from_source",
       "outputSensitivity": "none",
+      "path": "/pipelines/create-from-source",
       "requestSchemaSHA256": "24104716f540417fa7fef79dbbce0c1749bb430b42dfdec57bdade2dfeab390e",
       "requiredScopes": [
         "pipelines:write"
@@ -352,9 +406,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "pipeline_delete",
       "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "pipelines:write"
@@ -371,9 +428,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_detect_schema_changes",
       "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/detect-schema-changes",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "pipelines:write"
@@ -390,9 +450,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "get",
       "name": "pipeline_list",
       "outputSensitivity": "none",
+      "path": "/pipelines",
       "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
       "requiredScopes": [
         "pipelines:read"
@@ -409,9 +472,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_start",
       "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/start",
       "requestSchemaSHA256": "b43820d8c08ba50bb64d612c6d2f1edba288353fb8d17d4c5bc19d627faa3e56",
       "requiredScopes": [
         "pipelines:write"
@@ -428,9 +494,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_update",
       "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}",
       "requestSchemaSHA256": "5d515a085294f4995de7c5d1bdef2ed02a12569151085d881209d8e5c884c339",
       "requiredScopes": [
         "pipelines:write"
@@ -447,9 +516,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "pipeline_update_status",
       "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/status",
       "requestSchemaSHA256": "deb78f82b3709a08b6eae4aa9d8679daa55faaaf1b9a220dced00923a2eaa817",
       "requiredScopes": [
         "pipelines:write"
@@ -466,9 +538,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "private_link_connection_create",
       "outputSensitivity": "none",
+      "path": "/privatelink-connections",
       "requestSchemaSHA256": "4b8765cb943b8ffeab1dfa2eb2d430988119787781fd0223546abd1b9337a197",
       "requiredScopes": [
         "private_link_connections:write"
@@ -485,9 +560,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "private_link_connection_delete",
       "outputSensitivity": "none",
+      "path": "/privatelink-connections/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "private_link_connections:write"
@@ -504,9 +582,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "get",
       "name": "private_link_connection_detail",
       "outputSensitivity": "none",
+      "path": "/privatelink-connections/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "private_link_connections:read"
@@ -523,9 +604,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "private_link_connection_update",
       "outputSensitivity": "none",
+      "path": "/privatelink-connections/{uuid}",
       "requestSchemaSHA256": "f702ef62e703ee36f2185bea62ca58f28562f31efe40feaa7aef05cd79a08c0f",
       "requiredScopes": [
         "private_link_connections:write"
@@ -542,9 +626,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "source_reader_delete",
       "outputSensitivity": "none",
+      "path": "/source-readers/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "source_readers:write"
@@ -561,9 +648,12 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "source_reader_deploy",
       "outputSensitivity": "none",
+      "path": "/source-readers/{uuid}/deploy",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "source_readers:write"
@@ -580,9 +670,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "ssh_tunnel_create",
       "outputSensitivity": "none",
+      "path": "/ssh-tunnels",
       "requestSchemaSHA256": "bff8cfe163726053f1d1a27d8fe87150b04b0880a97a52f354d5e8460b6cb700",
       "requiredScopes": [
         "ssh_tunnels:write"
@@ -599,9 +692,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "delete",
       "name": "ssh_tunnel_delete",
       "outputSensitivity": "none",
+      "path": "/ssh-tunnels/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "ssh_tunnels:write"
@@ -618,9 +714,12 @@
         "openWorldHint": false,
         "readOnlyHint": true
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "get",
       "name": "ssh_tunnel_detail",
       "outputSensitivity": "none",
+      "path": "/ssh-tunnels/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
         "ssh_tunnels:read"
@@ -637,9 +736,12 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
+      "bodilessSuccess": false,
       "inputSensitivity": "none",
+      "method": "post",
       "name": "ssh_tunnel_update",
       "outputSensitivity": "none",
+      "path": "/ssh-tunnels/{uuid}",
       "requestSchemaSHA256": "b0f11586667d5a3c9af4f85ed2b3b232154496a15180171b8216290a4c5add8b",
       "requiredScopes": [
         "ssh_tunnels:write"

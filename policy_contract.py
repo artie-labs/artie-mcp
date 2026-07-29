@@ -470,9 +470,12 @@ def snapshot_policy_contract(
         "tools": [
             {
                 "annotations": dict(sorted(tool.annotations.items())),
+                "bodilessSuccess": tool.bodiless_success,
                 "inputSensitivity": tool.input_sensitivity,
+                "method": tool.method,
                 "name": tool.name,
                 "outputSensitivity": tool.output_sensitivity,
+                "path": tool.path,
                 "requestSchemaSHA256": _canonical_sha256(tool.request),
                 "requiredScopes": list(tool.required_scopes),
                 "retrySemantics": tool.retry_semantics,

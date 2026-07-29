@@ -155,7 +155,7 @@ def _shape_input(value: Any, schema: Mapping[str, Any]) -> Any:
                 continue
         raise PolicyAdapterError("request does not match an approved schema branch")
 
-    schema_type = schema.get("type")
+    schema_type = _schema_type(schema, value, "request")
     if schema_type == "object":
         if not isinstance(value, Mapping):
             raise PolicyAdapterError(
@@ -206,13 +206,18 @@ def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
                 continue
         raise PolicyAdapterError("response does not match an approved schema branch")
 
-    schema_type = schema.get("type")
+    schema_type = _schema_type(schema, value, "response")
     if schema_type == "object":
         if not isinstance(value, Mapping):
             raise PolicyAdapterError(
                 "response does not match the approved object schema"
             )
         properties = schema.get("properties", {})
+        required = set(schema.get("required", []))
+        if missing := required - set(value):
+            raise PolicyAdapterError(
+                f"response is missing required output: {sorted(missing)}"
+            )
         return {
             name: _shape_output(value[name], property_schema)
             for name, property_schema in properties.items()
@@ -237,6 +242,22 @@ def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
     return value
 
 
+def _schema_type(schema: Mapping[str, Any], value: Any, subject: str) -> str:
+    type_spec = schema.get("type")
+    if isinstance(type_spec, str):
+        return type_spec
+    if not isinstance(type_spec, list) or not all(
+        isinstance(schema_type, str) for schema_type in type_spec
+    ):
+        raise PolicyAdapterError(f"{subject} schema must declare a type")
+    if value is None and "null" in type_spec:
+        return "null"
+    concrete_types = [schema_type for schema_type in type_spec if schema_type != "null"]
+    if len(concrete_types) == 1:
+        return concrete_types[0]
+    raise PolicyAdapterError(f"{subject} schema has ambiguous types")
+
+
 def _merge_all_of(schema: Mapping[str, Any]) -> dict[str, Any]:
     branches = schema["allOf"]
     if not isinstance(branches, list) or not branches:
@@ -249,7 +270,7 @@ def _merge_all_of(schema: Mapping[str, Any]) -> dict[str, Any]:
             raise PolicyAdapterError("allOf contains an invalid schema")
         if "$ref" in branch:
             branch = _nested_schema(branch)
-        if branch.get("type") != "object":
+        if _schema_type(branch, {}, "allOf") != "object":
             raise PolicyAdapterError("allOf schemas must be objects")
         branch_properties = branch.get("properties", {})
         if not isinstance(branch_properties, Mapping):

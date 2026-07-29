@@ -34,7 +34,7 @@ class TestSafeTrafficAdapter(unittest.TestCase):
                         "allOf": [
                             {
                                 "properties": {"name": {"type": "string"}},
-                                "type": "object",
+                                "type": ["object", "null"],
                             },
                             {
                                 "properties": {
@@ -79,6 +79,40 @@ class TestSafeTrafficAdapter(unittest.TestCase):
                 b'{"sharedConfig":{"password":"secret"}}',
             )
         self.assertNotIn("secret", str(error.exception))
+
+    def test_selects_the_matching_one_of_output_branch(self):
+        adapter = self.adapter(
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "properties": {"id": {"type": "string"}},
+                                "required": ["id"],
+                                "type": "object",
+                            },
+                            {
+                                "properties": {"error": {"type": "string"}},
+                                "required": ["error"],
+                                "type": "object",
+                            },
+                        ]
+                    },
+                    "status": "200",
+                },
+            )
+        )
+
+        self.assertEqual(
+            {"error": "not found"},
+            adapter.shape_response(
+                "connector_get",
+                200,
+                "application/json",
+                b'{"error":"not found","sharedConfig":{"password":"secret"}}',
+            ),
+        )
 
     def test_rejects_undeclared_input_before_forwarding(self):
         adapter = self.adapter(
