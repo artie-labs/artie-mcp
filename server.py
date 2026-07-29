@@ -127,6 +127,21 @@ async def _redact_response(response: httpx.Response):
 _MCP_ANNOTATION_KEYS = frozenset(
     {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"}
 )
+_MCP_POLICY_KEYS = _MCP_ANNOTATION_KEYS | frozenset(
+    {
+        "exposure",
+        "operationId",
+        "title",
+        "triggerDescription",
+        "requiredScopes",
+        "retrySemantics",
+        "inputSensitivity",
+        "outputSensitivity",
+        "exclusionReason",
+        "remediation",
+        "bodilessSuccess",
+    }
+)
 _OPENAPI_HTTP_METHODS = frozenset(
     {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
 )
@@ -136,16 +151,18 @@ def _tool_annotations(route_extensions: dict[str, Any]) -> ToolAnnotations:
     annotations = route_extensions.get(_MCP_ANNOTATION_EXTENSION)
     if not isinstance(annotations, dict):
         raise ValueError(f"{_MCP_ANNOTATION_EXTENSION} must be an object")
-    if set(annotations) != _MCP_ANNOTATION_KEYS:
+    if not _MCP_ANNOTATION_KEYS.issubset(annotations) or not set(annotations).issubset(
+        _MCP_POLICY_KEYS
+    ):
         raise ValueError(
-            f"{_MCP_ANNOTATION_EXTENSION} must contain exactly the MCP tool annotation fields"
+            f"{_MCP_ANNOTATION_EXTENSION} must contain MCP tool annotations or a complete MCP policy"
         )
-    if any(type(value) is not bool for value in annotations.values()):
+    if any(type(annotations[key]) is not bool for key in _MCP_ANNOTATION_KEYS):
         raise ValueError(
             f"{_MCP_ANNOTATION_EXTENSION} tool annotation fields must be booleans"
         )
 
-    return ToolAnnotations(**annotations)
+    return ToolAnnotations(**{key: annotations[key] for key in _MCP_ANNOTATION_KEYS})
 
 
 def _validate_openapi_annotations(spec: dict[str, Any]) -> None:
