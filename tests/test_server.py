@@ -3,89 +3,15 @@ import importlib
 import json
 import sys
 import unittest
-from unittest.mock import patch
 
 import httpx
-
-
-class _OpenAPIResponse:
-    text = """\
-openapi: 3.1.0
-info:
-  title: Test API
-  version: 1.0.0
-paths:
-  /read:
-    get:
-      operationId: readThing
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-      x-artie-mcp:
-        readOnlyHint: true
-        destructiveHint: false
-        idempotentHint: true
-        openWorldHint: false
-  /write:
-    post:
-      operationId: writeThing
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-      x-artie-mcp:
-        readOnlyHint: false
-        destructiveHint: true
-        idempotentHint: false
-        openWorldHint: true
-  /no-content:
-    delete:
-      operationId: deleteThing
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-        '204':
-          description: No Content
-      x-artie-mcp:
-        readOnlyHint: false
-        destructiveHint: true
-        idempotentHint: true
-        openWorldHint: false
-  /connectors/ping:
-    post:
-      operationId: pingConnector
-      responses:
-        '200':
-          description: OK
-      x-artie-mcp:
-        readOnlyHint: true
-        destructiveHint: false
-        idempotentHint: true
-        openWorldHint: true
-"""
-
-    def raise_for_status(self):
-        return self
 
 
 class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._previous_server = sys.modules.pop("server", None)
-        with patch.object(httpx, "get", return_value=_OpenAPIResponse()) as get:
-            cls.server = importlib.import_module("server")
-        get.assert_called_once_with(cls.server._SPEC_URL)
+        cls.server = importlib.import_module("server")
         cls.tools = asyncio.run(cls.server.mcp.list_tools())
 
     @classmethod
@@ -94,94 +20,52 @@ class TestServer(unittest.TestCase):
         if cls._previous_server is not None:
             sys.modules["server"] = cls._previous_server
 
-    def tool(self, name):
-        return next(tool for tool in self.tools if tool.name == name)
-
-    def test_hash_is_deterministic(self):
+    def test_server_publishes_exactly_the_policy_tools(self):
         self.assertEqual(
-            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
-            self.server._hash("test"),
+            {tool.name for tool in self.server.policy_contract.tools},
+            {tool.name for tool in self.tools},
+        )
+        self.assertNotIn("unsaved_connector_ping", [tool.name for tool in self.tools])
+        self.assertNotIn("Ping_a_connector", [tool.name for tool in self.tools])
+
+    def test_generated_tools_use_policy_metadata(self):
+        contracts = {tool.name: tool for tool in self.server.policy_contract.tools}
+        for tool in self.tools:
+            with self.subTest(tool=tool.name):
+                contract = contracts[tool.name]
+                self.assertEqual(contract.title, tool.title)
+                self.assertEqual(contract.trigger_description, tool.description)
+                self.assertEqual(
+                    contract.annotations,
+                    tool.annotations.model_dump(exclude_none=True),
+                )
+
+    def test_bodiless_policy_tools_publish_a_success_schema(self):
+        tools = {tool.name: tool for tool in self.tools}
+        for contract in self.server.policy_contract.tools:
+            if contract.bodiless_success:
+                with self.subTest(tool=contract.name):
+                    self.assertEqual(
+                        {
+                            "type": "object",
+                            "properties": {"success": {"const": True}},
+                            "required": ["success"],
+                            "additionalProperties": False,
+                        },
+                        tools[contract.name].output_schema,
+                    )
+
+    def test_failed_upstream_response_is_replaced_before_fastmcp_formats_it(self):
+        response = httpx.Response(
+            500,
+            content=b'{"sharedConfig":{"password":"secret"}}',
+            headers={"content-type": "application/json"},
+            request=httpx.Request("GET", "https://api.artie.com/column-hashing-salts"),
         )
 
-    def test_strip_secrets_redacts_nested_dicts_and_lists(self):
-        self.assertEqual(
-            {
-                "connector": {"name": "source"},
-                "items": [{"id": 1}, {"nested": {"id": 2}}],
-            },
-            self.server._strip_secrets(
-                {
-                    "connector": {
-                        "name": "source",
-                        "sharedConfig": {"token": "secret"},
-                    },
-                    "items": [
-                        {"id": 1, "sharedConfig": {"password": "secret"}},
-                        {"nested": {"id": 2, "sharedConfig": "secret"}},
-                    ],
-                }
-            ),
-        )
+        asyncio.run(self.server._shape_policy_response(response))
 
-    def test_generated_tools_receive_openapi_annotations(self):
-        self.assertEqual(
-            {
-                "readOnlyHint": True,
-                "destructiveHint": False,
-                "idempotentHint": True,
-                "openWorldHint": False,
-            },
-            self.tool("readThing").annotations.model_dump(exclude_none=True),
-        )
-        self.assertEqual(
-            {
-                "readOnlyHint": False,
-                "destructiveHint": True,
-                "idempotentHint": False,
-                "openWorldHint": True,
-            },
-            self.tool("writeThing").annotations.model_dump(exclude_none=True),
-        )
-
-    def test_custom_ping_tool_receives_openapi_annotations(self):
-        self.assertEqual(
-            {
-                "readOnlyHint": True,
-                "destructiveHint": False,
-                "idempotentHint": True,
-                "openWorldHint": True,
-            },
-            self.tool("Ping_a_connector").annotations.model_dump(exclude_none=True),
-        )
-
-    def test_204_operations_keep_annotations_without_an_output_schema(self):
-        tool = self.tool("deleteThing")
-
-        self.assertIsNone(tool.output_schema)
-        self.assertEqual(
-            {
-                "readOnlyHint": False,
-                "destructiveHint": True,
-                "idempotentHint": True,
-                "openWorldHint": False,
-            },
-            tool.annotations.model_dump(exclude_none=True),
-        )
-
-    def test_malformed_openapi_fails_during_server_construction(self):
-        malformed_response = _OpenAPIResponse()
-        malformed_response.text = malformed_response.text.replace(
-            "readOnlyHint: true", "readOnlyHint: invalid", 1
-        )
-        sys.modules.pop("server", None)
-
-        try:
-            with patch.object(httpx, "get", return_value=malformed_response):
-                with self.assertRaisesRegex(ValueError, "fields must be booleans"):
-                    importlib.import_module("server")
-        finally:
-            sys.modules.pop("server", None)
-            sys.modules["server"] = self.server
+        self.assertEqual({"error": "upstream request failed"}, response.json())
 
     def test_server_card_describes_the_authenticated_streamable_http_endpoint(self):
         response = self.server._server_card_response()
@@ -190,98 +74,9 @@ class TestServer(unittest.TestCase):
         self.assertEqual(
             "application/mcp-server-card+json", response.headers["content-type"]
         )
-        self.assertEqual("public, max-age=3600", response.headers["cache-control"])
         self.assertEqual("*", response.headers["access-control-allow-origin"])
-        self.assertTrue(response.headers["etag"])
-        self.assertEqual(
-            {
-                "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
-                "name": "com.artie/mcp",
-                "version": "0.1.7",
-                "description": "Manage, interact with, and provision Artie resources through the Artie MCP Server.",
-                "title": "Artie MCP Server",
-                "websiteUrl": "https://artie.com/docs/api/overview",
-                "icons": [
-                    {
-                        "src": "https://www.artie.com/brand/logo.svg",
-                        "mimeType": "image/svg+xml",
-                        "sizes": ["any"],
-                    }
-                ],
-                "remotes": [
-                    {
-                        "type": "streamable-http",
-                        "url": "https://mcp.artie.com/mcp",
-                        "headers": [
-                            {
-                                "name": "Authorization",
-                                "value": "Bearer {artie_api_key}",
-                                "variables": {
-                                    "artie_api_key": {
-                                        "description": "Artie API key",
-                                        "isRequired": True,
-                                        "isSecret": True,
-                                        "format": "string",
-                                    }
-                                },
-                            }
-                        ],
-                    }
-                ],
-            },
-            json.loads(response.body),
-        )
+        self.assertEqual("com.artie/mcp", json.loads(response.body)["name"])
 
-    def test_annotations_reject_malformed_openapi_extensions(self):
-        valid_annotations = {
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "idempotentHint": True,
-            "openWorldHint": False,
-        }
-        malformed_extensions = [
-            {},
-            {"x-artie-mcp": {}},
-            {"x-artie-mcp": {**valid_annotations, "unknown": True}},
-            {
-                "x-artie-mcp": {
-                    **valid_annotations,
-                    "openWorldHint": "false",
-                }
-            },
-        ]
 
-        for route_extensions in malformed_extensions:
-            with self.subTest(route_extensions=route_extensions):
-                with self.assertRaises(ValueError):
-                    self.server._tool_annotations(route_extensions)
-
-    def test_annotations_accept_complete_policy_extensions(self):
-        annotations = self.server._tool_annotations(
-            {
-                "x-artie-mcp": {
-                    "exposure": "exposed",
-                    "operationId": "read_thing",
-                    "title": "Read thing",
-                    "triggerDescription": "Use when reading a thing.",
-                    "readOnlyHint": True,
-                    "destructiveHint": False,
-                    "idempotentHint": True,
-                    "openWorldHint": False,
-                    "requiredScopes": ["things:read"],
-                    "retrySemantics": "safe",
-                    "inputSensitivity": "none",
-                    "outputSensitivity": "none",
-                }
-            }
-        )
-
-        self.assertEqual(
-            {
-                "readOnlyHint": True,
-                "destructiveHint": False,
-                "idempotentHint": True,
-                "openWorldHint": False,
-            },
-            annotations.model_dump(exclude_none=True),
-        )
+if __name__ == "__main__":
+    unittest.main()

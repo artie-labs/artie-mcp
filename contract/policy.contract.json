@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "9ab8a19db1ab2f6812329d4dc79424f0307ec2d6156e0e3dba92da178c67276a",
-  "releaseTag": "v1.0.56",
+  "policySHA256": "89811ae87e8070af5c3bacd1bc39f8ac1306a42b8e3ae3f39ae1c54e7050180c",
+  "releaseTag": "v1.0.57",
   "tools": [
     {
       "annotations": {
@@ -10,7 +10,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "column_hashing_salt_delete",
@@ -98,7 +98,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "connector_delete",
@@ -120,7 +120,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "connector_drop_postgres_replication_slot",
@@ -230,7 +230,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "encryption_key_delete",
@@ -296,7 +296,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "ingestion_api_key_delete",
@@ -340,7 +340,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "pipeline_cancel_backfill_tables",
@@ -406,7 +406,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "pipeline_delete",
@@ -428,7 +428,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "pipeline_detect_schema_changes",
@@ -472,7 +472,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "pipeline_start",
@@ -560,7 +560,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "private_link_connection_delete",
@@ -626,7 +626,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "source_reader_delete",
@@ -648,7 +648,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "source_reader_deploy",
@@ -692,7 +692,7 @@
         "openWorldHint": false,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "delete",
       "name": "ssh_tunnel_delete",
