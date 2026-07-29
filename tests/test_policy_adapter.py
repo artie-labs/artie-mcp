@@ -114,6 +114,101 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             ),
         )
 
+    def test_one_of_skips_an_optional_branch_without_matching_properties(self):
+        adapter = self.adapter(
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "properties": {"id": {"type": "string"}},
+                                "type": "object",
+                            },
+                            {
+                                "properties": {"error": {"type": "string"}},
+                                "required": ["error"],
+                                "type": "object",
+                            },
+                        ]
+                    },
+                    "status": "200",
+                },
+            )
+        )
+
+        self.assertEqual(
+            {"error": "not found"},
+            adapter.shape_response(
+                "connector_get",
+                200,
+                "application/json",
+                b'{"error":"not found","sharedConfig":{"password":"secret"}}',
+            ),
+        )
+
+    def test_prefers_a_static_route_over_a_matching_template(self):
+        create = ToolContract(
+            name="pipeline_create_from_source",
+            method="post",
+            path="/pipelines/create-from-source",
+            title="Create pipeline",
+            trigger_description="Use when creating a pipeline.",
+            required_scopes=("pipelines:write",),
+            annotations={},
+            retry_semantics="unsafe",
+            input_sensitivity="none",
+            output_sensitivity="none",
+            request={"parameters": []},
+            success=({"status": "204"},),
+            bodiless_success=False,
+        )
+        template = ToolContract(
+            name="pipeline_get",
+            method="post",
+            path="/pipelines/{uuid}",
+            title="Get pipeline",
+            trigger_description="Use when reading a pipeline.",
+            required_scopes=("pipelines:read",),
+            annotations={},
+            retry_semantics="safe",
+            input_sensitivity="none",
+            output_sensitivity="none",
+            request={"parameters": []},
+            success=({"status": "204"},),
+            bodiless_success=False,
+        )
+        adapter = SafeTrafficAdapter(PolicyContract(tools=(template, create)))
+
+        self.assertEqual(
+            "pipeline_create_from_source",
+            adapter.tool_for_route("POST", "/pipelines/create-from-source").name,
+        )
+
+    def test_rejects_fractional_values_for_integer_schemas(self):
+        adapter = self.adapter(
+            request={
+                "parameters": [],
+                "body": {
+                    "contentType": "application/json",
+                    "required": True,
+                    "schema": {"type": "integer"},
+                },
+            },
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {"type": "integer"},
+                    "status": "200",
+                },
+            ),
+        )
+
+        with self.assertRaisesRegex(PolicyAdapterError, "numeric"):
+            adapter.shape_request("connector_get", {"body": 1.5})
+        with self.assertRaisesRegex(PolicyAdapterError, "numeric"):
+            adapter.shape_response("connector_get", 200, "application/json", b"1.5")
+
     def test_rejects_undeclared_input_before_forwarding(self):
         adapter = self.adapter(
             name="connector_update",

@@ -16,12 +16,23 @@ class SafeTrafficAdapter:
         self._tools = {tool.name: tool for tool in contract.tools}
 
     def tool_for_route(self, method: str, path: str) -> ToolContract:
-        for tool in self._tools.values():
-            if tool.method == method.lower() and _path_matches(tool.path, path):
-                return tool
-        raise PolicyAdapterError(
-            f"no approved policy tool matches {method.upper()} {path}"
-        )
+        matches = [
+            tool
+            for tool in self._tools.values()
+            if tool.method == method.lower() and _path_matches(tool.path, path)
+        ]
+        if not matches:
+            raise PolicyAdapterError(
+                f"no approved policy tool matches {method.upper()} {path}"
+            )
+        matches.sort(key=_route_specificity, reverse=True)
+        if len(matches) > 1 and _route_specificity(matches[0]) == _route_specificity(
+            matches[1]
+        ):
+            raise PolicyAdapterError(
+                f"ambiguous policy tools match {method.upper()} {path}"
+            )
+        return matches[0]
 
     def shape_request(
         self, tool_name: str, arguments: Mapping[str, Any]
@@ -100,6 +111,13 @@ class SafeTrafficAdapter:
         )
 
 
+def _route_specificity(tool: ToolContract) -> int:
+    return sum(
+        not (segment.startswith("{") and segment.endswith("}"))
+        for segment in tool.path.strip("/").split("/")
+    )
+
+
 def _path_matches(template: str, path: str) -> bool:
     template_segments = template.strip("/").split("/")
     path_segments = path.strip("/").split("/")
@@ -148,12 +166,7 @@ def _shape_input(value: Any, schema: Mapping[str, Any]) -> Any:
         return _shape_input(value, _merge_all_of(schema))
     if "oneOf" in schema or "anyOf" in schema:
         branches = schema.get("oneOf", schema.get("anyOf"))
-        for branch in branches:
-            try:
-                return _shape_input(value, branch)
-            except PolicyAdapterError:
-                continue
-        raise PolicyAdapterError("request does not match an approved schema branch")
+        return _shape_input(value, _select_schema_branch(value, branches, "request"))
 
     schema_type = _schema_type(schema, value, "request")
     if schema_type == "object":
@@ -183,9 +196,9 @@ def _shape_input(value: Any, schema: Mapping[str, Any]) -> Any:
         raise PolicyAdapterError("request does not match the approved string schema")
     if schema_type == "boolean" and not isinstance(value, bool):
         raise PolicyAdapterError("request does not match the approved boolean schema")
-    if schema_type in {"integer", "number"} and (
-        not isinstance(value, (int, float)) or isinstance(value, bool)
-    ):
+    if schema_type == "integer" and not _is_integer(value):
+        raise PolicyAdapterError("request does not match the approved numeric schema")
+    if schema_type == "number" and not _is_number(value):
         raise PolicyAdapterError("request does not match the approved numeric schema")
     if schema_type == "null" and value is not None:
         raise PolicyAdapterError("request does not match the approved null schema")
@@ -199,12 +212,7 @@ def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
         return _shape_output(value, _merge_all_of(schema))
     if "oneOf" in schema or "anyOf" in schema:
         branches = schema.get("oneOf", schema.get("anyOf"))
-        for branch in branches:
-            try:
-                return _shape_output(value, branch)
-            except PolicyAdapterError:
-                continue
-        raise PolicyAdapterError("response does not match an approved schema branch")
+        return _shape_output(value, _select_schema_branch(value, branches, "response"))
 
     schema_type = _schema_type(schema, value, "response")
     if schema_type == "object":
@@ -233,13 +241,84 @@ def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
         raise PolicyAdapterError("response does not match the approved string schema")
     if schema_type == "boolean" and not isinstance(value, bool):
         raise PolicyAdapterError("response does not match the approved boolean schema")
-    if schema_type in {"integer", "number"} and (
-        not isinstance(value, (int, float)) or isinstance(value, bool)
-    ):
+    if schema_type == "integer" and not _is_integer(value):
+        raise PolicyAdapterError("response does not match the approved numeric schema")
+    if schema_type == "number" and not _is_number(value):
         raise PolicyAdapterError("response does not match the approved numeric schema")
     if schema_type == "null" and value is not None:
         raise PolicyAdapterError("response does not match the approved null schema")
     return value
+
+
+def _select_schema_branch(value: Any, branches: Any, subject: str) -> Mapping[str, Any]:
+    if not isinstance(branches, list):
+        raise PolicyAdapterError(f"{subject} schema branches must be an array")
+
+    matches = []
+    for branch in branches:
+        if not isinstance(branch, Mapping):
+            raise PolicyAdapterError(f"{subject} schema branch must be an object")
+        try:
+            matches.append((_branch_specificity(value, branch, subject), branch))
+        except PolicyAdapterError:
+            continue
+    if not matches:
+        raise PolicyAdapterError(f"{subject} does not match an approved schema branch")
+
+    matches.sort(key=lambda match: match[0], reverse=True)
+    if len(matches) > 1 and matches[0][0] == matches[1][0]:
+        raise PolicyAdapterError(f"{subject} matches multiple schema branches")
+    return matches[0][1]
+
+
+def _branch_specificity(value: Any, schema: Mapping[str, Any], subject: str) -> int:
+    if "$ref" in schema:
+        schema = _nested_schema(schema)
+    if "allOf" in schema:
+        schema = _merge_all_of(schema)
+    schema_type = _schema_type(schema, value, subject)
+    if schema_type == "object":
+        if not isinstance(value, Mapping):
+            raise PolicyAdapterError(
+                f"{subject} does not match an approved object schema"
+            )
+        properties = schema.get("properties", {})
+        if not isinstance(properties, Mapping):
+            raise PolicyAdapterError(f"{subject} object properties must be an object")
+        required = set(schema.get("required", []))
+        if missing := required - set(value):
+            raise PolicyAdapterError(
+                f"{subject} is missing required fields: {sorted(missing)}"
+            )
+        matched = len(set(value) & set(properties))
+        if properties and not matched:
+            raise PolicyAdapterError(f"{subject} has no matching object properties")
+        return matched
+    if schema_type == "array" and not isinstance(value, list):
+        raise PolicyAdapterError(f"{subject} does not match an approved array schema")
+    if schema_type == "string" and not isinstance(value, str):
+        raise PolicyAdapterError(f"{subject} does not match an approved string schema")
+    if schema_type == "boolean" and not isinstance(value, bool):
+        raise PolicyAdapterError(f"{subject} does not match an approved boolean schema")
+    if schema_type == "integer" and not _is_integer(value):
+        raise PolicyAdapterError(f"{subject} does not match an approved numeric schema")
+    if schema_type == "number" and not _is_number(value):
+        raise PolicyAdapterError(f"{subject} does not match an approved numeric schema")
+    if schema_type == "null" and value is not None:
+        raise PolicyAdapterError(f"{subject} does not match an approved null schema")
+    return 1
+
+
+def _is_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _is_integer(value: Any) -> bool:
+    return (
+        isinstance(value, int)
+        and not isinstance(value, bool)
+        or (isinstance(value, float) and value.is_integer())
+    )
 
 
 def _schema_type(schema: Mapping[str, Any], value: Any, subject: str) -> str:
