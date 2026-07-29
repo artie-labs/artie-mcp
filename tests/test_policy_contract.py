@@ -176,7 +176,7 @@ class TestPolicyContract(unittest.TestCase):
 
         self.assertEqual(
             {
-                "formatVersion": 1,
+                "formatVersion": 2,
                 "policySHA256": "a" * 64,
                 "releaseTag": "v1.0.56",
                 "tools": [
@@ -190,10 +190,10 @@ class TestPolicyContract(unittest.TestCase):
                         "inputSensitivity": "none",
                         "name": "safe_list",
                         "outputSensitivity": "none",
-                        "request": {"parameters": []},
+                        "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
                         "requiredScopes": ["safe:read"],
                         "retrySemantics": "safe",
-                        "success": [{"status": "200"}],
+                        "successSchemaSHA256": "174790542fd664f6413274045a98e94a7fa8b783dda6a2edcfde53aa196eb10a",
                         "title": "List safe resources",
                         "triggerDescription": "Use when listing safe resources.",
                     }
@@ -271,7 +271,8 @@ class TestPolicyContract(unittest.TestCase):
             },
         }
 
-        snapshot = snapshot_policy_contract("v1.0.56", "a" * 64, compile_policy(spec))
+        contract = compile_policy(spec)
+        tool = contract.tools[0]
 
         self.assertEqual(
             {
@@ -300,7 +301,7 @@ class TestPolicyContract(unittest.TestCase):
                     }
                 ],
             },
-            snapshot["tools"][0]["request"],
+            tool.request,
         )
         self.assertEqual(
             [
@@ -322,7 +323,7 @@ class TestPolicyContract(unittest.TestCase):
                     "status": "200",
                 }
             ],
-            snapshot["tools"][0]["success"],
+            list(tool.success),
         )
 
 

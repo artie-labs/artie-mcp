@@ -437,11 +437,16 @@ def _validate_unique_tool_names(tools: list[ToolContract]) -> None:
         raise PolicyContractError("Exposed MCP operationIds must be unique")
 
 
+def _canonical_sha256(value: Any) -> str:
+    canonical_value = json.dumps(value, separators=(",", ":"), sort_keys=True)
+    return hashlib.sha256(canonical_value.encode()).hexdigest()
+
+
 def snapshot_policy_contract(
     release_tag: str, policy_sha256: str, contract: PolicyContract
 ) -> dict[str, Any]:
     return {
-        "formatVersion": 1,
+        "formatVersion": 2,
         "policySHA256": policy_sha256,
         "releaseTag": release_tag,
         "tools": [
@@ -450,10 +455,10 @@ def snapshot_policy_contract(
                 "inputSensitivity": tool.input_sensitivity,
                 "name": tool.name,
                 "outputSensitivity": tool.output_sensitivity,
-                "request": tool.request,
+                "requestSchemaSHA256": _canonical_sha256(tool.request),
                 "requiredScopes": list(tool.required_scopes),
                 "retrySemantics": tool.retry_semantics,
-                "success": list(tool.success),
+                "successSchemaSHA256": _canonical_sha256(tool.success),
                 "title": tool.title,
                 "triggerDescription": tool.trigger_description,
             }
