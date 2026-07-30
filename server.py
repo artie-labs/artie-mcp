@@ -1,3 +1,4 @@
+import atexit
 import hashlib
 import json
 import logging
@@ -153,9 +154,11 @@ mcp = FastMCP.from_openapi(
     mcp_component_fn=_configure_tool,
     strict_input_validation=True,
 )
+mcp_metrics = OpenTelemetryMetrics.create()
+atexit.register(mcp_metrics.shutdown)
 mcp.add_middleware(
     MCPObservability(
-        OpenTelemetryMetrics.create(),
+        mcp_metrics,
         frozenset(tool.name for tool in policy_contract.tools),
     )
 )

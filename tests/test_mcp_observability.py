@@ -124,6 +124,14 @@ class RecordingMeter:
         return self.histogram
 
 
+class RecordingProvider:
+    def __init__(self):
+        self.shutdown_called = False
+
+    def shutdown(self):
+        self.shutdown_called = True
+
+
 class TestOpenTelemetryMetrics(unittest.TestCase):
     def test_emits_count_and_duration_without_tool_name_attributes(self):
         meter = RecordingMeter()
@@ -144,6 +152,14 @@ class TestOpenTelemetryMetrics(unittest.TestCase):
         }
         self.assertEqual([(1, expected_attributes)], meter.counter.records)
         self.assertEqual([(12.5, expected_attributes)], meter.histogram.records)
+
+    def test_shutdown_flushes_the_meter_provider(self):
+        provider = RecordingProvider()
+        metrics = OpenTelemetryMetrics(RecordingMeter(), provider)
+
+        metrics.shutdown()
+
+        self.assertTrue(provider.shutdown_called)
 
 
 if __name__ == "__main__":

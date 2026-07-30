@@ -18,7 +18,8 @@ from pydantic import ValidationError as PydanticValidationError
 
 
 class OpenTelemetryMetrics:
-    def __init__(self, meter: Any) -> None:
+    def __init__(self, meter: Any, provider: MeterProvider | None = None) -> None:
+        self._provider = provider
         self._request_counter = meter.create_counter("mcp.request", unit="{request}")
         self._duration_histogram = meter.create_histogram(
             "mcp.request.duration", unit="ms"
@@ -28,8 +29,16 @@ class OpenTelemetryMetrics:
     def create(cls) -> OpenTelemetryMetrics:
         resource = Resource.create({SERVICE_NAME: "artie-mcp"})
         reader = PeriodicExportingMetricReader(OTLPMetricExporter())
-        provider = MeterProvider(resource=resource, metric_readers=[reader])
-        return cls(provider.get_meter("artie-mcp"))
+        provider = MeterProvider(
+            resource=resource,
+            metric_readers=[reader],
+            shutdown_on_exit=False,
+        )
+        return cls(provider.get_meter("artie-mcp"), provider)
+
+    def shutdown(self) -> None:
+        if self._provider:
+            self._provider.shutdown()
 
     def record(
         self,
