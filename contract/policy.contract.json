@@ -1,0 +1,755 @@
+{
+  "formatVersion": 2,
+  "policySHA256": "89811ae87e8070af5c3bacd1bc39f8ac1306a42b8e3ae3f39ae1c54e7050180c",
+  "releaseTag": "v1.0.57",
+  "tools": [
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "column_hashing_salt_delete",
+      "outputSensitivity": "none",
+      "path": "/column-hashing-salts/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "column_hashing_salts:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a column hashing salt",
+      "triggerDescription": "Use when you need to delete a column hashing salt."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "column_hashing_salt_list",
+      "outputSensitivity": "none",
+      "path": "/column-hashing-salts",
+      "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
+      "requiredScopes": [
+        "column_hashing_salts:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "fd11fc84376a52ae7dca5ec7ff350d473a6bebd323465511e7e8a21b0654062f",
+      "title": "List column hashing salts",
+      "triggerDescription": "Use when you need to list column hashing salts."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "column_hashing_salt_preview",
+      "outputSensitivity": "none",
+      "path": "/column-hashing-salts/{uuid}/preview",
+      "requestSchemaSHA256": "f271a16fe606e941ddc008a7863ca3c025b0d59854fb3541f32a169c5dfe2594",
+      "requiredScopes": [
+        "column_hashing_salts:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "cb3aec278629a6b160633f319d251348d8fb360e43ea0c657b7803d9d0619a31",
+      "title": "Preview a column hashing salt",
+      "triggerDescription": "Use when you need to preview a column hashing salt."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "column_hashing_salt_update",
+      "outputSensitivity": "none",
+      "path": "/column-hashing-salts/{uuid}",
+      "requestSchemaSHA256": "87c7ea8d664af00cc4d10f5dee26e23f32febc82ea58c3f69a66efbfb190819a",
+      "requiredScopes": [
+        "column_hashing_salts:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "8da01cc3a0de29d8d762d03c516f163c912ce759b46ffd85f9dbb44a13b5bd3e",
+      "title": "Update a column hashing salt",
+      "triggerDescription": "Use when you need to update a column hashing salt."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "connector_delete",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "connectors:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a connector",
+      "triggerDescription": "Use when you need to delete a connector."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "connector_drop_postgres_replication_slot",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/postgres-drop-replication-slot",
+      "requestSchemaSHA256": "e349a02e4a0a673c205fe550788f154189b54b3a9574c549e6deacbaa778c369",
+      "requiredScopes": [
+        "connectors:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Drop a PostgreSQL replication slot",
+      "triggerDescription": "Use when you need to drop a PostgreSQL replication slot."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "connector_fetch_table_detail",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/detail",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "4eb913ada2be9138184d1111489a20b2a53a5dd772e3fbe2f6e569abd81f90b9",
+      "title": "Fetch table detail for a saved connector",
+      "triggerDescription": "Use when you need to fetch table detail for a saved connector."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "connector_generate_shadow_script",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/generate-shadow-script",
+      "requestSchemaSHA256": "f54fa9b5f3dccc9461fe5a61d4705d5ad452291065b75400d700866dddf4d92b",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "b3e1ee9f7de80a9546fb1ac5acdb7dcb80a4eb7583d5c931632d892f86b12fec",
+      "title": "Generate Oracle shadow table script",
+      "triggerDescription": "Use when you need to generate Oracle shadow table script."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "connector_start_dynamo_db_export",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/start-dynamodb-export",
+      "requestSchemaSHA256": "a14b4f545d7de777f9adb962e0379c97057495c07ecfd8b924c7d4ea81ee0867",
+      "requiredScopes": [
+        "connectors:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "473dfd0473c3322ef49784e58d58b254c0556f037642935c3e25c72c016a6393",
+      "title": "Start a DynamoDB export",
+      "triggerDescription": "Use when you need to start a DynamoDB export."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "data_catalog_search",
+      "outputSensitivity": "none",
+      "path": "/data-catalog/search",
+      "requestSchemaSHA256": "d351483e86d9875544b23e3029826cc6e849a8161695a72c9ff014bbfa067547",
+      "requiredScopes": [
+        "data_catalog:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "f7113bdd01be607d48a5d732c5c0ad49a611ffe5a9035375a0aab8ad57da20e7",
+      "title": "Search the data catalog",
+      "triggerDescription": "Use when you need to search the data catalog."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "encryption_key_delete",
+      "outputSensitivity": "none",
+      "path": "/encryption-keys/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "encryption_keys:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete an encryption key",
+      "triggerDescription": "Use when you need to delete an encryption key."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "encryption_key_list",
+      "outputSensitivity": "none",
+      "path": "/encryption-keys",
+      "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
+      "requiredScopes": [
+        "encryption_keys:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "109e753364e1add34c73070b3d6700ba6a42d996c6b6682a2a0e4a77c707060c",
+      "title": "List encryption keys",
+      "triggerDescription": "Use when you need to list encryption keys."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "encryption_key_update",
+      "outputSensitivity": "none",
+      "path": "/encryption-keys/{uuid}",
+      "requestSchemaSHA256": "d9cf5ddc3005655dcc5bcaf5287f098ec43796396bfa406538226297b325fb5b",
+      "requiredScopes": [
+        "encryption_keys:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "b0d84f062fee3d43d5ed98fb7f3deb3c16933ba2bac246f047620442d8729034",
+      "title": "Update an encryption key",
+      "triggerDescription": "Use when you need to update an encryption key."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "ingestion_api_key_delete",
+      "outputSensitivity": "none",
+      "path": "/ingestion-api-keys/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "ingestion_api_keys:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete an ingestion API key",
+      "triggerDescription": "Use when you need to delete an ingestion API key."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "ingestion_api_key_update",
+      "outputSensitivity": "none",
+      "path": "/ingestion-api-keys/{uuid}",
+      "requestSchemaSHA256": "9127c3c34849dd18d0e26751baf48a69d080b154da105928400ef5abe9484562",
+      "requiredScopes": [
+        "ingestion_api_keys:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "6790d03ccc110df09d0e0558d21388f48247dac4a625733939b61703d9bf8c39",
+      "title": "Update an ingestion API key",
+      "triggerDescription": "Use when you need to update an ingestion API key."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_cancel_backfill_tables",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/backfill/cancel",
+      "requestSchemaSHA256": "e819075dd12caf67fee519943f78fe2c63560f199be93d261b502aa8a9d57084",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Cancel backfill",
+      "triggerDescription": "Use when you need to cancel backfill."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_create",
+      "outputSensitivity": "none",
+      "path": "/pipelines",
+      "requestSchemaSHA256": "1a551a576703495280e06e3cedd2bea9a7f9c82699eda7a57569b0fea2aac6f0",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "cf25d17d608193bb9d9eeed80d83a9c33a102466c64fedfe1825ef06ac3b067e",
+      "title": "Create a pipeline",
+      "triggerDescription": "Use when you need to create a pipeline."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_create_from_source",
+      "outputSensitivity": "none",
+      "path": "/pipelines/create-from-source",
+      "requestSchemaSHA256": "24104716f540417fa7fef79dbbce0c1749bb430b42dfdec57bdade2dfeab390e",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "cf25d17d608193bb9d9eeed80d83a9c33a102466c64fedfe1825ef06ac3b067e",
+      "title": "Create pipeline from source",
+      "triggerDescription": "Use when you need to create pipeline from source."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "pipeline_delete",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete pipeline",
+      "triggerDescription": "Use when you need to delete pipeline."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_detect_schema_changes",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/detect-schema-changes",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Detect schema changes",
+      "triggerDescription": "Use when you need to detect schema changes."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "pipeline_list",
+      "outputSensitivity": "none",
+      "path": "/pipelines",
+      "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
+      "requiredScopes": [
+        "pipelines:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "527f0e94edea8837c95721324782df90bdfb4502665e4620478d18e0a99def5f",
+      "title": "List pipelines",
+      "triggerDescription": "Use when you need to list pipelines."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_start",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/start",
+      "requestSchemaSHA256": "b43820d8c08ba50bb64d612c6d2f1edba288353fb8d17d4c5bc19d627faa3e56",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Start pipeline",
+      "triggerDescription": "Use when you need to start pipeline."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_update",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}",
+      "requestSchemaSHA256": "5d515a085294f4995de7c5d1bdef2ed02a12569151085d881209d8e5c884c339",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "cf25d17d608193bb9d9eeed80d83a9c33a102466c64fedfe1825ef06ac3b067e",
+      "title": "Update pipeline",
+      "triggerDescription": "Use when you need to update pipeline."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_update_status",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/status",
+      "requestSchemaSHA256": "deb78f82b3709a08b6eae4aa9d8679daa55faaaf1b9a220dced00923a2eaa817",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "3455d7675efcb9068680fde0d29c42ca8f757782c59de47bffb3d27e533f9b4d",
+      "title": "Update pipeline status",
+      "triggerDescription": "Use when you need to update pipeline status."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "private_link_connection_create",
+      "outputSensitivity": "none",
+      "path": "/privatelink-connections",
+      "requestSchemaSHA256": "4b8765cb943b8ffeab1dfa2eb2d430988119787781fd0223546abd1b9337a197",
+      "requiredScopes": [
+        "private_link_connections:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
+      "title": "Create a PrivateLink connection",
+      "triggerDescription": "Use when you need to create a PrivateLink connection."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "private_link_connection_delete",
+      "outputSensitivity": "none",
+      "path": "/privatelink-connections/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "private_link_connections:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a PrivateLink connection",
+      "triggerDescription": "Use when you need to delete a PrivateLink connection."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "private_link_connection_detail",
+      "outputSensitivity": "none",
+      "path": "/privatelink-connections/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "private_link_connections:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
+      "title": "Get a PrivateLink connection",
+      "triggerDescription": "Use when you need to get a PrivateLink connection."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "private_link_connection_update",
+      "outputSensitivity": "none",
+      "path": "/privatelink-connections/{uuid}",
+      "requestSchemaSHA256": "f702ef62e703ee36f2185bea62ca58f28562f31efe40feaa7aef05cd79a08c0f",
+      "requiredScopes": [
+        "private_link_connections:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
+      "title": "Update a PrivateLink connection",
+      "triggerDescription": "Use when you need to update a PrivateLink connection."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "source_reader_delete",
+      "outputSensitivity": "none",
+      "path": "/source-readers/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "source_readers:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a source reader",
+      "triggerDescription": "Use when you need to delete a source reader."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "source_reader_deploy",
+      "outputSensitivity": "none",
+      "path": "/source-readers/{uuid}/deploy",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "source_readers:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Deploy a source reader",
+      "triggerDescription": "Use when you need to deploy a source reader."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "ssh_tunnel_create",
+      "outputSensitivity": "none",
+      "path": "/ssh-tunnels",
+      "requestSchemaSHA256": "bff8cfe163726053f1d1a27d8fe87150b04b0880a97a52f354d5e8460b6cb700",
+      "requiredScopes": [
+        "ssh_tunnels:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
+      "title": "Create an SSH tunnel",
+      "triggerDescription": "Use when you need to create an SSH tunnel."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "ssh_tunnel_delete",
+      "outputSensitivity": "none",
+      "path": "/ssh-tunnels/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "ssh_tunnels:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete an SSH tunnel",
+      "triggerDescription": "Use when you need to delete an SSH tunnel."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "ssh_tunnel_detail",
+      "outputSensitivity": "none",
+      "path": "/ssh-tunnels/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "ssh_tunnels:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
+      "title": "Get an SSH tunnel",
+      "triggerDescription": "Use when you need to get an SSH tunnel."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "ssh_tunnel_update",
+      "outputSensitivity": "none",
+      "path": "/ssh-tunnels/{uuid}",
+      "requestSchemaSHA256": "b0f11586667d5a3c9af4f85ed2b3b232154496a15180171b8216290a4c5add8b",
+      "requiredScopes": [
+        "ssh_tunnels:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
+      "title": "Update an SSH tunnel",
+      "triggerDescription": "Use when you need to update an SSH tunnel."
+    }
+  ]
+}

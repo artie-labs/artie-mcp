@@ -1,0 +1,47 @@
+name: Prepare policy update
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Released artie-api-spec version, for example v1.0.58
+        required: true
+        type: string
+  repository_dispatch:
+    types: [api_spec_released]
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-policy-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.client_payload.release_tag }}
+    concurrency:
+      group: policy-update-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.event.client_payload.release_tag }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: "0.11.6"
+          python-version: "3.14"
+          enable-cache: true
+      - run: uv sync --locked --all-groups
+      - run: uv run python -m scripts.prepare_policy_update --release-tag "$RELEASE_TAG"
+      - name: Create or update policy pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
+        with:
+          token: ${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }}
+          branch: automation/policy-${{ env.RELEASE_TAG }}
+          delete-branch: true
+          commit-message: "chore: update policy to ${{ env.RELEASE_TAG }}"
+          title: "chore: update MCP policy to ${{ env.RELEASE_TAG }}"
+          body: |
+            Updates the pinned Artie API policy release and generated MCP contract.
+
+            The release artifact is downloaded, version-checked, checksummed, and compiled before this PR is created.

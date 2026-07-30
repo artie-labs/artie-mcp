@@ -1,5 +1,7 @@
 import argparse
 import asyncio
+import json
+from pathlib import Path
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -10,10 +12,14 @@ _SMOKE_TOKEN = "container-smoke-test-token"
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", required=True)
+    parser.add_argument("--contract-path", required=True, type=Path)
     return parser.parse_args()
 
 
-async def smoke_test(url: str):
+async def smoke_test(url: str, contract_path: Path):
+    expected = json.loads(contract_path.read_text())["tools"]
+    expected_by_name = {tool["name"]: tool for tool in expected}
+
     async with streamablehttp_client(
         url, headers={"Authorization": f"Bearer {_SMOKE_TOKEN}"}
     ) as (read_stream, write_stream, _):
@@ -21,10 +27,33 @@ async def smoke_test(url: str):
             await session.initialize()
             tools = await session.list_tools()
 
-    tool_names = {tool.name for tool in tools.tools}
-    if "Ping_a_connector" not in tool_names:
-        raise AssertionError("MCP tools/list response is missing Ping_a_connector")
+    actual_by_name = {tool.name: tool for tool in tools.tools}
+    if set(actual_by_name) != set(expected_by_name):
+        raise AssertionError(
+            "MCP tools/list inventory does not match the policy contract"
+        )
+    for name, expected_tool in expected_by_name.items():
+        actual = actual_by_name[name]
+        if actual.annotations is None:
+            raise AssertionError(f"MCP tool {name} is missing annotations")
+        if actual.title != expected_tool["title"]:
+            raise AssertionError(
+                f"MCP tool {name} title does not match the policy contract"
+            )
+        if actual.description != expected_tool["triggerDescription"]:
+            raise AssertionError(
+                f"MCP tool {name} description does not match the policy contract"
+            )
+        if (
+            actual.annotations.model_dump(exclude_none=True)
+            != expected_tool["annotations"]
+        ):
+            raise AssertionError(
+                f"MCP tool {name} annotations do not match the policy contract"
+            )
+    print(json.dumps({"toolCount": len(actual_by_name)}, sort_keys=True))
 
 
 if __name__ == "__main__":
-    asyncio.run(smoke_test(parse_arguments().url))
+    arguments = parse_arguments()
+    asyncio.run(smoke_test(arguments.url, arguments.contract_path))
