@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "d610f0ed5467b6f4ea69cdb05a343694f2e8b6aa32ee1eefebc49db7fe416d5d",
-  "releaseTag": "v1.0.60",
+  "policySHA256": "65bd0cd869d3bac1abad108c69f7de614240a6219691f673785ff8630b5b9933",
+  "releaseTag": "v1.0.61",
   "tools": [
     {
       "annotations": {
@@ -346,7 +346,7 @@
       "name": "pipeline_backfill_tables",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/backfill",
-      "requestSchemaSHA256": "d5607accc6b5cccfc7f05fc4e00c8e8415a642321326f50e6fb549f81d91bf8f",
+      "requestSchemaSHA256": "3333c2f5c81225cecf4370489c5cc156ad62b4009a76b095a3cecc26a2b3e52c",
       "requiredScopes": [
         "pipelines:write"
       ],
