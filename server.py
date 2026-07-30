@@ -28,7 +28,9 @@ from policy_contract import (
 logger = logging.getLogger("artie-mcp")
 
 _DIAGNOSTIC_CLAIMS_ENABLED = "WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS"
-_DIAGNOSTIC_CLAIM_NAMES = frozenset({"iss", "aud", "sub", "sid", "scope", "org_id", "exp", "iat"})
+_DIAGNOSTIC_CLAIM_NAMES = frozenset(
+    {"iss", "aud", "sub", "sid", "scope", "org_id", "exp", "iat"}
+)
 _ARTIE_SCOPES = ["artie:read", "artie:write"]
 _BUNDLE_DIR = Path(__file__).with_name("contract")
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
@@ -234,6 +236,7 @@ def authkit_token_diagnostics() -> dict:
         "scopes": token.scopes,
         "token_fingerprint": hashlib.sha256(token.token.encode()).hexdigest()[:16],
     }
+
 
 @mcp.custom_route("/mcp/server-card", methods=["GET"])
 async def server_card(request):

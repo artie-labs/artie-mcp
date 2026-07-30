@@ -118,5 +118,6 @@ class TestServer(unittest.TestCase):
         )
         self.assertEqual("Artie MCP", provider.resource_name)
 
+
 if __name__ == "__main__":
     unittest.main()
