@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "89811ae87e8070af5c3bacd1bc39f8ac1306a42b8e3ae3f39ae1c54e7050180c",
-  "releaseTag": "v1.0.57",
+  "policySHA256": "d610f0ed5467b6f4ea69cdb05a343694f2e8b6aa32ee1eefebc49db7fe416d5d",
+  "releaseTag": "v1.0.60",
   "tools": [
     {
       "annotations": {
@@ -18,7 +18,7 @@
       "path": "/column-hashing-salts/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "column_hashing_salts:write"
+        "column_hashing_salts:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -106,7 +106,7 @@
       "path": "/connectors/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "connectors:write"
+        "connectors:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -238,7 +238,7 @@
       "path": "/encryption-keys/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "encryption_keys:write"
+        "encryption_keys:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -304,7 +304,7 @@
       "path": "/ingestion-api-keys/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "ingestion_api_keys:write"
+        "ingestion_api_keys:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -332,6 +332,28 @@
       "successSchemaSHA256": "6790d03ccc110df09d0e0558d21388f48247dac4a625733939b61703d9bf8c39",
       "title": "Update an ingestion API key",
       "triggerDescription": "Use when you need to update an ingestion API key."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_backfill_tables",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/backfill",
+      "requestSchemaSHA256": "d5607accc6b5cccfc7f05fc4e00c8e8415a642321326f50e6fb549f81d91bf8f",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Backfill pipeline tables",
+      "triggerDescription": "Use when you need to backfill pipeline tables."
     },
     {
       "annotations": {
@@ -414,7 +436,7 @@
       "path": "/pipelines/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "pipelines:write"
+        "pipelines:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -568,7 +590,7 @@
       "path": "/privatelink-connections/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "private_link_connections:write"
+        "private_link_connections:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -634,7 +656,7 @@
       "path": "/source-readers/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "source_readers:write"
+        "source_readers:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -700,7 +722,7 @@
       "path": "/ssh-tunnels/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "ssh_tunnels:write"
+        "ssh_tunnels:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
