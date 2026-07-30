@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "89811ae87e8070af5c3bacd1bc39f8ac1306a42b8e3ae3f39ae1c54e7050180c",
-  "releaseTag": "v1.0.57",
+  "policySHA256": "fa596316b9ff0372570eaaea257e237daf58504ae17502e89bdf6811457b33b5",
+  "releaseTag": "v1.0.59",
   "tools": [
     {
       "annotations": {
@@ -18,7 +18,7 @@
       "path": "/column-hashing-salts/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "column_hashing_salts:write"
+        "column_hashing_salts:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -106,7 +106,7 @@
       "path": "/connectors/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "connectors:write"
+        "connectors:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -238,7 +238,7 @@
       "path": "/encryption-keys/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "encryption_keys:write"
+        "encryption_keys:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -304,7 +304,7 @@
       "path": "/ingestion-api-keys/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "ingestion_api_keys:write"
+        "ingestion_api_keys:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -414,7 +414,7 @@
       "path": "/pipelines/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "pipelines:write"
+        "pipelines:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -568,7 +568,7 @@
       "path": "/privatelink-connections/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "private_link_connections:write"
+        "private_link_connections:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -634,7 +634,7 @@
       "path": "/source-readers/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "source_readers:write"
+        "source_readers:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
@@ -700,7 +700,7 @@
       "path": "/ssh-tunnels/{uuid}",
       "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
       "requiredScopes": [
-        "ssh_tunnels:write"
+        "ssh_tunnels:delete"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
