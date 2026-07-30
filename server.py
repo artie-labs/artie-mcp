@@ -1,3 +1,4 @@
+import atexit
 import hashlib
 import json
 import logging
@@ -12,6 +13,7 @@ from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
+from mcp_observability import MCPObservability, OpenTelemetryMetrics
 from policy_adapter import SafeTrafficAdapter
 from policy_contract import (
     PolicyContract,
@@ -152,6 +154,14 @@ mcp = FastMCP.from_openapi(
     mcp_component_fn=_configure_tool,
     strict_input_validation=True,
 )
+mcp_metrics = OpenTelemetryMetrics.create()
+atexit.register(mcp_metrics.shutdown)
+mcp.add_middleware(
+    MCPObservability(
+        mcp_metrics,
+        frozenset(tool.name for tool in policy_contract.tools),
+    )
+)
 
 _SERVER_CARD_BODY = json.dumps(_SERVER_CARD, separators=(",", ":"))
 _SERVER_CARD_ETAG = f'"{hashlib.sha256(_SERVER_CARD_BODY.encode()).hexdigest()}"'
@@ -200,6 +210,18 @@ class _HealthCheckFilter(logging.Filter):
         return not any(path in msg for path in ("/health", "/ready"))
 
 
+def _configure_logging() -> None:
+    if any(handler.name == "artie-mcp-json" for handler in logger.handlers):
+        return
+    handler = logging.StreamHandler()
+    handler.name = "artie-mcp-json"
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+
+_configure_logging()
 app = mcp.http_app(transport="streamable-http", stateless_http=True)
 
 if __name__ == "__main__":

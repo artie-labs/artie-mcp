@@ -67,6 +67,17 @@ class TestServer(unittest.TestCase):
 
         self.assertEqual({"error": "upstream request failed"}, response.json())
 
+    def test_server_configures_json_observability_logging(self):
+        self.assertTrue(self.server.logger.isEnabledFor(20))
+        self.assertFalse(self.server.logger.propagate)
+        self.assertTrue(
+            any(
+                handler.name == "artie-mcp-json"
+                and handler.formatter._fmt == "%(message)s"
+                for handler in self.server.logger.handlers
+            )
+        )
+
     def test_server_card_describes_the_authenticated_streamable_http_endpoint(self):
         response = self.server._server_card_response()
 
