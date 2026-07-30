@@ -68,6 +68,38 @@ class TestPreparePolicyUpdate(unittest.TestCase):
 
         self.assertFalse(result.changed)
 
+    def test_prepare_restores_existing_files_when_snapshot_publish_fails(self):
+        policy_bytes = _policy_bytes("v1.2.3")
+
+        with tempfile.TemporaryDirectory() as directory:
+            bundle_dir = Path(directory)
+            lock_path = bundle_dir / "policy.lock.json"
+            snapshot_path = bundle_dir / "policy.contract.json"
+            lock_path.write_text("existing lock")
+            snapshot_path.write_text("existing snapshot")
+            failed = False
+
+            def fail_snapshot_publish(source: Path, destination: Path) -> None:
+                nonlocal failed
+                if destination == snapshot_path and not failed:
+                    failed = True
+                    raise OSError("simulated snapshot publish failure")
+                source.replace(destination)
+
+            with (
+                patch.object(
+                    prepare_policy_update.urllib.request,
+                    "urlopen",
+                    return_value=_Response(policy_bytes),
+                ),
+                patch.object(prepare_policy_update, "_replace", fail_snapshot_publish),
+            ):
+                with self.assertRaisesRegex(OSError, "snapshot publish"):
+                    prepare_policy_update.prepare_policy_update("v1.2.3", bundle_dir)
+
+            self.assertEqual("existing lock", lock_path.read_text())
+            self.assertEqual("existing snapshot", snapshot_path.read_text())
+
     def test_prepare_rejects_invalid_policy_without_writing_files(self):
         policy_bytes = b"""openapi: 3.1.0
 info:

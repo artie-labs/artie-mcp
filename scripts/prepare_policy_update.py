@@ -6,8 +6,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
+import tempfile
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -54,10 +56,80 @@ def prepare_policy_update(release_tag: str, bundle_dir: Path) -> PrepareResult:
         _read_text(lock_path) != lock_text or _read_text(snapshot_path) != snapshot_text
     )
     if changed:
-        lock_path.write_text(lock_text)
-        snapshot_path.write_text(snapshot_text)
+        _write_bundle(lock_path, lock_text, snapshot_path, snapshot_text)
 
     return PrepareResult(changed, release_tag, policy_sha256)
+
+
+def _write_bundle(
+    lock_path: Path,
+    lock_text: str,
+    snapshot_path: Path,
+    snapshot_text: str,
+) -> None:
+    lock_update = _write_temporary_file(lock_path.parent, lock_text)
+    snapshot_update = _write_temporary_file(snapshot_path.parent, snapshot_text)
+    lock_backup = _copy_to_temporary_file(lock_path)
+    snapshot_backup = _copy_to_temporary_file(snapshot_path)
+    published_paths: list[Path] = []
+
+    try:
+        _replace(lock_update, lock_path)
+        published_paths.append(lock_path)
+        _replace(snapshot_update, snapshot_path)
+        published_paths.append(snapshot_path)
+        _fsync_directory(lock_path.parent)
+    except OSError as error:
+        try:
+            if snapshot_path in published_paths:
+                _restore(snapshot_path, snapshot_backup)
+            if lock_path in published_paths:
+                _restore(lock_path, lock_backup)
+            _fsync_directory(lock_path.parent)
+        except OSError as rollback_error:
+            raise PolicyContractError(
+                "failed to restore policy files after an update error"
+            ) from rollback_error
+        raise error
+    finally:
+        for path in (lock_update, snapshot_update, lock_backup, snapshot_backup):
+            if path is not None:
+                path.unlink(missing_ok=True)
+
+
+def _write_temporary_file(directory: Path, contents: str) -> Path:
+    with tempfile.NamedTemporaryFile(
+        mode="w", dir=directory, prefix=".policy-update-", delete=False
+    ) as file:
+        file.write(contents)
+        file.flush()
+        os.fsync(file.fileno())
+        return Path(file.name)
+
+
+def _copy_to_temporary_file(path: Path) -> Path | None:
+    if not path.exists():
+        return None
+    return _write_temporary_file(path.parent, path.read_text())
+
+
+def _restore(path: Path, backup: Path | None) -> None:
+    if backup is None:
+        path.unlink(missing_ok=True)
+        return
+    _replace(backup, path)
+
+
+def _replace(source: Path, destination: Path) -> None:
+    source.replace(destination)
+
+
+def _fsync_directory(directory: Path) -> None:
+    directory_fd = os.open(directory, os.O_RDONLY)
+    try:
+        os.fsync(directory_fd)
+    finally:
+        os.close(directory_fd)
 
 
 def _validate_release_tag(release_tag: str) -> None:
