@@ -12,9 +12,8 @@ import httpx
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.auth.providers.workos import AuthKitProvider
-from fastmcp.server.auth import require_scopes
 from fastmcp.server.dependencies import get_access_token, get_http_headers
-from fastmcp.server.providers.openapi import MCPType, RouteMap
+from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
