@@ -10,6 +10,7 @@ import os
 
 import httpx
 from fastmcp import FastMCP
+from fastmcp.server.auth import MultiAuth
 from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.auth.providers.workos import AuthKitProvider
 from fastmcp.server.dependencies import get_access_token, get_http_headers
@@ -82,12 +83,23 @@ def _build_auth_provider():
             "WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL must be set together"
         )
 
-    return AuthKitProvider(
-        authkit_domain=authkit_domain,
-        base_url=public_base_url,
-        resource_base_url=public_base_url,
-        resource_name="Artie MCP",
+    # Temporary dual auth during OAuth migration: AuthKit JWTs for OAuth
+    # clients, plus accept-and-forward for legacy Artie API keys.
+    return MultiAuth(
+        server=AuthKitProvider(
+            authkit_domain=authkit_domain,
+            base_url=public_base_url,
+            resource_base_url=public_base_url,
+            resource_name="Artie MCP",
+        ),
+        verifiers=[DebugTokenVerifier()],
     )
+
+
+def _is_jwt(token: str) -> bool:
+    """Heuristic: WorkOS access tokens are JWTs; Artie API keys are opaque."""
+    parts = token.split(".")
+    return len(parts) == 3 and all(parts)
 
 
 # Upstream Artie API configuration. The exchanged credential is only valid on the
@@ -112,12 +124,13 @@ _EXCHANGE_EXPIRY_SKEW_SECONDS = 30.0
 
 
 class _TokenExchangeAuth(httpx.Auth):
-    """Exchange the MCP client's WorkOS token (RFC 8693) for a short-lived Artie
-    API credential and attach it to the upstream request.
+    """Attach an Artie API credential to upstream requests.
 
-    The raw WorkOS token is never forwarded upstream. Exchanged credentials are
-    cached in-memory keyed by the WorkOS token and refreshed shortly before they
-    expire (WorkOS tokens are short-lived, so exchanged credentials are too).
+    JWT-shaped Bearer tokens (WorkOS) are exchanged (RFC 8693) for a short-lived
+    Artie credential and never forwarded raw. Opaque Bearer tokens are treated as
+    legacy Artie API keys and forwarded as-is during the OAuth migration;
+    upstream validates them. Exchanged credentials are cached in-memory keyed by
+    the WorkOS token and refreshed shortly before expiry.
     """
 
     def __init__(self) -> None:
@@ -178,13 +191,17 @@ class _TokenExchangeAuth(httpx.Auth):
         auth_header = get_http_headers(include={"authorization"}).get(
             "authorization", ""
         )
-        workos_token = ""
+        bearer_token = ""
         if auth_header.lower().startswith("bearer "):
-            workos_token = auth_header[len("bearer ") :].strip()
+            bearer_token = auth_header[len("bearer ") :].strip()
 
-        if workos_token:
-            access_token = await self._exchange(workos_token)
-            request.headers["Authorization"] = f"Bearer {access_token}"
+        if bearer_token:
+            if _is_jwt(bearer_token):
+                access_token = await self._exchange(bearer_token)
+                request.headers["Authorization"] = f"Bearer {access_token}"
+            else:
+                # Temporary API-key passthrough — upstream validates.
+                request.headers["Authorization"] = f"Bearer {bearer_token}"
         yield request
 
 
