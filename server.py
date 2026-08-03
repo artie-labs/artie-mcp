@@ -187,13 +187,22 @@ class _TokenExchangeAuth(httpx.Auth):
         for key in expired:
             self._cache.pop(key, None)
 
-    async def async_auth_flow(self, request):
+    def _bearer_token(self) -> str:
+        # Prefer the verified MCP token (reliable for Streamable HTTP). Fall
+        # back to the raw Authorization header for safety.
+        access = get_access_token()
+        if access is not None and access.token:
+            return access.token
+
         auth_header = get_http_headers(include={"authorization"}).get(
             "authorization", ""
         )
-        bearer_token = ""
         if auth_header.lower().startswith("bearer "):
-            bearer_token = auth_header[len("bearer ") :].strip()
+            return auth_header[len("bearer ") :].strip()
+        return ""
+
+    async def async_auth_flow(self, request):
+        bearer_token = self._bearer_token()
 
         if bearer_token:
             if _is_jwt(bearer_token):

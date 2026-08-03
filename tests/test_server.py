@@ -122,9 +122,7 @@ class TestServer(unittest.TestCase):
 
         authkit = provider.server
         self.assertEqual("https://example.authkit.app", authkit.authkit_domain)
-        self.assertEqual(
-            "https://example.ngrok.app", str(authkit.base_url).rstrip("/")
-        )
+        self.assertEqual("https://example.ngrok.app", str(authkit.base_url).rstrip("/"))
         authkit.set_mcp_path("/mcp")
         self.assertEqual(
             "https://example.ngrok.app/mcp", str(authkit._resource_url).rstrip("/")
@@ -144,6 +142,7 @@ class TestServer(unittest.TestCase):
 
         with (
             patch.object(auth, "_exchange") as exchange,
+            patch.object(self.server, "get_access_token", return_value=None),
             patch.object(
                 self.server,
                 "get_http_headers",
@@ -155,6 +154,27 @@ class TestServer(unittest.TestCase):
         exchange.assert_not_called()
         self.assertEqual("Bearer artie-api-key", requests[0].headers["Authorization"])
 
+    def test_token_exchange_auth_prefers_access_token_over_headers(self):
+        auth = self.server._TokenExchangeAuth()
+        request = httpx.Request("GET", "https://api.artie.com/pipelines")
+        access = unittest.mock.Mock(token="artie-from-access-token")
+
+        with (
+            patch.object(auth, "_exchange") as exchange,
+            patch.object(self.server, "get_access_token", return_value=access),
+            patch.object(
+                self.server,
+                "get_http_headers",
+                return_value={"authorization": "Bearer ignored-header"},
+            ),
+        ):
+            requests = asyncio.run(_collect_auth_requests(auth, request))
+
+        exchange.assert_not_called()
+        self.assertEqual(
+            "Bearer artie-from-access-token", requests[0].headers["Authorization"]
+        )
+
     def test_token_exchange_auth_exchanges_jwt_shaped_tokens(self):
         auth = self.server._TokenExchangeAuth()
         request = httpx.Request("GET", "https://api.artie.com/pipelines")
@@ -165,6 +185,7 @@ class TestServer(unittest.TestCase):
 
         with (
             patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
+            patch.object(self.server, "get_access_token", return_value=None),
             patch.object(
                 self.server,
                 "get_http_headers",
