@@ -29,8 +29,11 @@ async def smoke_test(url: str, contract_path: Path):
 
     actual_by_name = {tool.name: tool for tool in tools.tools}
     if set(actual_by_name) != set(expected_by_name):
+        unexpected = sorted(set(actual_by_name) - set(expected_by_name))
+        missing = sorted(set(expected_by_name) - set(actual_by_name))
         raise AssertionError(
             "MCP tools/list inventory does not match the policy contract"
+            f" (unexpected: {unexpected}, missing: {missing})"
         )
     for name, expected_tool in expected_by_name.items():
         actual = actual_by_name[name]
