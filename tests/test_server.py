@@ -129,6 +129,23 @@ class TestServer(unittest.TestCase):
         )
         self.assertEqual("Artie MCP", authkit.resource_name)
 
+    def test_api_key_verifier_rejects_jwt_shaped_tokens(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
+                "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app",
+            },
+            clear=True,
+        ):
+            provider = self.server._build_auth_provider()
+
+        api_key_verifier = provider.verifiers[0]
+        self.assertIsNone(asyncio.run(api_key_verifier.verify_token("aaa.bbb.ccc")))
+        accepted = asyncio.run(api_key_verifier.verify_token("arsk_test_key"))
+        self.assertIsNotNone(accepted)
+        self.assertEqual("arsk_test_key", accepted.token)
+
     def test_is_jwt_detects_three_segment_tokens(self):
         self.assertTrue(self.server._is_jwt("aaa.bbb.ccc"))
         self.assertFalse(self.server._is_jwt("artie-api-key"))

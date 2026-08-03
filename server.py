@@ -84,7 +84,9 @@ def _build_auth_provider():
         )
 
     # Temporary dual auth during OAuth migration: AuthKit JWTs for OAuth
-    # clients, plus accept-and-forward for legacy Artie API keys.
+    # clients, plus accept-and-forward for legacy Artie API keys. The API-key
+    # verifier only accepts non-JWTs so expired/invalid AuthKit tokens cannot
+    # fall through and keep authenticating.
     return MultiAuth(
         server=AuthKitProvider(
             authkit_domain=authkit_domain,
@@ -92,7 +94,7 @@ def _build_auth_provider():
             resource_base_url=public_base_url,
             resource_name="Artie MCP",
         ),
-        verifiers=[DebugTokenVerifier()],
+        verifiers=[DebugTokenVerifier(validate=lambda token: not _is_jwt(token))],
     )
 
 
