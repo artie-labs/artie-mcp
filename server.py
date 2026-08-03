@@ -318,28 +318,27 @@ def _server_card_response(status_code=200):
     )
 
 
-@mcp.tool(name="AuthKit_token_diagnostics")
-def authkit_token_diagnostics() -> dict:
-    """Returns a safe summary of the verified token for non-production OAuth diagnostics."""
-    if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) != "true":
-        raise RuntimeError("AuthKit token diagnostics are disabled")
+if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) == "true":
 
-    token = get_access_token()
-    if token is None:
-        raise RuntimeError("No authenticated access token is available")
+    @mcp.tool(name="AuthKit_token_diagnostics")
+    def authkit_token_diagnostics() -> dict:
+        """Returns a safe summary of the verified token for non-production OAuth diagnostics."""
+        token = get_access_token()
+        if token is None:
+            raise RuntimeError("No authenticated access token is available")
 
-    claims = {
-        name: value
-        for name, value in token.claims.items()
-        if name in _DIAGNOSTIC_CLAIM_NAMES or name.startswith("urn:artie:")
-    }
-    return {
-        "claims": claims,
-        "client_id": token.client_id,
-        "resource": token.resource,
-        "scopes": token.scopes,
-        "token_fingerprint": hashlib.sha256(token.token.encode()).hexdigest()[:16],
-    }
+        claims = {
+            name: value
+            for name, value in token.claims.items()
+            if name in _DIAGNOSTIC_CLAIM_NAMES or name.startswith("urn:artie:")
+        }
+        return {
+            "claims": claims,
+            "client_id": token.client_id,
+            "resource": token.resource,
+            "scopes": token.scopes,
+            "token_fingerprint": hashlib.sha256(token.token.encode()).hexdigest()[:16],
+        }
 
 
 @mcp.custom_route("/mcp/server-card", methods=["GET"])
