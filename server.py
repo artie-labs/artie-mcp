@@ -219,7 +219,7 @@ class _DeviceLinkAuth(httpx.Auth):
 
         body = _safe_json(response)
         error = body.get("error", "")
-        if error == "authorization_pending":
+        if error in {"authorization_pending", "slow_down"}:
             return "pending", body
         logger.info(
             "Artie device code not redeemable (%s): %s",

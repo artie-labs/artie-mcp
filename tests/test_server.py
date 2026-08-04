@@ -277,6 +277,23 @@ class TestServer(unittest.TestCase):
 
         self.assertIn("K7QM-3PXR", str(ctx.exception))
 
+    def test_poll_treats_slow_down_as_pending_authorization(self):
+        auth = self.server._DeviceLinkAuth()
+        response = httpx.Response(
+            400,
+            json={"error": "slow_down"},
+            request=httpx.Request("POST", self.server._ARTIE_TOKEN_EXCHANGE_URL),
+        )
+
+        async def post(*_args, **_kwargs):
+            return response
+
+        with patch.object(auth._client, "post", side_effect=post):
+            status, payload = asyncio.run(auth._poll("amdc_devicecode"))
+
+        self.assertEqual("pending", status)
+        self.assertEqual({"error": "slow_down"}, payload)
+
     def test_jwt_subject_decodes_sub_claim(self):
         self.assertEqual(
             "acct-123", self.server._jwt_subject(_encode_jwt({"sub": "acct-123"}))
