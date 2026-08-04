@@ -169,9 +169,13 @@ class _TokenExchangeAuth(httpx.Auth):
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
             if response.status_code != 200:
+                logger.warning(
+                    "Artie token exchange failed (%s): %s",
+                    response.status_code,
+                    response.text,
+                )
                 raise RuntimeError(
-                    f"Artie token exchange failed ({response.status_code}): "
-                    f"{response.text}"
+                    f"Artie token exchange failed ({response.status_code})"
                 )
             payload = response.json()
             access_token = payload.get("access_token")
