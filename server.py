@@ -101,14 +101,13 @@ def _build_auth_provider():
 
 
 def _is_jwt(token: str) -> bool:
-    """Heuristic: WorkOS access tokens are JWTs; Artie API keys are opaque."""
+    # WorkOS access tokens are JWTs; Artie API keys are opaque.
     parts = token.split(".")
     return len(parts) == 3 and all(parts)
 
 
-# Upstream Artie API configuration. The exchanged credential is only valid on the
-# Artie Dashboard/API that issued it, so both the token exchange and the tool
-# calls must target the same host.
+# Exchange credential is only valid on the host that issued it — exchange and
+# tool calls must target the same base URL.
 _ARTIE_API_BASE_URL = os.getenv("ARTIE_API_BASE_URL", "https://api.artie.com").rstrip(
     "/"
 )
@@ -119,8 +118,7 @@ _ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
     "ARTIE_DEVICE_AUTHORIZATION_URL",
     f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
 )
-# Set ARTIE_API_INSECURE_SKIP_VERIFY=true only for local testing against a
-# self-signed Dashboard (e.g. https://localhost:8000).
+# Local testing against a self-signed Dashboard only.
 _ARTIE_API_VERIFY_TLS = (
     os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
 )
@@ -133,8 +131,6 @@ _EXCHANGE_EXPIRY_SKEW_SECONDS = 30.0
 
 @dataclass
 class _PendingLink:
-    """A linking request awaiting the user's Dashboard approval."""
-
     user_code: str
     verification_uri: str
 
@@ -142,28 +138,22 @@ class _PendingLink:
 class _DeviceLinkAuth(httpx.Auth):
     """Attach an Artie API credential to upstream requests.
 
-    JWT-shaped Bearer tokens (WorkOS) are exchanged (RFC 8693) for a short-lived
-    Artie credential against a durable grant the user approved once from an
-    authenticated Dashboard session (choosing environment + scopes). The exchange
-    is stateless: on every request the live WorkOS token is traded for a fresh
-    access credential, so no long-lived token is held here and any server replica
-    can serve any request. Until the grant is approved the Dashboard returns
-    authorization_pending with a user_code, which we surface so the user can
-    approve; if no grant exists yet we bootstrap one via device authorization.
-    Opaque Bearer tokens are treated as legacy Artie API keys and forwarded as-is
-    during the OAuth migration; upstream validates them.
+    JWT Bearers (WorkOS) are exchanged (RFC 8693) for a short-lived Artie
+    credential against a durable grant the user approved once (environment +
+    scopes). Exchange is stateless: every request trades the live WorkOS token
+    for a fresh credential, so no long-lived token is held and any replica can
+    serve any request. Pending grants surface authorization_pending + user_code;
+    missing grants bootstrap via device authorization. Opaque Bearers are legacy
+    API keys forwarded as-is during the OAuth migration.
 
-    State is keyed by (subject, session id): the sid is stable across token
-    refreshes but changes on a fresh login, so a deliberate re-login re-selects
-    environment and scopes instead of silently reusing the prior grant. Only the
-    short-lived access credential is cached (for its own lifetime), so on process
-    restart nothing needs re-approval as long as the grant is still valid.
+    State is keyed by (sub, sid): sid is stable across refreshes but changes on
+    a fresh login, so re-login re-selects environment/scopes instead of reusing
+    the prior grant. Only the short-lived credential is cached; process restart
+    needs no re-approval while the grant is still valid.
     """
 
     def __init__(self) -> None:
-        # subject -> (artie_credential, expires_at_monotonic)
         self._credentials: dict[str, tuple[str, float]] = {}
-        # subject -> pending linking request awaiting Dashboard approval
         self._pending: dict[str, _PendingLink] = {}
         self._lock = asyncio.Lock()
         self._client = httpx.AsyncClient(timeout=10.0, verify=_ARTIE_API_VERIFY_TLS)
@@ -182,7 +172,6 @@ class _DeviceLinkAuth(httpx.Auth):
             return credential
 
         async with self._lock:
-            # Re-check under the lock in case a concurrent call already exchanged.
             credential = self._cached_credential(key, time.monotonic())
             if credential is not None:
                 return credential
@@ -191,8 +180,7 @@ class _DeviceLinkAuth(httpx.Auth):
             if status == "ok":
                 return self._store_credential(key, payload)
 
-            # Grant is pending approval and the Dashboard told us the user_code:
-            # surface it directly without creating another linking request.
+            # Pending with user_code: surface it without creating another link.
             if status == "pending" and payload.get("user_code"):
                 pending = _PendingLink(
                     user_code=payload["user_code"],
@@ -201,9 +189,7 @@ class _DeviceLinkAuth(httpx.Auth):
                 self._pending[key] = pending
                 raise _authorization_required(pending)
 
-            # No usable grant (none yet, denied, expired, or a new session that
-            # must re-link): bootstrap a fresh request so the user has a code to
-            # approve, re-selecting environment and scopes.
+            # No usable grant (none, denied, expired, or new session): bootstrap.
             pending = await self._device_authorize(workos_token)
             self._pending[key] = pending
             raise _authorization_required(pending)
@@ -218,7 +204,6 @@ class _DeviceLinkAuth(httpx.Auth):
         return access_token
 
     async def _exchange(self, workos_token: str) -> tuple[str, dict[str, Any]]:
-        """Trade the WorkOS token for a short-lived Artie credential."""
         response = await self._client.post(
             _ARTIE_TOKEN_EXCHANGE_URL,
             data={
@@ -267,8 +252,7 @@ class _DeviceLinkAuth(httpx.Auth):
         )
 
     def _bearer_token(self) -> str:
-        # Prefer the verified MCP token (reliable for Streamable HTTP). Fall
-        # back to the raw Authorization header for safety.
+        # get_access_token() is reliable for Streamable HTTP; header is fallback.
         access = get_access_token()
         if access is not None and access.token:
             return access.token
@@ -294,7 +278,6 @@ class _DeviceLinkAuth(httpx.Auth):
 
 
 def _authorization_required(pending: _PendingLink) -> RuntimeError:
-    """Instruct the user to approve the pending link from the Dashboard."""
     location = pending.verification_uri or "the Artie Dashboard linking page"
     return RuntimeError(
         "Authorization required to use Artie tools. In a browser signed in to "
@@ -313,11 +296,7 @@ def _safe_json(response: httpx.Response) -> dict[str, Any]:
 
 
 def _jwt_claims(token: str) -> dict[str, Any]:
-    """Return the JWT payload claims, or {} if undecodable.
-
-    The token was already verified by the auth provider before reaching here, so
-    decoding the payload without re-verifying the signature is safe.
-    """
+    # Already verified by the auth provider — decode without re-checking signature.
     try:
         payload_segment = token.split(".")[1]
         padding = "=" * (-len(payload_segment) % 4)
@@ -330,7 +309,6 @@ def _jwt_claims(token: str) -> dict[str, Any]:
 
 
 def _jwt_subject(token: str) -> str:
-    """Return the JWT `sub` claim, falling back to the raw token if undecodable."""
     subject = _jwt_claims(token).get("sub")
     if isinstance(subject, str) and subject:
         return subject
@@ -338,14 +316,8 @@ def _jwt_subject(token: str) -> str:
 
 
 def _state_key(token: str) -> str:
-    """Cache key identifying one WorkOS session: the subject plus session id.
-
-    The `sid` claim is stable across the token's periodic refreshes but changes on
-    a fresh login, so keying cache state on it means a deliberate re-login uses a
-    new key: a stale credential is not served and the user re-selects environment
-    and scopes. Falls back to the subject (then the raw token) when claims are
-    missing so caching still works.
-    """
+    # sid is stable across refreshes but changes on re-login, so a deliberate
+    # re-login gets a new key (no stale credential; user re-selects env/scopes).
     claims = _jwt_claims(token)
     subject = claims.get("sub")
     if not (isinstance(subject, str) and subject):
