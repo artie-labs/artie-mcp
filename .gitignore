@@ -9,5 +9,7 @@ wheels/
 # Virtual environments
 .venv
 
+**/*.envrc-personal
+
 # Downloaded from the pinned release while building the image or verifying the contract.
 contract/policy.openapi.yaml

@@ -3,6 +3,7 @@ import importlib
 import json
 import sys
 import unittest
+from unittest.mock import patch
 
 import httpx
 
@@ -87,6 +88,137 @@ class TestServer(unittest.TestCase):
         )
         self.assertEqual("*", response.headers["access-control-allow-origin"])
         self.assertEqual("com.artie/mcp", json.loads(response.body)["name"])
+
+    def test_authkit_provider_requires_both_settings(self):
+        with patch.dict(
+            "os.environ",
+            {"WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app"},
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "must be set together"):
+                self.server._build_auth_provider()
+
+    def test_no_authkit_config_uses_api_key_only_verifier(self):
+        with patch.dict("os.environ", {}, clear=True):
+            provider = self.server._build_auth_provider()
+
+        self.assertIsInstance(provider, self.server.DebugTokenVerifier)
+
+    def test_authkit_provider_uses_public_mcp_resource_url(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
+                "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app/",
+            },
+            clear=True,
+        ):
+            provider = self.server._build_auth_provider()
+
+        self.assertIsInstance(provider, self.server.MultiAuth)
+        self.assertIsInstance(provider.server, self.server.AuthKitProvider)
+        self.assertEqual(1, len(provider.verifiers))
+        self.assertIsInstance(provider.verifiers[0], self.server.DebugTokenVerifier)
+
+        authkit = provider.server
+        self.assertEqual("https://example.authkit.app", authkit.authkit_domain)
+        self.assertEqual("https://example.ngrok.app", str(authkit.base_url).rstrip("/"))
+        authkit.set_mcp_path("/mcp")
+        self.assertEqual(
+            "https://example.ngrok.app/mcp", str(authkit._resource_url).rstrip("/")
+        )
+        self.assertEqual("Artie MCP", authkit.resource_name)
+
+    def test_api_key_verifier_rejects_jwt_shaped_tokens(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
+                "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app",
+            },
+            clear=True,
+        ):
+            provider = self.server._build_auth_provider()
+
+        api_key_verifier = provider.verifiers[0]
+        self.assertIsNone(asyncio.run(api_key_verifier.verify_token("aaa.bbb.ccc")))
+        accepted = asyncio.run(api_key_verifier.verify_token("arsk_test_key"))
+        self.assertIsNotNone(accepted)
+        self.assertEqual("arsk_test_key", accepted.token)
+
+    def test_is_jwt_detects_three_segment_tokens(self):
+        self.assertTrue(self.server._is_jwt("aaa.bbb.ccc"))
+        self.assertFalse(self.server._is_jwt("artie-api-key"))
+        self.assertFalse(self.server._is_jwt("aaa.bbb"))
+        self.assertFalse(self.server._is_jwt("aaa..ccc"))
+        self.assertFalse(self.server._is_jwt(""))
+
+    def test_token_exchange_auth_forwards_opaque_api_keys(self):
+        auth = self.server._TokenExchangeAuth()
+        request = httpx.Request("GET", "https://api.artie.com/pipelines")
+
+        with (
+            patch.object(auth, "_exchange") as exchange,
+            patch.object(self.server, "get_access_token", return_value=None),
+            patch.object(
+                self.server,
+                "get_http_headers",
+                return_value={"authorization": "Bearer artie-api-key"},
+            ),
+        ):
+            requests = asyncio.run(_collect_auth_requests(auth, request))
+
+        exchange.assert_not_called()
+        self.assertEqual("Bearer artie-api-key", requests[0].headers["Authorization"])
+
+    def test_token_exchange_auth_prefers_access_token_over_headers(self):
+        auth = self.server._TokenExchangeAuth()
+        request = httpx.Request("GET", "https://api.artie.com/pipelines")
+        access = unittest.mock.Mock(token="artie-from-access-token")
+
+        with (
+            patch.object(auth, "_exchange") as exchange,
+            patch.object(self.server, "get_access_token", return_value=access),
+            patch.object(
+                self.server,
+                "get_http_headers",
+                return_value={"authorization": "Bearer ignored-header"},
+            ),
+        ):
+            requests = asyncio.run(_collect_auth_requests(auth, request))
+
+        exchange.assert_not_called()
+        self.assertEqual(
+            "Bearer artie-from-access-token", requests[0].headers["Authorization"]
+        )
+
+    def test_token_exchange_auth_exchanges_jwt_shaped_tokens(self):
+        auth = self.server._TokenExchangeAuth()
+        request = httpx.Request("GET", "https://api.artie.com/pipelines")
+        jwt = "aaa.bbb.ccc"
+
+        async def exchange(_token: str) -> str:
+            return "exchanged-artie-token"
+
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
+            patch.object(self.server, "get_access_token", return_value=None),
+            patch.object(
+                self.server,
+                "get_http_headers",
+                return_value={"authorization": f"Bearer {jwt}"},
+            ),
+        ):
+            requests = asyncio.run(_collect_auth_requests(auth, request))
+
+        exchange_mock.assert_awaited_once_with(jwt)
+        self.assertEqual(
+            "Bearer exchanged-artie-token", requests[0].headers["Authorization"]
+        )
+
+
+async def _collect_auth_requests(auth, request):
+    return [req async for req in auth.async_auth_flow(request)]
 
 
 if __name__ == "__main__":
