@@ -3,6 +3,7 @@ import base64
 import importlib
 import json
 import sys
+import time
 import unittest
 from unittest.mock import patch
 
@@ -219,20 +220,25 @@ class TestServer(unittest.TestCase):
             "Bearer linked-artie-token", requests[0].headers["Authorization"]
         )
 
-    def test_credential_raises_authorization_required_for_new_subject(self):
+    def test_credential_bootstraps_link_when_no_grant(self):
         auth = self.server._DeviceLinkAuth()
         pending = self.server._PendingLink(
-            device_code="amdc_devicecode",
             user_code="K7QM-3PXR",
             verification_uri="https://dash.artie.com/mcp/link",
         )
 
+        async def exchange(_token: str):
+            return "error", {"error": "authorization_required"}
+
         async def device_authorize(_token: str):
             return pending
 
-        with patch.object(
-            auth, "_device_authorize", side_effect=device_authorize
-        ) as device_authorize_mock:
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange),
+            patch.object(
+                auth, "_device_authorize", side_effect=device_authorize
+            ) as device_authorize_mock,
+        ):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
 
@@ -240,44 +246,46 @@ class TestServer(unittest.TestCase):
         self.assertIn("K7QM-3PXR", str(ctx.exception))
         self.assertIn("https://dash.artie.com/mcp/link", str(ctx.exception))
 
-    def test_credential_redeems_approved_device_code(self):
+    def test_credential_exchanges_approved_grant(self):
         auth = self.server._DeviceLinkAuth()
         token = _encode_jwt({"sub": "acct-123"})
-        auth._pending["acct-123"] = self.server._PendingLink(
-            device_code="amdc_devicecode",
-            user_code="K7QM-3PXR",
-            verification_uri="https://dash.artie.com/mcp/link",
-        )
 
-        async def poll(_device_code: str):
+        async def exchange(_token: str):
             return "ok", {"access_token": "amcp_credential", "expires_in": 600}
 
-        with patch.object(auth, "_poll", side_effect=poll):
+        with patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock:
             credential = asyncio.run(auth._credential(token))
+            # A cached credential is reused without exchanging again.
+            self.assertEqual("amcp_credential", asyncio.run(auth._credential(token)))
 
         self.assertEqual("amcp_credential", credential)
-        # A cached credential is reused without polling again.
-        self.assertEqual("amcp_credential", asyncio.run(auth._credential(token)))
+        exchange_mock.assert_awaited_once()
 
-    def test_credential_reports_pending_authorization(self):
+    def test_credential_reports_pending_with_user_code_from_response(self):
         auth = self.server._DeviceLinkAuth()
         token = _encode_jwt({"sub": "acct-123"})
-        auth._pending["acct-123"] = self.server._PendingLink(
-            device_code="amdc_devicecode",
-            user_code="K7QM-3PXR",
-            verification_uri="https://dash.artie.com/mcp/link",
-        )
 
-        async def poll(_device_code: str):
-            return "pending", {"error": "authorization_pending"}
+        async def exchange(_token: str):
+            return "pending", {
+                "error": "authorization_pending",
+                "user_code": "K7QM-3PXR",
+                "verification_uri": "https://dash.artie.com/mcp/link",
+            }
 
-        with patch.object(auth, "_poll", side_effect=poll):
+        # The user_code comes from the exchange response, so no separate device
+        # authorization call is needed to surface it.
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange),
+            patch.object(auth, "_device_authorize") as device_authorize_mock,
+        ):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(token))
 
+        device_authorize_mock.assert_not_called()
         self.assertIn("K7QM-3PXR", str(ctx.exception))
+        self.assertIn("https://dash.artie.com/mcp/link", str(ctx.exception))
 
-    def test_poll_treats_slow_down_as_pending_authorization(self):
+    def test_exchange_treats_slow_down_as_pending(self):
         auth = self.server._DeviceLinkAuth()
         response = httpx.Response(
             400,
@@ -289,7 +297,9 @@ class TestServer(unittest.TestCase):
             return response
 
         with patch.object(auth._client, "post", side_effect=post):
-            status, payload = asyncio.run(auth._poll("amdc_devicecode"))
+            status, payload = asyncio.run(
+                auth._exchange(_encode_jwt({"sub": "acct-123"}))
+            )
 
         self.assertEqual("pending", status)
         self.assertEqual({"error": "slow_down"}, payload)
@@ -300,6 +310,48 @@ class TestServer(unittest.TestCase):
         )
         # Undecodable tokens fall back to the raw value so caching still works.
         self.assertEqual("opaque", self.server._jwt_subject("opaque"))
+
+    def test_state_key_scopes_to_session(self):
+        # The key combines subject and session id, so a new login (new sid) yields
+        # a distinct key and will not reuse the prior session's cached credential.
+        self.assertEqual(
+            "acct-123:sess-A",
+            self.server._state_key(_encode_jwt({"sub": "acct-123", "sid": "sess-A"})),
+        )
+        self.assertNotEqual(
+            self.server._state_key(_encode_jwt({"sub": "acct-123", "sid": "sess-A"})),
+            self.server._state_key(_encode_jwt({"sub": "acct-123", "sid": "sess-B"})),
+        )
+        # Falls back to the subject when no sid is present, then the raw token.
+        self.assertEqual(
+            "acct-123", self.server._state_key(_encode_jwt({"sub": "acct-123"}))
+        )
+        self.assertEqual("opaque", self.server._state_key("opaque"))
+
+    def test_credential_relinks_when_session_changes(self):
+        auth = self.server._DeviceLinkAuth()
+        # A credential cached for session A must not be served to session B.
+        auth._credentials["acct-123:sess-A"] = ("amcp_old", time.monotonic() + 600)
+
+        async def exchange(_token: str):
+            return "error", {"error": "authorization_required"}
+
+        async def device_authorize(_token: str):
+            return self.server._PendingLink(
+                user_code="NEW1-CODE",
+                verification_uri="https://dash.artie.com/mcp/link",
+            )
+
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange),
+            patch.object(auth, "_device_authorize", side_effect=device_authorize),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                asyncio.run(
+                    auth._credential(_encode_jwt({"sub": "acct-123", "sid": "sess-B"}))
+                )
+
+        self.assertIn("NEW1-CODE", str(ctx.exception))
 
 
 async def _collect_auth_requests(auth, request):
