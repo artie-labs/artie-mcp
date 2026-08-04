@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import importlib
 import json
 import sys
@@ -153,12 +154,12 @@ class TestServer(unittest.TestCase):
         self.assertFalse(self.server._is_jwt("aaa..ccc"))
         self.assertFalse(self.server._is_jwt(""))
 
-    def test_token_exchange_auth_forwards_opaque_api_keys(self):
-        auth = self.server._TokenExchangeAuth()
+    def test_device_link_auth_forwards_opaque_api_keys(self):
+        auth = self.server._DeviceLinkAuth()
         request = httpx.Request("GET", "https://api.artie.com/pipelines")
 
         with (
-            patch.object(auth, "_exchange") as exchange,
+            patch.object(auth, "_credential") as credential,
             patch.object(self.server, "get_access_token", return_value=None),
             patch.object(
                 self.server,
@@ -168,16 +169,16 @@ class TestServer(unittest.TestCase):
         ):
             requests = asyncio.run(_collect_auth_requests(auth, request))
 
-        exchange.assert_not_called()
+        credential.assert_not_called()
         self.assertEqual("Bearer artie-api-key", requests[0].headers["Authorization"])
 
-    def test_token_exchange_auth_prefers_access_token_over_headers(self):
-        auth = self.server._TokenExchangeAuth()
+    def test_device_link_auth_prefers_access_token_over_headers(self):
+        auth = self.server._DeviceLinkAuth()
         request = httpx.Request("GET", "https://api.artie.com/pipelines")
         access = unittest.mock.Mock(token="artie-from-access-token")
 
         with (
-            patch.object(auth, "_exchange") as exchange,
+            patch.object(auth, "_credential") as credential,
             patch.object(self.server, "get_access_token", return_value=access),
             patch.object(
                 self.server,
@@ -187,21 +188,23 @@ class TestServer(unittest.TestCase):
         ):
             requests = asyncio.run(_collect_auth_requests(auth, request))
 
-        exchange.assert_not_called()
+        credential.assert_not_called()
         self.assertEqual(
             "Bearer artie-from-access-token", requests[0].headers["Authorization"]
         )
 
-    def test_token_exchange_auth_exchanges_jwt_shaped_tokens(self):
-        auth = self.server._TokenExchangeAuth()
+    def test_device_link_auth_resolves_jwt_via_device_link(self):
+        auth = self.server._DeviceLinkAuth()
         request = httpx.Request("GET", "https://api.artie.com/pipelines")
         jwt = "aaa.bbb.ccc"
 
-        async def exchange(_token: str) -> str:
-            return "exchanged-artie-token"
+        async def credential(_token: str) -> str:
+            return "linked-artie-token"
 
         with (
-            patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
+            patch.object(
+                auth, "_credential", side_effect=credential
+            ) as credential_mock,
             patch.object(self.server, "get_access_token", return_value=None),
             patch.object(
                 self.server,
@@ -211,14 +214,85 @@ class TestServer(unittest.TestCase):
         ):
             requests = asyncio.run(_collect_auth_requests(auth, request))
 
-        exchange_mock.assert_awaited_once_with(jwt)
+        credential_mock.assert_awaited_once_with(jwt)
         self.assertEqual(
-            "Bearer exchanged-artie-token", requests[0].headers["Authorization"]
+            "Bearer linked-artie-token", requests[0].headers["Authorization"]
         )
+
+    def test_credential_raises_authorization_required_for_new_subject(self):
+        auth = self.server._DeviceLinkAuth()
+        pending = self.server._PendingLink(
+            device_code="amdc_devicecode",
+            user_code="K7QM-3PXR",
+            verification_uri="https://dash.artie.com/mcp/link",
+        )
+
+        async def device_authorize(_token: str):
+            return pending
+
+        with patch.object(
+            auth, "_device_authorize", side_effect=device_authorize
+        ) as device_authorize_mock:
+            with self.assertRaises(RuntimeError) as ctx:
+                asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
+
+        device_authorize_mock.assert_awaited_once()
+        self.assertIn("K7QM-3PXR", str(ctx.exception))
+        self.assertIn("https://dash.artie.com/mcp/link", str(ctx.exception))
+
+    def test_credential_redeems_approved_device_code(self):
+        auth = self.server._DeviceLinkAuth()
+        token = _encode_jwt({"sub": "acct-123"})
+        auth._pending["acct-123"] = self.server._PendingLink(
+            device_code="amdc_devicecode",
+            user_code="K7QM-3PXR",
+            verification_uri="https://dash.artie.com/mcp/link",
+        )
+
+        async def poll(_device_code: str):
+            return "ok", {"access_token": "amcp_credential", "expires_in": 600}
+
+        with patch.object(auth, "_poll", side_effect=poll):
+            credential = asyncio.run(auth._credential(token))
+
+        self.assertEqual("amcp_credential", credential)
+        # A cached credential is reused without polling again.
+        self.assertEqual("amcp_credential", asyncio.run(auth._credential(token)))
+
+    def test_credential_reports_pending_authorization(self):
+        auth = self.server._DeviceLinkAuth()
+        token = _encode_jwt({"sub": "acct-123"})
+        auth._pending["acct-123"] = self.server._PendingLink(
+            device_code="amdc_devicecode",
+            user_code="K7QM-3PXR",
+            verification_uri="https://dash.artie.com/mcp/link",
+        )
+
+        async def poll(_device_code: str):
+            return "pending", {"error": "authorization_pending"}
+
+        with patch.object(auth, "_poll", side_effect=poll):
+            with self.assertRaises(RuntimeError) as ctx:
+                asyncio.run(auth._credential(token))
+
+        self.assertIn("K7QM-3PXR", str(ctx.exception))
+
+    def test_jwt_subject_decodes_sub_claim(self):
+        self.assertEqual(
+            "acct-123", self.server._jwt_subject(_encode_jwt({"sub": "acct-123"}))
+        )
+        # Undecodable tokens fall back to the raw value so caching still works.
+        self.assertEqual("opaque", self.server._jwt_subject("opaque"))
 
 
 async def _collect_auth_requests(auth, request):
     return [req async for req in auth.async_auth_flow(request)]
+
+
+def _encode_jwt(claims: dict) -> str:
+    """Build a JWT-shaped token whose payload segment carries the given claims."""
+    payload = base64.urlsafe_b64encode(json.dumps(claims).encode()).rstrip(b"=")
+    return f"aaa.{payload.decode()}.ccc"
 
 
 if __name__ == "__main__":
