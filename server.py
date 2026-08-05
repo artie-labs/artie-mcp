@@ -154,7 +154,6 @@ class _DeviceLinkAuth(httpx.Auth):
 
     def __init__(self) -> None:
         self._credentials: dict[str, tuple[str, float]] = {}
-        self._pending: dict[str, _PendingLink] = {}
         self._lock = asyncio.Lock()
         self._client = httpx.AsyncClient(timeout=10.0, verify=_ARTIE_API_VERIFY_TLS)
 
@@ -181,18 +180,18 @@ class _DeviceLinkAuth(httpx.Auth):
                 return self._store_credential(key, payload)
 
             # Pending with user_code: surface it without creating another link.
+            # The Dashboard is the source of truth for the pending state, so each
+            # retry re-reads it from the exchange rather than caching it here.
             if status == "pending" and payload.get("user_code"):
-                pending = _PendingLink(
-                    user_code=payload["user_code"],
-                    verification_uri=payload.get("verification_uri", ""),
+                raise _authorization_required(
+                    _PendingLink(
+                        user_code=payload["user_code"],
+                        verification_uri=payload.get("verification_uri", ""),
+                    )
                 )
-                self._pending[key] = pending
-                raise _authorization_required(pending)
 
             # No usable grant (none, denied, expired, or new session): bootstrap.
-            pending = await self._device_authorize(workos_token)
-            self._pending[key] = pending
-            raise _authorization_required(pending)
+            raise _authorization_required(await self._device_authorize(workos_token))
 
     def _store_credential(self, key: str, payload: dict[str, Any]) -> str:
         access_token = payload.get("access_token")
@@ -200,7 +199,6 @@ class _DeviceLinkAuth(httpx.Auth):
             raise RuntimeError("Artie token exchange response is missing access_token")
         expires_in = float(payload.get("expires_in", 0) or 0)
         self._credentials[key] = (access_token, time.monotonic() + expires_in)
-        self._pending.pop(key, None)
         return access_token
 
     async def _exchange(self, workos_token: str) -> tuple[str, dict[str, Any]]:
