@@ -97,6 +97,20 @@ class TestServer(unittest.TestCase):
         self.assertNotIn("headers", remote)
         self.assertIn("OAuth", card["description"])
 
+    def test_openai_domain_challenge_is_public_and_exact(self):
+        async def get_challenge():
+            transport = httpx.ASGITransport(app=self.server.app)
+            async with httpx.AsyncClient(
+                transport=transport, base_url="http://testserver"
+            ) as client:
+                return await client.get("/.well-known/openai-apps-challenge")
+
+        response = asyncio.run(get_challenge())
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("text/plain; charset=utf-8", response.headers["content-type"])
+        self.assertEqual(self.server._OPENAI_APPS_CHALLENGE_TOKEN, response.text)
+
     def test_authkit_provider_requires_both_settings(self):
         with patch.dict(
             "os.environ",
