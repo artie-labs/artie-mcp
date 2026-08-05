@@ -36,6 +36,7 @@ _DIAGNOSTIC_CLAIM_NAMES = frozenset[str](
 )
 _BUNDLE_DIR = Path(__file__).with_name("contract")
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
+_OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
 _SERVER_CARD = {
     "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     "name": "com.artie/mcp",
@@ -462,6 +463,11 @@ async def server_card(request):
     if request.headers.get("if-none-match") == _SERVER_CARD_ETAG:
         return _server_card_response(status_code=304)
     return _server_card_response()
+
+
+@mcp.custom_route("/.well-known/openai-apps-challenge", methods=["GET"])
+async def openai_apps_challenge(_request):
+    return Response(_OPENAI_APPS_CHALLENGE_TOKEN, media_type="text/plain")
 
 
 @mcp.custom_route("/health", methods=["GET"])
