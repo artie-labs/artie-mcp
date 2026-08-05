@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "5b43e8eb77e08653241d573a736d0f2a2678b95e559a12b4785bf371b6f65236",
-  "releaseTag": "v1.0.62",
+  "policySHA256": "0308e9e8691a8012adbed7dbbe44b488e11251ff338c54d07c123f29784d381c",
+  "releaseTag": "v1.0.63",
   "tools": [
     {
       "annotations": {
@@ -390,12 +390,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "4dfa117058a0f1c3f1494ba9c1c58274a9faee74828ce464a2dcf81aea3e9894",
+      "requestSchemaSHA256": "ded0bf007a95813b4b167d845841b024749c4fe1b8047bfbcf2b9669c1ba4999",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8796452d6d9dfa6bf4831b8884c4c974ba379e1e38d15c219e79739248803c24",
+      "successSchemaSHA256": "78d8961ed005a301e83326b3595ec0e2557529aaabceca850c35630358b72f51",
       "title": "Create a pipeline",
       "triggerDescription": "Use when you need to create a pipeline."
     },
@@ -417,7 +417,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8796452d6d9dfa6bf4831b8884c4c974ba379e1e38d15c219e79739248803c24",
+      "successSchemaSHA256": "78d8961ed005a301e83326b3595ec0e2557529aaabceca850c35630358b72f51",
       "title": "Create pipeline from source",
       "triggerDescription": "Use when you need to create pipeline from source."
     },
@@ -522,12 +522,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "1e202ed7088b3b989bf6622d71414c3a6513d2e641c66ef61a7a51fdc6090184",
+      "requestSchemaSHA256": "23be5754c8d5503a8e57c962daee4efcfb383ea6681e45c4e0034662b83791d5",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8796452d6d9dfa6bf4831b8884c4c974ba379e1e38d15c219e79739248803c24",
+      "successSchemaSHA256": "78d8961ed005a301e83326b3595ec0e2557529aaabceca850c35630358b72f51",
       "title": "Update pipeline",
       "triggerDescription": "Use when you need to update pipeline."
     },
@@ -549,7 +549,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "9b4fe5e8026ae48a2a6f6c8fd364391e4b61996be097ebc1a8ec53ff99a0c29f",
+      "successSchemaSHA256": "987602848229883ba6b09f1a923c437abe5ca061b221dff85658ce5f34376c75",
       "title": "Update pipeline status",
       "triggerDescription": "Use when you need to update pipeline status."
     },
