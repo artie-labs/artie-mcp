@@ -109,7 +109,7 @@ class TestServer(unittest.TestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual("text/plain; charset=utf-8", response.headers["content-type"])
-        self.assertEqual(self.server._OPENAI_APPS_CHALLENGE_TOKEN, response.text)
+        self.assertEqual("1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A", response.text)
 
     def test_authkit_provider_requires_both_settings(self):
         with patch.dict(
