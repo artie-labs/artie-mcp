@@ -83,13 +83,19 @@ class TestServer(unittest.TestCase):
 
     def test_server_card_describes_the_authenticated_streamable_http_endpoint(self):
         response = self.server._server_card_response()
+        card = json.loads(response.body)
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(
             "application/mcp-server-card+json", response.headers["content-type"]
         )
         self.assertEqual("*", response.headers["access-control-allow-origin"])
-        self.assertEqual("com.artie/mcp", json.loads(response.body)["name"])
+        self.assertEqual("com.artie/mcp", card["name"])
+        # OAuth is primary: the card must not require a legacy API-key header.
+        remote = card["remotes"][0]
+        self.assertEqual("https://mcp.artie.com/mcp", remote["url"])
+        self.assertNotIn("headers", remote)
+        self.assertIn("OAuth", card["description"])
 
     def test_authkit_provider_requires_both_settings(self):
         with patch.dict(

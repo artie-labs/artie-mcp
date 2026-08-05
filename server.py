@@ -40,7 +40,11 @@ _SERVER_CARD = {
     "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     "name": "com.artie/mcp",
     "version": "0.1.7",
-    "description": "Manage, interact with, and provision Artie resources through the Artie MCP Server.",
+    "description": (
+        "Manage, interact with, and provision Artie resources through the Artie "
+        "MCP Server. Authenticate with OAuth (AuthKit); clients discover the "
+        "authorization server via protected-resource metadata on this origin."
+    ),
     "title": "Artie MCP Server",
     "websiteUrl": "https://artie.com/docs/api/overview",
     "icons": [
@@ -50,24 +54,13 @@ _SERVER_CARD = {
             "sizes": ["any"],
         }
     ],
+    # OAuth is the primary path: remotes carry no required API-key header so
+    # discovery clients follow AuthKit via /.well-known/oauth-protected-resource.
+    # Legacy API keys remain accepted by the server; see README.
     "remotes": [
         {
             "type": "streamable-http",
             "url": "https://mcp.artie.com/mcp",
-            "headers": [
-                {
-                    "name": "Authorization",
-                    "value": "Bearer {artie_api_key}",
-                    "variables": {
-                        "artie_api_key": {
-                            "description": "Artie API key",
-                            "isRequired": True,
-                            "isSecret": True,
-                            "format": "string",
-                        }
-                    },
-                }
-            ],
         }
     ],
 }
