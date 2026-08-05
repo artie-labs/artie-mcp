@@ -1,6 +1,5 @@
 import asyncio
 import atexit
-import base64
 import hashlib
 import json
 import logging
@@ -146,31 +145,41 @@ class _DeviceLinkAuth(httpx.Auth):
     missing grants bootstrap via device authorization. Opaque Bearers are legacy
     API keys forwarded as-is during the OAuth migration.
 
-    State is keyed by (sub, sid): sid is stable across refreshes but changes on
-    a fresh login, so re-login re-selects environment/scopes instead of reusing
-    the prior grant. Only the short-lived credential is cached; process restart
-    needs no re-approval while the grant is still valid.
+    Cache and single-flight locks are keyed by a hash of the full bearer token
+    so distinct OAuth clients (and refreshed tokens) never share credentials,
+    without parsing unverified JWT claims. Only the short-lived Artie credential
+    is cached; a WorkOS refresh re-exchanges against the durable grant.
     """
 
     def __init__(self) -> None:
         self._credentials: dict[str, tuple[str, float]] = {}
-        self._lock = asyncio.Lock()
+        self._locks: dict[str, asyncio.Lock] = {}
+        self._locks_guard = asyncio.Lock()
         self._client = httpx.AsyncClient(timeout=10.0, verify=_ARTIE_API_VERIFY_TLS)
 
-    def _cached_credential(self, subject: str, now: float) -> str | None:
-        cached = self._credentials.get(subject)
+    def _cached_credential(self, key: str, now: float) -> str | None:
+        cached = self._credentials.get(key)
         if cached is not None and cached[1] - _EXCHANGE_EXPIRY_SKEW_SECONDS > now:
             return cached[0]
         return None
 
+    async def _lock_for(self, key: str) -> asyncio.Lock:
+        async with self._locks_guard:
+            lock = self._locks.get(key)
+            if lock is None:
+                lock = asyncio.Lock()
+                self._locks[key] = lock
+            return lock
+
     async def _credential(self, workos_token: str) -> str:
-        key = _state_key(workos_token)
+        key = _token_key(workos_token)
         now = time.monotonic()
         credential = self._cached_credential(key, now)
         if credential is not None:
             return credential
 
-        async with self._lock:
+        lock = await self._lock_for(key)
+        async with lock:
             credential = self._cached_credential(key, time.monotonic())
             if credential is not None:
                 return credential
@@ -293,37 +302,10 @@ def _safe_json(response: httpx.Response) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _jwt_claims(token: str) -> dict[str, Any]:
-    # Already verified by the auth provider — decode without re-checking signature.
-    try:
-        payload_segment = token.split(".")[1]
-        padding = "=" * (-len(payload_segment) % 4)
-        claims = json.loads(base64.urlsafe_b64decode(payload_segment + padding))
-        if isinstance(claims, dict):
-            return claims
-    except IndexError, ValueError, json.JSONDecodeError:
-        pass
-    return {}
-
-
-def _jwt_subject(token: str) -> str:
-    subject = _jwt_claims(token).get("sub")
-    if isinstance(subject, str) and subject:
-        return subject
-    return token
-
-
-def _state_key(token: str) -> str:
-    # sid is stable across refreshes but changes on re-login, so a deliberate
-    # re-login gets a new key (no stale credential; user re-selects env/scopes).
-    claims = _jwt_claims(token)
-    subject = claims.get("sub")
-    if not (isinstance(subject, str) and subject):
-        return token
-    session = claims.get("sid")
-    if isinstance(session, str) and session:
-        return f"{subject}:{session}"
-    return subject
+def _token_key(token: str) -> str:
+    # Hash the full bearer so cache/locks stay scoped to this exact token
+    # (client, session, and refresh) without parsing JWT claims.
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def _load_contract() -> tuple[dict[str, Any], PolicyContract]:

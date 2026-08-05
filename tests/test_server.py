@@ -304,54 +304,41 @@ class TestServer(unittest.TestCase):
         self.assertEqual("pending", status)
         self.assertEqual({"error": "slow_down"}, payload)
 
-    def test_jwt_subject_decodes_sub_claim(self):
-        self.assertEqual(
-            "acct-123", self.server._jwt_subject(_encode_jwt({"sub": "acct-123"}))
+    def test_token_key_hashes_full_bearer(self):
+        token_a = _encode_jwt(
+            {"sub": "acct-123", "sid": "sess-A", "client_id": "claude"}
         )
-        # Undecodable tokens fall back to the raw value so caching still works.
-        self.assertEqual("opaque", self.server._jwt_subject("opaque"))
-
-    def test_state_key_scopes_to_session(self):
-        # The key combines subject and session id, so a new login (new sid) yields
-        # a distinct key and will not reuse the prior session's cached credential.
-        self.assertEqual(
-            "acct-123:sess-A",
-            self.server._state_key(_encode_jwt({"sub": "acct-123", "sid": "sess-A"})),
+        token_b = _encode_jwt(
+            {"sub": "acct-123", "sid": "sess-A", "client_id": "codex"}
         )
+        # Same user+session, different client → different keys.
         self.assertNotEqual(
-            self.server._state_key(_encode_jwt({"sub": "acct-123", "sid": "sess-A"})),
-            self.server._state_key(_encode_jwt({"sub": "acct-123", "sid": "sess-B"})),
+            self.server._token_key(token_a), self.server._token_key(token_b)
         )
-        # Falls back to the subject when no sid is present, then the raw token.
         self.assertEqual(
-            "acct-123", self.server._state_key(_encode_jwt({"sub": "acct-123"}))
+            self.server._token_key(token_a), self.server._token_key(token_a)
         )
-        self.assertEqual("opaque", self.server._state_key("opaque"))
+        self.assertEqual(64, len(self.server._token_key(token_a)))
 
-    def test_credential_relinks_when_session_changes(self):
+    def test_credential_does_not_share_cache_across_clients(self):
         auth = self.server._DeviceLinkAuth()
-        # A credential cached for session A must not be served to session B.
-        auth._credentials["acct-123:sess-A"] = ("amcp_old", time.monotonic() + 600)
+        claude = _encode_jwt(
+            {"sub": "acct-123", "sid": "sess-A", "client_id": "claude"}
+        )
+        codex = _encode_jwt({"sub": "acct-123", "sid": "sess-A", "client_id": "codex"})
+        auth._credentials[self.server._token_key(claude)] = (
+            "amcp_claude",
+            time.monotonic() + 600,
+        )
 
         async def exchange(_token: str):
-            return "error", {"error": "authorization_required"}
+            return "ok", {"access_token": "amcp_codex", "expires_in": 600}
 
-        async def device_authorize(_token: str):
-            return self.server._PendingLink(
-                user_code="NEW1-CODE",
-                verification_uri="https://dash.artie.com/mcp/link",
-            )
+        with patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock:
+            self.assertEqual("amcp_claude", asyncio.run(auth._credential(claude)))
+            self.assertEqual("amcp_codex", asyncio.run(auth._credential(codex)))
 
-        with (
-            patch.object(auth, "_exchange", side_effect=exchange),
-            patch.object(auth, "_device_authorize", side_effect=device_authorize),
-        ):
-            with self.assertRaises(RuntimeError) as ctx:
-                asyncio.run(
-                    auth._credential(_encode_jwt({"sub": "acct-123", "sid": "sess-B"}))
-                )
-
-        self.assertIn("NEW1-CODE", str(ctx.exception))
+        exchange_mock.assert_awaited_once_with(codex)
 
 
 async def _collect_auth_requests(auth, request):
