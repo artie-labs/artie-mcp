@@ -5,7 +5,7 @@ import json
 import sys
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import httpx
 
@@ -285,7 +285,7 @@ class TestServer(unittest.TestCase):
         self.assertIn("K7QM-3PXR", str(ctx.exception))
         self.assertIn("https://dash.artie.com/mcp/link", str(ctx.exception))
 
-    def test_exchange_treats_slow_down_as_pending(self):
+    def test_exchange_returns_slow_down_status(self):
         auth = self.server._DeviceLinkAuth()
         response = httpx.Response(
             400,
@@ -301,8 +301,51 @@ class TestServer(unittest.TestCase):
                 auth._exchange(_encode_jwt({"sub": "acct-123"}))
             )
 
-        self.assertEqual("pending", status)
+        self.assertEqual("slow_down", status)
         self.assertEqual({"error": "slow_down"}, payload)
+
+    def test_credential_retries_slow_down_then_succeeds(self):
+        auth = self.server._DeviceLinkAuth()
+        token = _encode_jwt({"sub": "acct-123"})
+        exchanges = [
+            ("slow_down", {"error": "slow_down"}),
+            ("ok", {"access_token": "amcp_credential", "expires_in": 600}),
+        ]
+
+        async def exchange(_token: str):
+            return exchanges.pop(0)
+
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
+            patch.object(auth, "_device_authorize") as device_authorize_mock,
+            patch.object(
+                self.server.asyncio, "sleep", new_callable=AsyncMock
+            ) as sleep_mock,
+        ):
+            credential = asyncio.run(auth._credential(token))
+
+        self.assertEqual("amcp_credential", credential)
+        self.assertEqual(2, exchange_mock.await_count)
+        sleep_mock.assert_awaited_once_with(self.server._SLOW_DOWN_SECONDS)
+        device_authorize_mock.assert_not_called()
+
+    def test_credential_slow_down_does_not_bootstrap_device_auth(self):
+        auth = self.server._DeviceLinkAuth()
+        token = _encode_jwt({"sub": "acct-123"})
+
+        async def exchange(_token: str):
+            return "slow_down", {"error": "slow_down"}
+
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
+            patch.object(auth, "_device_authorize") as device_authorize_mock,
+            patch.object(self.server.asyncio, "sleep", new_callable=AsyncMock),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "rate-limited"):
+                asyncio.run(auth._credential(token))
+
+        self.assertEqual(self.server._SLOW_DOWN_MAX_ATTEMPTS, exchange_mock.await_count)
+        device_authorize_mock.assert_not_called()
 
     def test_token_key_hashes_full_bearer(self):
         token_a = _encode_jwt(

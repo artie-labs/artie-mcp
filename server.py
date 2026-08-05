@@ -126,6 +126,9 @@ _ACCESS_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:access_token"
 _TOKEN_EXCHANGE_GRANT = "urn:ietf:params:oauth:grant-type:token-exchange"
 # Re-exchange slightly before expiry to avoid racing the upstream call.
 _EXCHANGE_EXPIRY_SKEW_SECONDS = 30.0
+# Bounded retry when Dashboard rate-limits minting (RFC 8628 slow_down).
+_SLOW_DOWN_MAX_ATTEMPTS = 5
+_SLOW_DOWN_SECONDS = 5.0
 
 
 @dataclass
@@ -184,23 +187,38 @@ class _DeviceLinkAuth(httpx.Auth):
             if credential is not None:
                 return credential
 
-            status, payload = await self._exchange(workos_token)
-            if status == "ok":
-                return self._store_credential(key, payload)
+            for attempt in range(_SLOW_DOWN_MAX_ATTEMPTS):
+                status, payload = await self._exchange(workos_token)
+                if status == "ok":
+                    return self._store_credential(key, payload)
 
-            # Pending with user_code: surface it without creating another link.
-            # The Dashboard is the source of truth for the pending state, so each
-            # retry re-reads it from the exchange rather than caching it here.
-            if status == "pending" and payload.get("user_code"):
-                raise _authorization_required(
-                    _PendingLink(
-                        user_code=payload["user_code"],
-                        verification_uri=payload.get("verification_uri", ""),
+                # Pending with user_code: surface it without creating another link.
+                # The Dashboard is the source of truth for the pending state, so each
+                # retry re-reads it from the exchange rather than caching it here.
+                if status == "pending":
+                    if payload.get("user_code"):
+                        raise _authorization_required(
+                            _PendingLink(
+                                user_code=payload["user_code"],
+                                verification_uri=payload.get("verification_uri", ""),
+                            )
+                        )
+                    raise RuntimeError(
+                        "Artie authorization is pending; try this command again shortly."
                     )
-                )
 
-            # No usable grant (none, denied, expired, or new session): bootstrap.
-            raise _authorization_required(await self._device_authorize(workos_token))
+                if status == "slow_down":
+                    if attempt + 1 >= _SLOW_DOWN_MAX_ATTEMPTS:
+                        raise RuntimeError(
+                            "Artie token exchange is rate-limited; try this command again shortly."
+                        )
+                    await asyncio.sleep(_SLOW_DOWN_SECONDS)
+                    continue
+
+                # No usable grant (none, denied, expired, or new session): bootstrap.
+                raise _authorization_required(
+                    await self._device_authorize(workos_token)
+                )
 
     def _store_credential(self, key: str, payload: dict[str, Any]) -> str:
         access_token = payload.get("access_token")
@@ -225,8 +243,10 @@ class _DeviceLinkAuth(httpx.Auth):
 
         body = _safe_json(response)
         error = body.get("error", "")
-        if error in {"authorization_pending", "slow_down"}:
+        if error == "authorization_pending":
             return "pending", body
+        if error == "slow_down":
+            return "slow_down", body
         logger.info(
             "Artie token exchange not ready (%s): %s",
             response.status_code,
