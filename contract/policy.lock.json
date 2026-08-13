@@ -1,9 +1,9 @@
 {
   "formatVersion": 1,
-  "policySHA256": "0308e9e8691a8012adbed7dbbe44b488e11251ff338c54d07c123f29784d381c",
+  "policySHA256": "f3389933969db2b7973a2daf2ca3f1b92ac203502415103818ac0041679c6e29",
   "release": {
     "asset": "openapi.yaml",
-    "tag": "v1.0.63",
-    "url": "https://github.com/artie-labs/artie-api-spec/releases/download/v1.0.63/openapi.yaml"
+    "tag": "v1.0.64",
+    "url": "https://github.com/artie-labs/artie-api-spec/releases/download/v1.0.64/openapi.yaml"
   }
 }
