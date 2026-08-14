@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "0308e9e8691a8012adbed7dbbe44b488e11251ff338c54d07c123f29784d381c",
-  "releaseTag": "v1.0.63",
+  "policySHA256": "1fe2f85780098fa3b694d994b38445bada85640308a7fcb98fe6dec385fcc70c",
+  "releaseTag": "v1.0.66",
   "tools": [
     {
       "annotations": {
@@ -148,7 +148,7 @@
       "name": "connector_fetch_table_detail",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/detail",
-      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requestSchemaSHA256": "6dd24338b999af73753f2afcaa320c20bcb8852dde3f0b03cfeea87eb1ecaeda",
       "requiredScopes": [
         "connectors:read"
       ],
@@ -156,6 +156,28 @@
       "successSchemaSHA256": "4eb913ada2be9138184d1111489a20b2a53a5dd772e3fbe2f6e569abd81f90b9",
       "title": "Fetch table detail for a saved connector",
       "triggerDescription": "Use when you need to fetch table detail for a saved connector."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "connector_fetch_tables",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/tables",
+      "requestSchemaSHA256": "6a1a473ef4c727c02225404c3e8ca66dd8b254f6d766933cd5fea689efe9579c",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "eeff61666dde98cef30636df21088c5174983fe945798b366e95297f04882309",
+      "title": "Fetch tables for a saved connector",
+      "triggerDescription": "Use when you need to fetch tables for a saved connector."
     },
     {
       "annotations": {
