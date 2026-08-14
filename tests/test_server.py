@@ -91,7 +91,9 @@ class TestServer(unittest.TestCase):
         )
         self.assertEqual("*", response.headers["access-control-allow-origin"])
         self.assertEqual("com.artie/mcp", card["name"])
-        self.assertEqual("0.1.8", card["version"])
+        self.assertEqual(
+            self.server.policy_release_tag.removeprefix("v"), card["version"]
+        )
         # OAuth is primary: the card must not require a legacy API-key header.
         remote = card["remotes"][0]
         self.assertEqual("https://mcp.artie.com/mcp", remote["url"])

@@ -40,7 +40,6 @@ _OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
 _SERVER_CARD = {
     "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     "name": "com.artie/mcp",
-    "version": "0.1.8",
     "description": (
         "Manage, interact with, and provision Artie resources through the Artie "
         "MCP Server. Authenticate with OAuth (AuthKit); clients discover the "
@@ -322,7 +321,7 @@ def _token_key(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def _load_contract() -> tuple[dict[str, Any], PolicyContract]:
+def _load_contract() -> tuple[dict[str, Any], PolicyContract, str]:
     bundle = load_policy_bundle(_BUNDLE_DIR)
     contract = compile_policy(bundle.spec)
     policy_bytes = (_BUNDLE_DIR / "policy.openapi.yaml").read_bytes()
@@ -334,10 +333,11 @@ def _load_contract() -> tuple[dict[str, Any], PolicyContract]:
         raise ValueError(
             "policy contract snapshot does not match the local policy bundle"
         )
-    return bundle.spec, contract
+    return bundle.spec, contract, bundle.release_tag
 
 
-openapi_spec, policy_contract = _load_contract()
+openapi_spec, policy_contract, policy_release_tag = _load_contract()
+_SERVER_CARD["version"] = policy_release_tag.removeprefix("v")
 policy_adapter = SafeTrafficAdapter(policy_contract)
 _policy_tools = {(tool.method, tool.path): tool for tool in policy_contract.tools}
 
