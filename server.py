@@ -40,7 +40,7 @@ _OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
 _SERVER_CARD = {
     "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     "name": "com.artie/mcp",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "description": (
         "Manage, interact with, and provision Artie resources through the Artie "
         "MCP Server. Authenticate with OAuth (AuthKit); clients discover the "
