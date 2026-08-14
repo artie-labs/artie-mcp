@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "1fe2f85780098fa3b694d994b38445bada85640308a7fcb98fe6dec385fcc70c",
-  "releaseTag": "v1.0.66",
+  "policySHA256": "30d9c8a74878fcc8b6f4de9789d6e2152aa901202597d190de70a987fdfe4adb",
+  "releaseTag": "v1.0.67",
   "tools": [
     {
       "annotations": {
@@ -90,6 +90,28 @@
       "successSchemaSHA256": "8da01cc3a0de29d8d762d03c516f163c912ce759b46ffd85f9dbb44a13b5bd3e",
       "title": "Update a column hashing salt",
       "triggerDescription": "Use when you need to update a column hashing salt."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "company_trigger_automatic_schema_changes",
+      "outputSensitivity": "none",
+      "path": "/company/automatic-schema-changes",
+      "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "46cf34d5514c20016a93eeadc9144687b1c228f1667b39f4d9ecae0e2763fa63",
+      "title": "Trigger automatic schema changes for a company",
+      "triggerDescription": "Use when you need to trigger automatic schema changes for all eligible pipelines in a company."
     },
     {
       "annotations": {
@@ -530,6 +552,28 @@
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Start pipeline",
       "triggerDescription": "Use when you need to start pipeline."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "pipeline_trigger_automatic_schema_changes",
+      "outputSensitivity": "none",
+      "path": "/pipelines/{uuid}/automatic-schema-changes",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "pipelines:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "46cf34d5514c20016a93eeadc9144687b1c228f1667b39f4d9ecae0e2763fa63",
+      "title": "Trigger automatic schema changes for a pipeline",
+      "triggerDescription": "Use when you need to trigger automatic schema changes for one eligible pipeline."
     },
     {
       "annotations": {
