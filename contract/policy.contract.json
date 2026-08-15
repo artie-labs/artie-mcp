@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "5b0f4e4a6094e2e24cf5fe5e3804e8d84c2acb5193707fa166dbd2c9e4ad0820",
-  "releaseTag": "v1.0.70",
+  "policySHA256": "c4f80128911b67b71b8a5010fd3e44b95076098a071213fdf30743f1304de5c1",
+  "releaseTag": "v1.0.71",
   "tools": [
     {
       "annotations": {
@@ -175,7 +175,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "86f4ce7a934775d2b3c429359c06d6053ac082fb91d55a57004fc52480249132",
+      "successSchemaSHA256": "0561dd4bbdebe2547d2db4f49b3a28b4d5e4d597774dea2c1cb0bb8680215cf0",
       "title": "Fetch databases for a saved connector",
       "triggerDescription": "Use when you need to fetch databases for a saved connector."
     },
@@ -219,7 +219,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "4eb913ada2be9138184d1111489a20b2a53a5dd772e3fbe2f6e569abd81f90b9",
+      "successSchemaSHA256": "57806a28ec87522b4f95db603b651138ee639f09b75e613e2e380b4d43e96055",
       "title": "Fetch table detail for a saved connector",
       "triggerDescription": "Use when you need to fetch table detail for a saved connector."
     },
@@ -241,7 +241,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "eeff61666dde98cef30636df21088c5174983fe945798b366e95297f04882309",
+      "successSchemaSHA256": "17e1e66924a238d7fad5b9d727547b475a4b022c8d7b5918d28468f12c508bda",
       "title": "Fetch tables for a saved connector",
       "triggerDescription": "Use when you need to fetch tables for a saved connector."
     },
