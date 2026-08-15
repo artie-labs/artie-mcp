@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "30d9c8a74878fcc8b6f4de9789d6e2152aa901202597d190de70a987fdfe4adb",
-  "releaseTag": "v1.0.67",
+  "policySHA256": "5b0f4e4a6094e2e24cf5fe5e3804e8d84c2acb5193707fa166dbd2c9e4ad0820",
+  "releaseTag": "v1.0.70",
   "tools": [
     {
       "annotations": {
@@ -167,6 +167,50 @@
       "bodilessSuccess": false,
       "inputSensitivity": "none",
       "method": "get",
+      "name": "connector_fetch_databases",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/databases",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "86f4ce7a934775d2b3c429359c06d6053ac082fb91d55a57004fc52480249132",
+      "title": "Fetch databases for a saved connector",
+      "triggerDescription": "Use when you need to fetch databases for a saved connector."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "connector_fetch_schemas",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/schemas",
+      "requestSchemaSHA256": "ecdcfcfa9443962540bd1d3d1cfa452fd6218b0cbd79697d7623de560c6a93e5",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "174790542fd664f6413274045a98e94a7fa8b783dda6a2edcfde53aa196eb10a",
+      "title": "Fetch schemas for a saved connector",
+      "triggerDescription": "Use when you need to fetch schemas for a saved connector."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
       "name": "connector_fetch_table_detail",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/detail",
@@ -222,6 +266,28 @@
       "successSchemaSHA256": "b3e1ee9f7de80a9546fb1ac5acdb7dcb80a4eb7583d5c931632d892f86b12fec",
       "title": "Generate Oracle shadow table script",
       "triggerDescription": "Use when you need to generate Oracle shadow table script."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "connector_list",
+      "outputSensitivity": "none",
+      "path": "/connectors",
+      "requestSchemaSHA256": "be33af3c2ab735be19cd6215506eb5ba80f234ad0aa7b7e13449fe98062d46a5",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "8ca8c94ecb2432ed10c09fabcf354f1aec9c33e0bdaac21e04cc34add1e92be4",
+      "title": "List connectors",
+      "triggerDescription": "Use when you need to list connectors."
     },
     {
       "annotations": {
@@ -434,12 +500,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "ded0bf007a95813b4b167d845841b024749c4fe1b8047bfbcf2b9669c1ba4999",
+      "requestSchemaSHA256": "ddbd539c31336b99a3d9085233776c0c85573b4bd8c5dba9e8d3b46d37d94d00",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "78d8961ed005a301e83326b3595ec0e2557529aaabceca850c35630358b72f51",
+      "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
       "title": "Create a pipeline",
       "triggerDescription": "Use when you need to create a pipeline."
     },
@@ -461,7 +527,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "78d8961ed005a301e83326b3595ec0e2557529aaabceca850c35630358b72f51",
+      "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
       "title": "Create pipeline from source",
       "triggerDescription": "Use when you need to create pipeline from source."
     },
@@ -588,12 +654,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "23be5754c8d5503a8e57c962daee4efcfb383ea6681e45c4e0034662b83791d5",
+      "requestSchemaSHA256": "1856c6082e1441bdd7dc53e447feac8781a79600e3cc537c54793c2cd74cb49a",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "78d8961ed005a301e83326b3595ec0e2557529aaabceca850c35630358b72f51",
+      "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
       "title": "Update pipeline",
       "triggerDescription": "Use when you need to update pipeline."
     },
@@ -615,7 +681,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "987602848229883ba6b09f1a923c437abe5ca061b221dff85658ce5f34376c75",
+      "successSchemaSHA256": "579275c06af1cfdf7bf75fab99a70b62cfaea9dbdf4ad96fa0888629bfec2429",
       "title": "Update pipeline status",
       "triggerDescription": "Use when you need to update pipeline status."
     },
