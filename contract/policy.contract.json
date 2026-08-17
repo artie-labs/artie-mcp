@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "e592865fed6868e3ba1bc1af788cb1fb5961c2c9efb3080c7bfe3003e862f8e9",
-  "releaseTag": "v1.0.74",
+  "policySHA256": "a1634f2b53f121f010447ca9eadd739c11cdb4e6d937af96467585144c922e12",
+  "releaseTag": "v1.0.75",
   "tools": [
     {
       "annotations": {
@@ -632,7 +632,7 @@
       "name": "pipeline_trigger_automatic_schema_changes",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/automatic-schema-changes",
-      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
       "requiredScopes": [
         "pipelines:write"
       ],
