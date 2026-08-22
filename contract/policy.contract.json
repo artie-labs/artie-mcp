@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "a1634f2b53f121f010447ca9eadd739c11cdb4e6d937af96467585144c922e12",
-  "releaseTag": "v1.0.75",
+  "policySHA256": "294ced347e1cdecc1e9f671ab0bca477dccb4e3b69a6e6f7abf0f5dd56eb3bc4",
+  "releaseTag": "v1.0.76",
   "tools": [
     {
       "annotations": {
