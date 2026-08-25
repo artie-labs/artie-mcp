@@ -43,10 +43,10 @@ class TestServer(unittest.TestCase):
                     tool.annotations.model_dump(exclude_none=True),
                 )
 
-    def test_bodiless_policy_tools_publish_a_success_schema(self):
+    def test_schema_less_success_policy_tools_publish_a_success_schema(self):
         tools = {tool.name: tool for tool in self.tools}
         for contract in self.server.policy_contract.tools:
-            if contract.bodiless_success:
+            if all("schema" not in response for response in contract.success):
                 with self.subTest(tool=contract.name):
                     self.assertEqual(
                         {
@@ -64,6 +64,30 @@ class TestServer(unittest.TestCase):
             content=b'{"sharedConfig":{"password":"secret"}}',
             headers={"content-type": "application/json"},
             request=httpx.Request("GET", "https://api.artie.com/column-hashing-salts"),
+        )
+
+        asyncio.run(self.server._shape_policy_response(response))
+
+        self.assertEqual({"error": "upstream request failed"}, response.json())
+
+    def test_upstream_client_error_message_is_passed_through(self):
+        response = httpx.Response(
+            400,
+            content=b'{"error":"host is required","detail":{"password":"secret"}}',
+            headers={"content-type": "application/json"},
+            request=httpx.Request("POST", "https://api.artie.com/ssh-tunnels"),
+        )
+
+        asyncio.run(self.server._shape_policy_response(response))
+
+        self.assertEqual({"error": "host is required"}, response.json())
+
+    def test_upstream_client_error_without_a_message_stays_generic(self):
+        response = httpx.Response(
+            400,
+            content=b"<html>bad request</html>",
+            headers={"content-type": "text/html"},
+            request=httpx.Request("POST", "https://api.artie.com/ssh-tunnels"),
         )
 
         asyncio.run(self.server._shape_policy_response(response))

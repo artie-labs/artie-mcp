@@ -197,6 +197,20 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             adapter.shape_response("connector_delete", 204, "", b""),
         )
 
+    def test_returns_stable_result_for_a_schema_less_accepted_response(self):
+        adapter = self.adapter(
+            name="pipeline_trigger_automatic_schema_changes",
+            method="post",
+            success=({"status": "202"},),
+        )
+
+        self.assertEqual(
+            {"success": True},
+            adapter.shape_response(
+                "pipeline_trigger_automatic_schema_changes", 202, "", b""
+            ),
+        )
+
     def test_resolves_a_path_template_to_its_policy_tool(self):
         adapter = self.adapter()
 

@@ -44,11 +44,9 @@ class SafeTrafficAdapter:
         tool = self._tool(tool_name)
         response = self._success_response(tool, status_code)
 
-        if tool.bodiless_success:
-            if "schema" in response or status_code != 204:
-                raise PolicyAdapterError(
-                    "bodiless success does not match the approved response"
-                )
+        if "schema" not in response:
+            # An approved success with no declared content (202 Accepted,
+            # 204 No Content) carries nothing worth shaping; acknowledge it.
             return {"success": True}
         if response.get("contentType") != "application/json" or not _is_json(
             content_type
