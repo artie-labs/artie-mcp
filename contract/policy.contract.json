@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "a1634f2b53f121f010447ca9eadd739c11cdb4e6d937af96467585144c922e12",
-  "releaseTag": "v1.0.75",
+  "policySHA256": "4ff444d88b4130e9937d8e2c722d4e4a7585fa5a5944274e30873285be04ed9a",
+  "releaseTag": "v1.0.77",
   "tools": [
     {
       "annotations": {
@@ -197,7 +197,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "174790542fd664f6413274045a98e94a7fa8b783dda6a2edcfde53aa196eb10a",
+      "successSchemaSHA256": "8b41014596efd7bdaa3aed9b96d2c80fe0a5ed09ae747c2983293d9a7baede1d",
       "title": "Fetch schemas for a saved connector",
       "triggerDescription": "Use when you need to fetch schemas for a saved connector."
     },
