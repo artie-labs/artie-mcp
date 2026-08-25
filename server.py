@@ -353,15 +353,32 @@ def _log_upstream_event(event: str, tool_name: str, **fields: Any) -> None:
     )
 
 
+def _upstream_error_message(response: httpx.Response) -> str | None:
+    message = _safe_json(response).get("error")
+    if isinstance(message, str) and message:
+        return message[:_UPSTREAM_DETAIL_LIMIT]
+    return None
+
+
 def _client_error_content(response: httpx.Response) -> bytes:
     # Dashboard 4xx bodies say what the caller must change (missing fields,
     # bad UUIDs), so their error message is passed through. 5xx bodies can
     # leak internals and stay generic.
     if 400 <= response.status_code < 500:
-        message = _safe_json(response).get("error")
-        if isinstance(message, str) and message:
-            return json.dumps({"error": message[:_UPSTREAM_DETAIL_LIMIT]}).encode()
+        if message := _upstream_error_message(response):
+            return json.dumps({"error": message}).encode()
     return b'{"error":"upstream request failed"}'
+
+
+def _upstream_error_detail(response: httpx.Response) -> str:
+    # Only the dashboard's own error string is recorded: sibling fields in an
+    # upstream error body can carry credentials. A body we cannot read that
+    # string from is described by shape alone, which still distinguishes a
+    # malformed payload from an empty one.
+    if message := _upstream_error_message(response):
+        return message
+    content_type = response.headers.get("content-type", "unknown").split(";", 1)[0]
+    return f"<unparsed {content_type.strip()} body, {len(response.content)} bytes>"
 
 
 async def _shape_policy_response(response: httpx.Response) -> None:
@@ -395,7 +412,7 @@ async def _shape_policy_response(response: httpx.Response) -> None:
             "upstream_error",
             tool.name,
             status=response.status_code,
-            detail=response.content[:_UPSTREAM_DETAIL_LIMIT].decode("utf-8", "replace"),
+            detail=_upstream_error_detail(response),
         )
         content = _client_error_content(response)
     response._content = content
