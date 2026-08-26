@@ -202,6 +202,7 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             name="pipeline_trigger_automatic_schema_changes",
             method="post",
             success=({"status": "202"},),
+            bodiless_success=True,
         )
 
         self.assertEqual(

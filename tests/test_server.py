@@ -43,10 +43,10 @@ class TestServer(unittest.TestCase):
                     tool.annotations.model_dump(exclude_none=True),
                 )
 
-    def test_schema_less_success_policy_tools_publish_a_success_schema(self):
+    def test_bodiless_policy_tools_publish_a_success_schema(self):
         tools = {tool.name: tool for tool in self.tools}
         for contract in self.server.policy_contract.tools:
-            if all("schema" not in response for response in contract.success):
+            if contract.bodiless_success:
                 with self.subTest(tool=contract.name):
                     self.assertEqual(
                         {
