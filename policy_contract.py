@@ -35,9 +35,9 @@ _ALLOWED_SENSITIVITIES = frozenset(
 )
 
 # The only success plans a bodiless tool may declare. Both statuses carry no body
-# by definition; requiring a lone entry is what lets shape_response trust the flag
-# outright, since a tool that also returns a body needs a per-response decision.
-_BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
+# by definition, and requiring a lone entry keeps the flag unambiguous: a tool that
+# also returns a body would need a per-response decision, not one boolean.
+BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
 
 
 class PolicyContractError(ValueError):
@@ -149,7 +149,7 @@ def _compile_operation(
     request = _request_plan(spec, path, method, operation)
     success = _success_plan(spec, path, method, operation)
     bodiless_success = policy.get("bodilessSuccess", False)
-    if bodiless_success and success not in _BODILESS_SUCCESS_PLANS:
+    if bodiless_success and success not in BODILESS_SUCCESS_PLANS:
         raise PolicyContractError(
             f"OpenAPI operation {method.upper()} {path} bodilessSuccess requires a single bodyless 202 or 204 response"
         )

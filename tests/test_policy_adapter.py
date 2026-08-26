@@ -212,6 +212,23 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             ),
         )
 
+    def test_rejects_a_bodiless_flag_that_the_contract_would_not_admit(self):
+        # compile_policy cannot produce this pairing, so the tool is built directly.
+        # The guard exists for a future contract relaxation, not for today's bundle.
+        adapter = self.adapter(
+            bodiless_success=True,
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {"type": "object"},
+                    "status": "200",
+                },
+            ),
+        )
+
+        with self.assertRaisesRegex(PolicyAdapterError, "bodiless success"):
+            adapter.shape_response("connector_get", 200, "application/json", b"{}")
+
     def test_rejects_a_body_bearing_status_that_declares_no_content(self):
         # The F1 shape: a 200 whose schema was never declared must stay an error
         # rather than be reported to the client as an empty success.

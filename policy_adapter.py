@@ -4,7 +4,7 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from policy_contract import PolicyContract, ToolContract
+from policy_contract import BODILESS_SUCCESS_PLANS, PolicyContract, ToolContract
 
 
 class PolicyAdapterError(ValueError):
@@ -44,10 +44,14 @@ class SafeTrafficAdapter:
         tool = self._tool(tool_name)
         response = self._success_response(tool, status_code)
 
-        # The contract guarantees a bodiless tool declares exactly one success, a
-        # body-free 202 or 204, and _success_response has already matched the
-        # arriving status against it. There is nothing left to validate.
         if tool.bodiless_success:
+            # compile_policy admits the flag only for these plans, so this repeats
+            # its guard rather than adding a rule. It is here so that relaxing the
+            # contract can never silently report a body-bearing success as empty.
+            if tool.success not in BODILESS_SUCCESS_PLANS:
+                raise PolicyAdapterError(
+                    "bodiless success does not match the approved response"
+                )
             return {"success": True}
         if response.get("contentType") != "application/json" or not _is_json(
             content_type
