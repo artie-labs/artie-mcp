@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "9e70da6c78292850bff5dabb62ec3204792d23aaacbe5b45248ae9c8718fee66",
-  "releaseTag": "v1.0.78",
+  "policySHA256": "180e53882c9fb28c4251de7f0c849502d96d8476075115f349b66476ae58285f",
+  "releaseTag": "v1.0.80",
   "tools": [
     {
       "annotations": {
@@ -60,7 +60,7 @@
       "name": "column_hashing_salt_preview",
       "outputSensitivity": "none",
       "path": "/column-hashing-salts/{uuid}/preview",
-      "requestSchemaSHA256": "f271a16fe606e941ddc008a7863ca3c025b0d59854fb3541f32a169c5dfe2594",
+      "requestSchemaSHA256": "33c662fdfce3df2c8386a64fb31a4fae415e2aea187a1228210f6c581a49fcc7",
       "requiredScopes": [
         "column_hashing_salts:read"
       ],
@@ -82,7 +82,7 @@
       "name": "column_hashing_salt_update",
       "outputSensitivity": "none",
       "path": "/column-hashing-salts/{uuid}",
-      "requestSchemaSHA256": "87c7ea8d664af00cc4d10f5dee26e23f32febc82ea58c3f69a66efbfb190819a",
+      "requestSchemaSHA256": "c6fe9480980da35094382115c559239449dfc1ff7b2a45db8e64d2f067d7faf4",
       "requiredScopes": [
         "column_hashing_salts:write"
       ],
@@ -148,7 +148,7 @@
       "name": "connector_drop_postgres_replication_slot",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/postgres-drop-replication-slot",
-      "requestSchemaSHA256": "e349a02e4a0a673c205fe550788f154189b54b3a9574c549e6deacbaa778c369",
+      "requestSchemaSHA256": "104a4d75a18b4443186ac687bd4537518d2270f837ce8d6f87475570c171da3a",
       "requiredScopes": [
         "connectors:write"
       ],
@@ -258,7 +258,7 @@
       "name": "connector_generate_shadow_script",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/generate-shadow-script",
-      "requestSchemaSHA256": "f54fa9b5f3dccc9461fe5a61d4705d5ad452291065b75400d700866dddf4d92b",
+      "requestSchemaSHA256": "7cdd5508c46417aa3dd36456146ab4fbd9b84a92658f840c6b934013aaed9a19",
       "requiredScopes": [
         "connectors:read"
       ],
@@ -302,7 +302,7 @@
       "name": "connector_start_dynamo_db_export",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/start-dynamodb-export",
-      "requestSchemaSHA256": "a14b4f545d7de777f9adb962e0379c97057495c07ecfd8b924c7d4ea81ee0867",
+      "requestSchemaSHA256": "80895c133bb1d88cf70a7c6658f3e009d69d6ec2867c9d4a4da35c01a8223a06",
       "requiredScopes": [
         "connectors:write"
       ],
@@ -324,7 +324,7 @@
       "name": "data_catalog_search",
       "outputSensitivity": "none",
       "path": "/data-catalog/search",
-      "requestSchemaSHA256": "d351483e86d9875544b23e3029826cc6e849a8161695a72c9ff014bbfa067547",
+      "requestSchemaSHA256": "31b263f9a23bcf3cb8965681d8f9db5cb863766cc96ade66517988c71df58df1",
       "requiredScopes": [
         "data_catalog:read"
       ],
@@ -390,7 +390,7 @@
       "name": "encryption_key_update",
       "outputSensitivity": "none",
       "path": "/encryption-keys/{uuid}",
-      "requestSchemaSHA256": "d9cf5ddc3005655dcc5bcaf5287f098ec43796396bfa406538226297b325fb5b",
+      "requestSchemaSHA256": "9ccea0107f5660f32af65c25fe87f9148b953a1870b5df63309c25d5b813d85d",
       "requiredScopes": [
         "encryption_keys:write"
       ],
@@ -434,7 +434,7 @@
       "name": "ingestion_api_key_update",
       "outputSensitivity": "none",
       "path": "/ingestion-api-keys/{uuid}",
-      "requestSchemaSHA256": "9127c3c34849dd18d0e26751baf48a69d080b154da105928400ef5abe9484562",
+      "requestSchemaSHA256": "238f4221f7c5fe27a0390d9549367a8a55df35ee05cafda904abc80315c0465c",
       "requiredScopes": [
         "ingestion_api_keys:write"
       ],
@@ -456,7 +456,7 @@
       "name": "pipeline_backfill_tables",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/backfill",
-      "requestSchemaSHA256": "3333c2f5c81225cecf4370489c5cc156ad62b4009a76b095a3cecc26a2b3e52c",
+      "requestSchemaSHA256": "4cc6609ded943f7ad806b1900ea2da49df330c5bcdc838ed0c18efa53196270b",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -478,7 +478,7 @@
       "name": "pipeline_cancel_backfill_tables",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/backfill/cancel",
-      "requestSchemaSHA256": "e819075dd12caf67fee519943f78fe2c63560f199be93d261b502aa8a9d57084",
+      "requestSchemaSHA256": "dca91059bd51b0b51747acb6a334e7d4b2ae3b1fd9d1dc603c6001f0db3ee57b",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -500,7 +500,7 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "ddbd539c31336b99a3d9085233776c0c85573b4bd8c5dba9e8d3b46d37d94d00",
+      "requestSchemaSHA256": "f71ea4df49fa2ee41c09259187ef7e0859d16ff65144453e6824b3ffa417ef60",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -522,7 +522,7 @@
       "name": "pipeline_create_from_source",
       "outputSensitivity": "none",
       "path": "/pipelines/create-from-source",
-      "requestSchemaSHA256": "24104716f540417fa7fef79dbbce0c1749bb430b42dfdec57bdade2dfeab390e",
+      "requestSchemaSHA256": "bdd726935f0f8e980a947ddef325a9fd6a4c91f0103577e25cb0a3eb51535b59",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -654,7 +654,7 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "1856c6082e1441bdd7dc53e447feac8781a79600e3cc537c54793c2cd74cb49a",
+      "requestSchemaSHA256": "f8ab67324ad28bd98ce7834d1c3f3394cb2472b8a4da054b18265d53b6af4f1e",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -676,7 +676,7 @@
       "name": "pipeline_update_status",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/status",
-      "requestSchemaSHA256": "deb78f82b3709a08b6eae4aa9d8679daa55faaaf1b9a220dced00923a2eaa817",
+      "requestSchemaSHA256": "9fe00d2976d7fbf2e8b852131fb4b6b6f36686764ae47e588b8054a1abf058a8",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -698,7 +698,7 @@
       "name": "private_link_connection_create",
       "outputSensitivity": "none",
       "path": "/privatelink-connections",
-      "requestSchemaSHA256": "4b8765cb943b8ffeab1dfa2eb2d430988119787781fd0223546abd1b9337a197",
+      "requestSchemaSHA256": "a6239c7da05c2ab10967a2cf2d29b1b258470e689b0620ba427c87df52df894b",
       "requiredScopes": [
         "private_link_connections:write"
       ],
@@ -764,7 +764,7 @@
       "name": "private_link_connection_update",
       "outputSensitivity": "none",
       "path": "/privatelink-connections/{uuid}",
-      "requestSchemaSHA256": "f702ef62e703ee36f2185bea62ca58f28562f31efe40feaa7aef05cd79a08c0f",
+      "requestSchemaSHA256": "b2f5fa53053f7ac8d99c8a3a8b7a547fe455985828134eb2980bd2c428d691b7",
       "requiredScopes": [
         "private_link_connections:write"
       ],
@@ -830,7 +830,7 @@
       "name": "ssh_tunnel_create",
       "outputSensitivity": "none",
       "path": "/ssh-tunnels",
-      "requestSchemaSHA256": "bff8cfe163726053f1d1a27d8fe87150b04b0880a97a52f354d5e8460b6cb700",
+      "requestSchemaSHA256": "16ed6a394c9a5c731f069e9e0fd51d4d16009022eb0544ef6a3988329c0e1847",
       "requiredScopes": [
         "ssh_tunnels:write"
       ],
@@ -896,7 +896,7 @@
       "name": "ssh_tunnel_update",
       "outputSensitivity": "none",
       "path": "/ssh-tunnels/{uuid}",
-      "requestSchemaSHA256": "b0f11586667d5a3c9af4f85ed2b3b232154496a15180171b8216290a4c5add8b",
+      "requestSchemaSHA256": "646b6820a97c5ee66f0854a57666aa92d034546fed3d33bceaa12faa8faec93e",
       "requiredScopes": [
         "ssh_tunnels:write"
       ],
