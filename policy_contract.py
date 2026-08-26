@@ -36,6 +36,7 @@ _ALLOWED_SENSITIVITIES = frozenset(
 
 BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
 
+
 class PolicyContractError(ValueError):
     pass
 
