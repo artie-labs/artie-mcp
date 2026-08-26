@@ -70,6 +70,62 @@ class TestServer(unittest.TestCase):
 
         self.assertEqual({"error": "upstream request failed"}, response.json())
 
+    def test_upstream_client_error_message_is_passed_through(self):
+        response = httpx.Response(
+            400,
+            content=b'{"error":"host is required","detail":{"password":"secret"}}',
+            headers={"content-type": "application/json"},
+            request=httpx.Request("POST", "https://api.artie.com/ssh-tunnels"),
+        )
+
+        asyncio.run(self.server._shape_policy_response(response))
+
+        self.assertEqual({"error": "host is required"}, response.json())
+
+    def test_upstream_error_log_records_the_message_without_sibling_fields(self):
+        response = httpx.Response(
+            400,
+            content=b'{"error":"host is required","detail":{"password":"secret"}}',
+            headers={"content-type": "application/json"},
+            request=httpx.Request("POST", "https://api.artie.com/ssh-tunnels"),
+        )
+
+        with self.assertLogs(self.server.logger, level="WARNING") as logs:
+            asyncio.run(self.server._shape_policy_response(response))
+
+        record = json.loads(logs.records[0].getMessage())
+        self.assertEqual("upstream_error", record["event"])
+        self.assertEqual(400, record["status"])
+        self.assertEqual("host is required", record["detail"])
+        self.assertNotIn("secret", logs.output[0])
+
+    def test_upstream_error_log_describes_an_unreadable_body_by_shape(self):
+        response = httpx.Response(
+            500,
+            content=b"<html>secret internals</html>",
+            headers={"content-type": "text/html; charset=utf-8"},
+            request=httpx.Request("GET", "https://api.artie.com/column-hashing-salts"),
+        )
+
+        with self.assertLogs(self.server.logger, level="WARNING") as logs:
+            asyncio.run(self.server._shape_policy_response(response))
+
+        record = json.loads(logs.records[0].getMessage())
+        self.assertEqual("<unparsed text/html body, 29 bytes>", record["detail"])
+        self.assertNotIn("secret", logs.output[0])
+
+    def test_upstream_client_error_without_a_message_stays_generic(self):
+        response = httpx.Response(
+            400,
+            content=b"<html>bad request</html>",
+            headers={"content-type": "text/html"},
+            request=httpx.Request("POST", "https://api.artie.com/ssh-tunnels"),
+        )
+
+        asyncio.run(self.server._shape_policy_response(response))
+
+        self.assertEqual({"error": "upstream request failed"}, response.json())
+
     def test_server_configures_json_observability_logging(self):
         self.assertTrue(self.server.logger.isEnabledFor(20))
         self.assertFalse(self.server.logger.propagate)

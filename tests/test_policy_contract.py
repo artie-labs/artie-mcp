@@ -329,13 +329,14 @@ class TestPolicyContract(unittest.TestCase):
             list(tool.success),
         )
 
-    def test_compile_policy_rejects_bodiless_success_without_204(self):
-        spec = {
+    @staticmethod
+    def _bodiless_success_spec(responses):
+        return {
             "paths": {
                 "/items": {
                     "delete": {
                         "operationId": "item_delete",
-                        "responses": {"200": {"description": "OK"}},
+                        "responses": responses,
                         "x-artie-mcp": {
                             "exposure": "exposed",
                             "operationId": "item_delete",
@@ -355,6 +356,35 @@ class TestPolicyContract(unittest.TestCase):
                 }
             }
         }
+
+    def test_compile_policy_accepts_bodiless_success_for_a_bodiless_202(self):
+        spec = self._bodiless_success_spec({"202": {"description": "Accepted"}})
+
+        tool = compile_policy(spec).tools[0]
+
+        self.assertTrue(tool.bodiless_success)
+        self.assertEqual(({"status": "202"},), tool.success)
+
+    def test_compile_policy_rejects_bodiless_success_on_a_body_bearing_status(self):
+        spec = self._bodiless_success_spec({"200": {"description": "OK"}})
+
+        with self.assertRaisesRegex(PolicyContractError, "bodilessSuccess"):
+            compile_policy(spec)
+
+    def test_compile_policy_rejects_bodiless_success_alongside_a_body_success(self):
+        # A tool that sometimes returns a body cannot be described by one flag:
+        # shape_response would have to decide per response, not per tool.
+        spec = self._bodiless_success_spec(
+            {
+                "200": {
+                    "description": "OK",
+                    "content": {
+                        "application/json": {"schema": {"type": "object"}},
+                    },
+                },
+                "204": {"description": "No Content"},
+            }
+        )
 
         with self.assertRaisesRegex(PolicyContractError, "bodilessSuccess"):
             compile_policy(spec)

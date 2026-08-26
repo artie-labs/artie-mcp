@@ -197,6 +197,46 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             adapter.shape_response("connector_delete", 204, "", b""),
         )
 
+    def test_returns_stable_result_for_a_schema_less_accepted_response(self):
+        adapter = self.adapter(
+            name="pipeline_trigger_automatic_schema_changes",
+            method="post",
+            success=({"status": "202"},),
+            bodiless_success=True,
+        )
+
+        self.assertEqual(
+            {"success": True},
+            adapter.shape_response(
+                "pipeline_trigger_automatic_schema_changes", 202, "", b""
+            ),
+        )
+
+    def test_rejects_a_bodiless_flag_that_the_contract_would_not_admit(self):
+        # compile_policy cannot produce this pairing, so the tool is built directly.
+        # The guard exists for a future contract relaxation, not for today's bundle.
+        adapter = self.adapter(
+            bodiless_success=True,
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {"type": "object"},
+                    "status": "200",
+                },
+            ),
+        )
+
+        with self.assertRaisesRegex(PolicyAdapterError, "bodiless success"):
+            adapter.shape_response("connector_get", 200, "application/json", b"{}")
+
+    def test_rejects_a_body_bearing_status_that_declares_no_content(self):
+        # The F1 shape: a 200 whose schema was never declared must stay an error
+        # rather than be reported to the client as an empty success.
+        adapter = self.adapter(success=({"status": "200"},))
+
+        with self.assertRaisesRegex(PolicyAdapterError, "approved JSON contract"):
+            adapter.shape_response("connector_get", 200, "application/json", b"{}")
+
     def test_resolves_a_path_template_to_its_policy_tool(self):
         adapter = self.adapter()
 

@@ -34,6 +34,8 @@ _ALLOWED_SENSITIVITIES = frozenset(
     {"none", "internal-identifiers", "restricted-credentials"}
 )
 
+BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
+
 
 class PolicyContractError(ValueError):
     pass
@@ -144,9 +146,9 @@ def _compile_operation(
     request = _request_plan(spec, path, method, operation)
     success = _success_plan(spec, path, method, operation)
     bodiless_success = policy.get("bodilessSuccess", False)
-    if bodiless_success and success != ({"status": "204"},):
+    if bodiless_success and success not in BODILESS_SUCCESS_PLANS:
         raise PolicyContractError(
-            f"OpenAPI operation {method.upper()} {path} bodilessSuccess requires a bodyless 204 response"
+            f"OpenAPI operation {method.upper()} {path} bodilessSuccess requires a single bodyless 202 or 204 response"
         )
 
     return [

@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "4ff444d88b4130e9937d8e2c722d4e4a7585fa5a5944274e30873285be04ed9a",
-  "releaseTag": "v1.0.77",
+  "policySHA256": "9e70da6c78292850bff5dabb62ec3204792d23aaacbe5b45248ae9c8718fee66",
+  "releaseTag": "v1.0.78",
   "tools": [
     {
       "annotations": {
@@ -98,7 +98,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "company_trigger_automatic_schema_changes",
@@ -626,7 +626,7 @@
         "openWorldHint": true,
         "readOnlyHint": false
       },
-      "bodilessSuccess": false,
+      "bodilessSuccess": true,
       "inputSensitivity": "none",
       "method": "post",
       "name": "pipeline_trigger_automatic_schema_changes",

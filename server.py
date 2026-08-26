@@ -20,7 +20,7 @@ from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
 from mcp_observability import MCPObservability, OpenTelemetryMetrics
-from policy_adapter import SafeTrafficAdapter
+from policy_adapter import PolicyAdapterError, SafeTrafficAdapter
 from policy_contract import (
     PolicyContract,
     compile_policy,
@@ -35,6 +35,7 @@ _DIAGNOSTIC_CLAIM_NAMES = frozenset[str](
     {"iss", "aud", "sub", "sid", "scope", "org_id", "exp", "iat"}
 )
 _BUNDLE_DIR = Path(__file__).with_name("contract")
+_UPSTREAM_DETAIL_LIMIT = 500
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
 _OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
 _SERVER_CARD = {
@@ -342,22 +343,78 @@ policy_adapter = SafeTrafficAdapter(policy_contract)
 _policy_tools = {(tool.method, tool.path): tool for tool in policy_contract.tools}
 
 
+def _log_upstream_event(event: str, tool_name: str, **fields: Any) -> None:
+    logger.warning(
+        json.dumps(
+            {"event": event, "tool": tool_name, **fields},
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+    )
+
+
+def _upstream_error_message(response: httpx.Response) -> str | None:
+    message = _safe_json(response).get("error")
+    if isinstance(message, str) and message:
+        return message[:_UPSTREAM_DETAIL_LIMIT]
+    return None
+
+
+def _client_error_content(response: httpx.Response) -> bytes:
+    # Dashboard 4xx bodies say what the caller must change (missing fields,
+    # bad UUIDs), so their error message is passed through. 5xx bodies can
+    # leak internals and stay generic.
+    if 400 <= response.status_code < 500:
+        if message := _upstream_error_message(response):
+            return json.dumps({"error": message}).encode()
+    return b'{"error":"upstream request failed"}'
+
+
+def _upstream_error_detail(response: httpx.Response) -> str:
+    # Only the dashboard's own error string is recorded: sibling fields in an
+    # upstream error body can carry credentials. A body we cannot read that
+    # string from is described by shape alone, which still distinguishes a
+    # malformed payload from an empty one.
+    if message := _upstream_error_message(response):
+        return message
+    content_type = response.headers.get("content-type", "unknown").split(";", 1)[0]
+    return f"<unparsed {content_type.strip()} body, {len(response.content)} bytes>"
+
+
 async def _shape_policy_response(response: httpx.Response) -> None:
     tool = policy_adapter.tool_for_route(
         response.request.method, response.request.url.path
     )
     await response.aread()
     if response.is_success:
-        content = json.dumps(
-            policy_adapter.shape_response(
+        try:
+            shaped = policy_adapter.shape_response(
                 tool.name,
                 response.status_code,
                 response.headers.get("content-type", ""),
                 response.content,
             )
-        ).encode()
+        except PolicyAdapterError as error:
+            # An approved upstream success we could not shape is our defect, not
+            # the caller's; the client only sees a generic tool error.
+            _log_upstream_event(
+                "response_shaping_error",
+                tool.name,
+                status=response.status_code,
+                detail=str(error),
+            )
+            raise
+        content = json.dumps(shaped).encode()
     else:
-        content = b'{"error":"upstream request failed"}'
+        # 5xx details never reach the client, so the operator-facing reason has
+        # to be recorded here or it is lost.
+        _log_upstream_event(
+            "upstream_error",
+            tool.name,
+            status=response.status_code,
+            detail=_upstream_error_detail(response),
+        )
+        content = _client_error_content(response)
     response._content = content
     response.headers["content-type"] = "application/json"
 

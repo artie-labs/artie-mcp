@@ -4,7 +4,7 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from policy_contract import PolicyContract, ToolContract
+from policy_contract import BODILESS_SUCCESS_PLANS, PolicyContract, ToolContract
 
 
 class PolicyAdapterError(ValueError):
@@ -45,7 +45,7 @@ class SafeTrafficAdapter:
         response = self._success_response(tool, status_code)
 
         if tool.bodiless_success:
-            if "schema" in response or status_code != 204:
+            if tool.success not in BODILESS_SUCCESS_PLANS:
                 raise PolicyAdapterError(
                     "bodiless success does not match the approved response"
                 )
