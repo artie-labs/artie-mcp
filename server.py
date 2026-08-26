@@ -20,7 +20,7 @@ from mcp.types import ToolAnnotations
 from starlette.responses import Response
 
 from mcp_observability import MCPObservability, OpenTelemetryMetrics
-from policy_adapter import PolicyAdapterError, SafeTrafficAdapter
+from policy_adapter import PolicyAdapterError, SafeTrafficAdapter, is_bodiless_success
 from policy_contract import (
     PolicyContract,
     compile_policy,
@@ -434,7 +434,7 @@ def _configure_tool(route, component):
     component.title = tool.title
     component.description = tool.trigger_description
     component.annotations = ToolAnnotations(**tool.annotations)
-    if all("schema" not in response for response in tool.success):
+    if is_bodiless_success(tool):
         component.output_schema = {
             "type": "object",
             "properties": {"success": {"const": True}},

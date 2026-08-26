@@ -6,9 +6,21 @@ from typing import Any
 
 from policy_contract import PolicyContract, ToolContract
 
+# Statuses that carry no body by definition, so declaring no content is correct
+# rather than an omission.
+BODILESS_STATUSES = frozenset({"202", "204"})
+
 
 class PolicyAdapterError(ValueError):
     pass
+
+
+def is_bodiless_success(tool: ToolContract) -> bool:
+    """Report whether every approved success for this tool is intentionally empty."""
+    return all(
+        "schema" not in response and response["status"] in BODILESS_STATUSES
+        for response in tool.success
+    )
 
 
 class SafeTrafficAdapter:
@@ -45,8 +57,13 @@ class SafeTrafficAdapter:
         response = self._success_response(tool, status_code)
 
         if "schema" not in response:
-            # An approved success with no declared content (202 Accepted,
-            # 204 No Content) carries nothing worth shaping; acknowledge it.
+            # A body-bearing status that declares no content is a contract defect
+            # (the shape F1 had), so it stays loud instead of being reported as an
+            # empty success.
+            if response["status"] not in BODILESS_STATUSES:
+                raise PolicyAdapterError(
+                    "approved success declares no content for a body-bearing status"
+                )
             return {"success": True}
         if response.get("contentType") != "application/json" or not _is_json(
             content_type

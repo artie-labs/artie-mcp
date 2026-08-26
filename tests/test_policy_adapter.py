@@ -211,6 +211,14 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             ),
         )
 
+    def test_rejects_a_body_bearing_status_that_declares_no_content(self):
+        # The F1 shape: a 200 whose schema was never declared must stay an error
+        # rather than be reported to the client as an empty success.
+        adapter = self.adapter(success=({"status": "200"},))
+
+        with self.assertRaisesRegex(PolicyAdapterError, "body-bearing status"):
+            adapter.shape_response("connector_get", 200, "application/json", b"{}")
+
     def test_resolves_a_path_template_to_its_policy_tool(self):
         adapter = self.adapter()
 
