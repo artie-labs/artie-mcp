@@ -45,9 +45,6 @@ class SafeTrafficAdapter:
         response = self._success_response(tool, status_code)
 
         if tool.bodiless_success:
-            # compile_policy admits the flag only for these plans, so this repeats
-            # its guard rather than adding a rule. It is here so that relaxing the
-            # contract can never silently report a body-bearing success as empty.
             if tool.success not in BODILESS_SUCCESS_PLANS:
                 raise PolicyAdapterError(
                     "bodiless success does not match the approved response"

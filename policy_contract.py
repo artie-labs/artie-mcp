@@ -34,9 +34,6 @@ _ALLOWED_SENSITIVITIES = frozenset(
     {"none", "internal-identifiers", "restricted-credentials"}
 )
 
-# The only success plans a bodiless tool may declare. Both statuses carry no body
-# by definition, and requiring a lone entry keeps the flag unambiguous: a tool that
-# also returns a body would need a per-response decision, not one boolean.
 BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
 
 
