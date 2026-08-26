@@ -1,0 +1,827 @@
+{
+  "formatVersion": 1,
+  "policyRelease": "v1.0.80",
+  "policySHA256": "180e53882c9fb28c4251de7f0c849502d96d8476075115f349b66476ae58285f",
+  "scenarios": [
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/column-hashing-salts/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "column_hashing_salts:delete"
+      ],
+      "scenarioId": "tool-column_hashing_salt_delete",
+      "tool": "column_hashing_salt_delete"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/column-hashing-salts",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "column_hashing_salts:read"
+      ],
+      "scenarioId": "tool-column_hashing_salt_list",
+      "tool": "column_hashing_salt_list"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/column-hashing-salts/{uuid}/preview",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "column_hashing_salts:read"
+      ],
+      "scenarioId": "tool-column_hashing_salt_preview",
+      "tool": "column_hashing_salt_preview"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/column-hashing-salts/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "column_hashing_salts:write"
+      ],
+      "scenarioId": "tool-column_hashing_salt_update",
+      "tool": "column_hashing_salt_update"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/company/automatic-schema-changes",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-company_trigger_automatic_schema_changes",
+      "tool": "company_trigger_automatic_schema_changes"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/connectors/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:delete"
+      ],
+      "scenarioId": "tool-connector_delete",
+      "tool": "connector_delete"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/connectors/{uuid}/postgres-drop-replication-slot",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:write"
+      ],
+      "scenarioId": "tool-connector_drop_postgres_replication_slot",
+      "tool": "connector_drop_postgres_replication_slot"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/connectors/{uuid}/databases",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:read"
+      ],
+      "scenarioId": "tool-connector_fetch_databases",
+      "tool": "connector_fetch_databases"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/connectors/{uuid}/schemas",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:read"
+      ],
+      "scenarioId": "tool-connector_fetch_schemas",
+      "tool": "connector_fetch_schemas"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/connectors/{uuid}/detail",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:read"
+      ],
+      "scenarioId": "tool-connector_fetch_table_detail",
+      "tool": "connector_fetch_table_detail"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/connectors/{uuid}/tables",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:read"
+      ],
+      "scenarioId": "tool-connector_fetch_tables",
+      "tool": "connector_fetch_tables"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/connectors/{uuid}/generate-shadow-script",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:read"
+      ],
+      "scenarioId": "tool-connector_generate_shadow_script",
+      "tool": "connector_generate_shadow_script"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/connectors",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:read"
+      ],
+      "scenarioId": "tool-connector_list",
+      "tool": "connector_list"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/connectors/{uuid}/start-dynamodb-export",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "connectors:write"
+      ],
+      "scenarioId": "tool-connector_start_dynamo_db_export",
+      "tool": "connector_start_dynamo_db_export"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/data-catalog/search",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "data_catalog:read"
+      ],
+      "scenarioId": "tool-data_catalog_search",
+      "tool": "data_catalog_search"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/encryption-keys/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "encryption_keys:delete"
+      ],
+      "scenarioId": "tool-encryption_key_delete",
+      "tool": "encryption_key_delete"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/encryption-keys",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "encryption_keys:read"
+      ],
+      "scenarioId": "tool-encryption_key_list",
+      "tool": "encryption_key_list"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/encryption-keys/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "encryption_keys:write"
+      ],
+      "scenarioId": "tool-encryption_key_update",
+      "tool": "encryption_key_update"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/ingestion-api-keys/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "ingestion_api_keys:delete"
+      ],
+      "scenarioId": "tool-ingestion_api_key_delete",
+      "tool": "ingestion_api_key_delete"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/ingestion-api-keys/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "ingestion_api_keys:write"
+      ],
+      "scenarioId": "tool-ingestion_api_key_update",
+      "tool": "ingestion_api_key_update"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}/backfill",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_backfill_tables",
+      "tool": "pipeline_backfill_tables"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}/backfill/cancel",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_cancel_backfill_tables",
+      "tool": "pipeline_cancel_backfill_tables"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_create",
+      "tool": "pipeline_create"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/create-from-source",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_create_from_source",
+      "tool": "pipeline_create_from_source"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/pipelines/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:delete"
+      ],
+      "scenarioId": "tool-pipeline_delete",
+      "tool": "pipeline_delete"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}/detect-schema-changes",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_detect_schema_changes",
+      "tool": "pipeline_detect_schema_changes"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/pipelines",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:read"
+      ],
+      "scenarioId": "tool-pipeline_list",
+      "tool": "pipeline_list"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}/start",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_start",
+      "tool": "pipeline_start"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}/automatic-schema-changes",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_trigger_automatic_schema_changes",
+      "tool": "pipeline_trigger_automatic_schema_changes"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_update",
+      "tool": "pipeline_update"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/pipelines/{uuid}/status",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "pipelines:write"
+      ],
+      "scenarioId": "tool-pipeline_update_status",
+      "tool": "pipeline_update_status"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/privatelink-connections",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "private_link_connections:write"
+      ],
+      "scenarioId": "tool-private_link_connection_create",
+      "tool": "private_link_connection_create"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/privatelink-connections/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "private_link_connections:delete"
+      ],
+      "scenarioId": "tool-private_link_connection_delete",
+      "tool": "private_link_connection_delete"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/privatelink-connections/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "private_link_connections:read"
+      ],
+      "scenarioId": "tool-private_link_connection_detail",
+      "tool": "private_link_connection_detail"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/privatelink-connections/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "private_link_connections:write"
+      ],
+      "scenarioId": "tool-private_link_connection_update",
+      "tool": "private_link_connection_update"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/source-readers/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "source_readers:delete"
+      ],
+      "scenarioId": "tool-source_reader_delete",
+      "tool": "source_reader_delete"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/source-readers/{uuid}/deploy",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "source_readers:write"
+      ],
+      "scenarioId": "tool-source_reader_deploy",
+      "tool": "source_reader_deploy"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/ssh-tunnels",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "ssh_tunnels:write"
+      ],
+      "scenarioId": "tool-ssh_tunnel_create",
+      "tool": "ssh_tunnel_create"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "DELETE",
+      "path": "/ssh-tunnels/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "ssh_tunnels:delete"
+      ],
+      "scenarioId": "tool-ssh_tunnel_delete",
+      "tool": "ssh_tunnel_delete"
+    },
+    {
+      "classification": "execution_scenario_required",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "GET",
+      "path": "/ssh-tunnels/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "ssh_tunnels:read"
+      ],
+      "scenarioId": "tool-ssh_tunnel_detail",
+      "tool": "ssh_tunnel_detail"
+    },
+    {
+      "classification": "blocked_by_fixture",
+      "cleanupAction": null,
+      "cleanupRead": null,
+      "connectorType": null,
+      "directArgumentsRef": null,
+      "expectedFailure": null,
+      "expectedResult": null,
+      "fixtureAlias": null,
+      "job": null,
+      "method": "POST",
+      "path": "/ssh-tunnels/{uuid}",
+      "postconditionRead": null,
+      "precondition": null,
+      "requiredScope": [
+        "ssh_tunnels:write"
+      ],
+      "scenarioId": "tool-ssh_tunnel_update",
+      "tool": "ssh_tunnel_update"
+    }
+  ]
+}
