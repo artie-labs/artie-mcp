@@ -462,6 +462,54 @@ def _canonical_sha256(value: Any) -> str:
     return hashlib.sha256(canonical_value.encode()).hexdigest()
 
 
+def _canonical(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: _canonical(value[key]) for key in sorted(value)}
+    if isinstance(value, list):
+        return [_canonical(item) for item in value]
+    return value
+
+
+def validate_policy_snapshot(
+    release_tag: str,
+    policy_sha256: str,
+    contract: PolicyContract,
+    snapshot: dict[str, Any],
+) -> None:
+    expected_tools = {
+        tool["name"]: tool
+        for tool in snapshot_policy_contract(release_tag, policy_sha256, contract)[
+            "tools"
+        ]
+    }
+    if snapshot.get("formatVersion") not in {2, 3}:
+        raise PolicyContractError("policy snapshot has an unsupported format version")
+    actual_tools = snapshot.get("tools")
+    if not isinstance(actual_tools, list):
+        raise PolicyContractError("policy contract snapshot tools must be an array")
+    for tool in actual_tools:
+        if not isinstance(tool, dict):
+            raise PolicyContractError("policy contract snapshot tool must be an object")
+        expected_tool = expected_tools.get(tool.get("name"))
+        if expected_tool is None:
+            raise PolicyContractError(
+                "policy contract snapshot includes an unknown tool"
+            )
+        if any(tool.get(key) != value for key, value in expected_tool.items()):
+            raise PolicyContractError(
+                "policy contract snapshot does not match the local policy bundle"
+            )
+        if snapshot["formatVersion"] == 3 and (
+            not isinstance(tool.get("inputSchema"), dict)
+            or not isinstance(tool.get("outputSchema"), dict)
+        ):
+            raise PolicyContractError(
+                "policy contract snapshot is missing runtime tool schemas"
+            )
+    if len(actual_tools) != len(expected_tools):
+        raise PolicyContractError("policy contract snapshot is missing a policy tool")
+
+
 def snapshot_policy_contract(
     release_tag: str, policy_sha256: str, contract: PolicyContract
 ) -> dict[str, Any]:

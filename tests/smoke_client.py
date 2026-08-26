@@ -16,6 +16,21 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def _canonical(value):
+    if isinstance(value, dict):
+        return {key: _canonical(value[key]) for key in sorted(value)}
+    if isinstance(value, list):
+        return [_canonical(item) for item in value]
+    return value
+
+
+def _assert_schema(name: str, kind: str, actual, expected) -> None:
+    if _canonical(actual) != _canonical(expected):
+        raise AssertionError(
+            f"MCP tool {name} {kind} schema does not match the policy contract"
+        )
+
+
 async def smoke_test(url: str, contract_path: Path):
     expected = json.loads(contract_path.read_text())["tools"]
     expected_by_name = {tool["name"]: tool for tool in expected}
@@ -54,6 +69,18 @@ async def smoke_test(url: str, contract_path: Path):
             raise AssertionError(
                 f"MCP tool {name} annotations do not match the policy contract"
             )
+        _assert_schema(
+            name,
+            "input",
+            actual.inputSchema,
+            expected_tool["inputSchema"],
+        )
+        _assert_schema(
+            name,
+            "output",
+            actual.outputSchema,
+            expected_tool["outputSchema"],
+        )
     print(json.dumps({"toolCount": len(actual_by_name)}, sort_keys=True))
 
 

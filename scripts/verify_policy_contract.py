@@ -14,7 +14,7 @@ import yaml
 from policy_contract import (
     PolicyContractError,
     compile_policy,
-    snapshot_policy_contract,
+    validate_policy_snapshot,
 )
 
 
@@ -42,24 +42,18 @@ def main() -> int:
             raise PolicyContractError(
                 "downloaded policy artifact version does not match policy lock"
             )
-        actual = snapshot_policy_contract(
-            release["tag"], policy_sha256, compile_policy(spec)
-        )
+        actual_contract = compile_policy(spec)
         expected = json.loads(_SNAPSHOT_PATH.read_text())
+        validate_policy_snapshot(
+            release["tag"], policy_sha256, actual_contract, expected
+        )
     except (OSError, json.JSONDecodeError, PolicyContractError) as error:
         print(f"policy contract verification failed: {error}", file=sys.stderr)
         return 1
 
-    if actual != expected:
-        print(
-            "policy contract verification failed: snapshot is out of date",
-            file=sys.stderr,
-        )
-        return 1
-
     print(
         "verified policy contract "
-        f"{release['tag']} ({len(actual['tools'])} exposed tools)"
+        f"{release['tag']} ({len(actual_contract.tools)} exposed tools)"
     )
     return 0
 

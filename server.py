@@ -25,7 +25,7 @@ from policy_contract import (
     PolicyContract,
     compile_policy,
     load_policy_bundle,
-    snapshot_policy_contract,
+    validate_policy_snapshot,
 )
 
 logger = logging.getLogger("artie-mcp")
@@ -327,13 +327,12 @@ def _load_contract() -> tuple[dict[str, Any], PolicyContract, str]:
     contract = compile_policy(bundle.spec)
     policy_bytes = (_BUNDLE_DIR / "policy.openapi.yaml").read_bytes()
     expected_snapshot = json.loads((_BUNDLE_DIR / "policy.contract.json").read_text())
-    actual_snapshot = snapshot_policy_contract(
-        bundle.release_tag, hashlib.sha256(policy_bytes).hexdigest(), contract
+    validate_policy_snapshot(
+        bundle.release_tag,
+        hashlib.sha256(policy_bytes).hexdigest(),
+        contract,
+        expected_snapshot,
     )
-    if actual_snapshot != expected_snapshot:
-        raise ValueError(
-            "policy contract snapshot does not match the local policy bundle"
-        )
     return bundle.spec, contract, bundle.release_tag
 
 
