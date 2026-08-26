@@ -133,7 +133,7 @@ class RecordingProvider:
 
 
 class TestOpenTelemetryMetrics(unittest.TestCase):
-    def test_emits_count_and_duration_without_tool_name_attributes(self):
+    def test_emits_count_and_duration_with_bounded_tool_name_attributes(self):
         meter = RecordingMeter()
         metrics = OpenTelemetryMetrics(meter)
 
@@ -148,6 +148,7 @@ class TestOpenTelemetryMetrics(unittest.TestCase):
         expected_attributes = {
             "mcp.operation": "tool_call",
             "mcp.outcome": "error",
+            "mcp.tool": "pipeline_list",
             "mcp.failure_class": "invalid_input",
         }
         self.assertEqual([(1, expected_attributes)], meter.counter.records)

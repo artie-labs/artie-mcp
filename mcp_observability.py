@@ -50,6 +50,8 @@ class OpenTelemetryMetrics:
         tool: str | None = None,
     ) -> None:
         attributes = {"mcp.operation": operation, "mcp.outcome": outcome}
+        if tool:
+            attributes["mcp.tool"] = tool
         if failure_class:
             attributes["mcp.failure_class"] = failure_class
         self._request_counter.add(1, attributes)
