@@ -43,6 +43,31 @@ class TestServer(unittest.TestCase):
                     tool.annotations.model_dump(exclude_none=True),
                 )
 
+    def test_runtime_tool_schemas_match_the_policy_snapshot(self):
+        snapshot = json.loads(
+            (self.server._BUNDLE_DIR / "policy.contract.json").read_text()
+        )
+        expected = {tool["name"]: tool for tool in snapshot["tools"]}
+        for tool in self.tools:
+            with self.subTest(tool=tool.name):
+                self.assertEqual(expected[tool.name]["inputSchema"], tool.parameters)
+                self.assertEqual(
+                    expected[tool.name]["outputSchema"], tool.output_schema
+                )
+
+    def test_runtime_tool_schema_drift_is_detected(self):
+        snapshot = json.loads(
+            (self.server._BUNDLE_DIR / "policy.contract.json").read_text()
+        )
+        expected = next(
+            tool for tool in snapshot["tools"] if tool["name"] == "pipeline_start"
+        )
+        actual = next(tool for tool in self.tools if tool.name == "pipeline_start")
+        drifted = json.loads(json.dumps(expected["inputSchema"]))
+        drifted["required"] = ["uuid", "keepPaused"]
+
+        self.assertNotEqual(drifted, actual.parameters)
+
     def test_bodiless_policy_tools_publish_a_success_schema(self):
         tools = {tool.name: tool for tool in self.tools}
         for contract in self.server.policy_contract.tools:
