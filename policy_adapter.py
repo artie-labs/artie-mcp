@@ -56,14 +56,7 @@ class SafeTrafficAdapter:
         tool = self._tool(tool_name)
         response = self._success_response(tool, status_code)
 
-        if "schema" not in response:
-            # A body-bearing status that declares no content is a contract defect
-            # (the shape F1 had), so it stays loud instead of being reported as an
-            # empty success.
-            if response["status"] not in BODILESS_STATUSES:
-                raise PolicyAdapterError(
-                    "approved success declares no content for a body-bearing status"
-                )
+        if is_bodiless_success(tool):
             return {"success": True}
         if response.get("contentType") != "application/json" or not _is_json(
             content_type

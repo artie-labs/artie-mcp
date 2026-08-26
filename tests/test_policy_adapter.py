@@ -216,7 +216,7 @@ class TestSafeTrafficAdapter(unittest.TestCase):
         # rather than be reported to the client as an empty success.
         adapter = self.adapter(success=({"status": "200"},))
 
-        with self.assertRaisesRegex(PolicyAdapterError, "body-bearing status"):
+        with self.assertRaisesRegex(PolicyAdapterError, "approved JSON contract"):
             adapter.shape_response("connector_get", 200, "application/json", b"{}")
 
     def test_resolves_a_path_template_to_its_policy_tool(self):
