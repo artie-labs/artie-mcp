@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "180e53882c9fb28c4251de7f0c849502d96d8476075115f349b66476ae58285f",
-  "releaseTag": "v1.0.80",
+  "policySHA256": "f5e66a439cda5afe8c2b5ff03529bc716b4f4af84e24a805ec8ba1f23dd8fb05",
+  "releaseTag": "v1.0.81",
   "tools": [
     {
       "annotations": {
@@ -506,8 +506,8 @@
       ],
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
-      "title": "Create a pipeline",
-      "triggerDescription": "Use when you need to create a pipeline."
+      "title": "Create a pipeline on an existing source reader",
+      "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
     {
       "annotations": {
@@ -528,8 +528,8 @@
       ],
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
-      "title": "Create pipeline from source",
-      "triggerDescription": "Use when you need to create pipeline from source."
+      "title": "Create a new pipeline from a source",
+      "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
     {
       "annotations": {
