@@ -1,0 +1,50 @@
+---
+name: first-pipeline-setup
+description: Creates a draft Artie pipeline from a saved source connector, attaches a saved destination and tables, and starts it. Use when the user already has connectors in the Artie Dashboard and wants a new pipeline, first pipeline, or to replicate an existing source. Do not use for type-support questions, Fivetran/DMS migrations, entering credentials, or checking whether data landed in the warehouse.
+---
+
+# First pipeline setup
+
+Take a **saved** source connector to `pipeline_start` **204**. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that.
+
+This is 1-to-N on connectors that already exist. There is no credential-entry tool.
+
+## Preconditions
+
+1. Call `connector_list` with `includeSourceConnectors=true` and find the source by `label` / `uuid`. Source slugs include `postgresql`, `mysql`, `mssql`, `oracle`, `mongodb`, `dynamodb`, `documentdb`, `cockroach`, `planetscale`, `keyspaces`, `api`.
+2. Call `connector_list` without that flag for destinations (`snowflake`, `bigquery`, `redshift`, `databricks`, `motherduck`, `clickhouse`, `s3`, `gcs`, `iceberg`, `delta`, and warehouse copies of `postgresql` / `mysql` / `mssql`).
+3. If the source or destination is missing, stop. Tell the user to save it in the [Artie Dashboard](https://app.artie.com), then resume this skill. Do not call `connector_create` or any `unsaved_*` tool.
+
+## Sequence (follow exactly)
+
+Do not invent a second path. Create-from-source, echo, start.
+
+1. **`connector_fetch_databases`** on the source UUID. Ask the user which database if more than one. For Postgres, Cockroach, and Oracle the reader needs this name before start.
+2. **`pipeline_create_from_source`** with:
+   - `sourceConnectorUUID` — the saved source
+   - `database` — the name from step 1 (do **not** copy a `defaultDatabase` field; that is not the reader database)
+   - Do **not** pass `sourceType` (creates an empty connector)
+   - Do **not** pass `destinationType` (creates a stub destination)
+3. Keep the **FullPipeline** in the create response. `pipeline_list` is a summary and is not a valid update body. `pipeline_detail` is not on MCP.
+4. **`connector_fetch_tables`** on the **source** UUID (optional `databaseName` / `schemaName`; Postgres defaults to `public`, SQL Server to `dbo`). If the destination needs a schema, `connector_fetch_schemas` then pass `schemaName` into fetch-tables.
+5. If the table list is empty, leave the draft as-is. Say the source has no tables Artie can see and **do not** call `pipeline_start`.
+6. **`pipeline_update`** — full replace, not a PATCH:
+   - Echo the last FullPipeline
+   - Set `destinationUUID` to the saved destination
+   - Set `tables` to at least one `{name, schema}` from step 4
+   - Send destination and tables **together**. A destination-only body is rejected. Omitting `tables` deletes every table.
+   - Keep `dataPlaneName` and `specificDestCfg` from the echo
+7. **`pipeline_start`**. Success is **204**. Do not call it immediately after create-from-source, and do not call it without destination + tables.
+
+Never follow create-from-source with `pipeline_create`. That attaches another pipeline to an existing reader (fan-out).
+
+## Fan-out (second destination, same capture)
+
+If the user wants another destination on the **same** CDC capture, stop. Sharing a reader is [Terraform `is_shared`](https://www.artie.com/docs/guides/artie/multiple-destinations). Do not create a second dedicated reader and do not start a second capture named `artie`.
+
+## What not to say
+
+- Do not say data landed, first record verified, or the destination SELECT succeeded.
+- Do not enter or echo connector credentials.
+- Compatibility questions (types, SQL Server capture method, SSH vs PrivateLink) belong in `connector-compatibility`.
+- Fivetran / DMS mapping belongs in `migration-lift-and-shift`.
