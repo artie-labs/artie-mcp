@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "artie",
+  "owner": {
+    "name": "Artie",
+    "email": "hi@artie.com"
+  },
+  "plugins": [
+    {
+      "name": "artie",
+      "description": "Artie real-time CDC pipelines — set up from saved connectors, check connector compatibility, and plan Fivetran migrations",
+      "author": {
+        "name": "Artie"
+      },
+      "source": "./plugins/artie",
+      "category": "developer-tools"
+    }
+  ]
+}
