@@ -29,14 +29,17 @@ There is no per-connector yes/no type matrix in docs.
 
 ### SQL Server capture methods
 
-Artie documents four methods on [SQL Server overview](https://www.artie.com/docs/sources/microsoft-sql-server/overview). Recommend from that page, not from a private ranking:
+Open [SQL Server overview](https://www.artie.com/docs/sources/microsoft-sql-server/overview) and recommend only methods that page currently lists as available. Do not use a private ranking.
+
+Three methods have setup pages:
 
 | Method | When docs say to use it | Page |
 |---|---|---|
-| Transaction-log backups | Read completed `.trn` files from a filesystem the data plane can see. Latency follows backup cadence. | Overview |
 | CDC with capture instances | CDC enabled at database and table. Default log-based CDC. | [Capture instances](https://www.artie.com/docs/sources/microsoft-sql-server/capture-instances) |
 | Change tracking | Lightweight alternative when CDC cannot be enabled. Artie re-reads the row by PK. | [Change tracking](https://www.artie.com/docs/sources/microsoft-sql-server/change-tracking) |
 | Active transaction log via SQL access | SQL Server on VM or Azure managed instance only. Needs `FULL`/`BULK_LOGGED`, sysadmin, supplemental logging, PK on each table. | [SQL access](https://www.artie.com/docs/sources/microsoft-sql-server/sql-access) |
+
+Archive / transaction-log file access (`.trn` backups) is **not** available while the overview marks it coming soon. Do not recommend it, and do not invent filesystem or latency guidance. If the live page later documents it as available, quote that page — there is still no dedicated setup playbook.
 
 Ask which of those constraints they already meet. Do not pick a method if they have not answered.
 
