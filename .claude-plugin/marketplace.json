@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "artie",
-      "description": "Artie real-time CDC pipelines — set up from saved connectors, check connector compatibility, and plan Fivetran migrations",
+      "description": "Artie real-time CDC pipelines — set up from saved connectors, check connector compatibility, and plan a migration from another CDC tool",
       "author": {
         "name": "Artie"
       },
