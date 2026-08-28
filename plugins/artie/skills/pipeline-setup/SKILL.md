@@ -33,7 +33,8 @@ Do not invent a second path. Create-from-source, echo, start.
    - Set `destinationUUID` to the saved destination
    - Set `tables` to at least one `{name, schema}` from step 4 (`schema` is the **source** schema)
    - Send destination and tables **together**. A destination-only body is rejected. Omitting `tables` deletes every table.
-   - Keep `dataPlaneName` from the echo. For dest landing (Snowflake database/schema, etc.), set `specificDestCfg.database` / `specificDestCfg.schema` from `connector_fetch_databases` / `connector_fetch_schemas` on the **destination** UUID — not from step 4. Echo the rest of `specificDestCfg`.
+   - Keep `dataPlaneName` from the echo. Echo the rest of `specificDestCfg`.
+   - Dest landing is not the source schema. If this destination uses a warehouse database/schema (Snowflake, BigQuery, Redshift, …), call `connector_fetch_databases` / `connector_fetch_schemas` on the **destination** UUID. Those calls return available names, not “the” landing location — ask the user which database and schema to land in if more than one, the same way step 1 asks for the source database. Set `specificDestCfg.database` / `specificDestCfg.schema` to **that choice**. Do not pick the first name, do not copy step 4, and do not overwrite values already on the echo unless the user picks something else. If dest fetch is unsupported (S3, GCS, …), leave those fields as echoed.
 7. **`pipeline_start`**. Success is **204**. Do not call it immediately after create-from-source, and do not call it without destination + tables.
 
 Never follow create-from-source with `pipeline_create`. That attaches another pipeline to an existing reader (fan-out).
