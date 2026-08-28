@@ -33,9 +33,8 @@ _ALLOWED_RETRY_SEMANTICS = frozenset({"safe", "unsafe", "safe-after-state-check"
 _ALLOWED_SENSITIVITIES = frozenset(
     {"none", "internal-identifiers", "restricted-credentials"}
 )
-# Operation IDs that may be published even though request or response schemas
-# reach restricted credentials. Sensitivity must still be labeled correctly.
-_CREDENTIAL_EXPOSURE_ALLOWLIST = frozenset({"connector_create"})
+# Operation IDs that may be published with restricted-credentials schemas.
+_CREDENTIAL_ALLOWLIST = frozenset({"connector_create"})
 
 BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
 
@@ -451,7 +450,7 @@ def _validate_policy(
             policy["inputSensitivity"],
             policy["outputSensitivity"],
         }
-        and operation_id not in _CREDENTIAL_EXPOSURE_ALLOWLIST
+        and operation_id not in _CREDENTIAL_ALLOWLIST
     ):
         raise PolicyContractError(
             f"{label} cannot expose restricted credential input or output"
