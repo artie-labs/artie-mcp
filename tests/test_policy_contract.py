@@ -70,6 +70,72 @@ class TestPolicyContract(unittest.TestCase):
         self.assertEqual("List safe resources", contract.tools[0].title)
         self.assertEqual(("safe:read",), contract.tools[0].required_scopes)
 
+    def test_compile_policy_allowlists_connector_create_credentials(self):
+        spec = {
+            "openapi": "3.1.0",
+            "paths": {
+                "/connectors": {
+                    "post": {
+                        "operationId": "connector_create",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "connector_create",
+                            "title": "Create a connector",
+                            "triggerDescription": "Creates a saved connector.",
+                            "readOnlyHint": False,
+                            "destructiveHint": False,
+                            "idempotentHint": False,
+                            "openWorldHint": False,
+                            "requiredScopes": ["connectors:write"],
+                            "retrySemantics": "unsafe",
+                            "inputSensitivity": "restricted-credentials",
+                            "outputSensitivity": "restricted-credentials",
+                        },
+                    }
+                }
+            },
+        }
+
+        contract = compile_policy(spec)
+
+        self.assertEqual(["connector_create"], [tool.name for tool in contract.tools])
+        self.assertEqual("restricted-credentials", contract.tools[0].input_sensitivity)
+        self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
+
+    def test_compile_policy_rejects_other_exposed_credential_tools(self):
+        spec = {
+            "openapi": "3.1.0",
+            "paths": {
+                "/connectors/ping": {
+                    "post": {
+                        "operationId": "unsaved_connector_ping",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "unsaved_connector_ping",
+                            "title": "Ping an unsaved connector",
+                            "triggerDescription": "Pings unsaved credentials.",
+                            "readOnlyHint": True,
+                            "destructiveHint": False,
+                            "idempotentHint": True,
+                            "openWorldHint": False,
+                            "requiredScopes": ["connectors:read"],
+                            "retrySemantics": "safe",
+                            "inputSensitivity": "restricted-credentials",
+                            "outputSensitivity": "none",
+                        },
+                    }
+                }
+            },
+        }
+
+        with self.assertRaisesRegex(
+            PolicyContractError,
+            "cannot expose restricted credential input or output",
+        ):
+            compile_policy(spec)
+
     def test_load_policy_bundle_rejects_checksum_mismatch(self):
         with tempfile.TemporaryDirectory() as directory:
             bundle_dir = Path(directory)
