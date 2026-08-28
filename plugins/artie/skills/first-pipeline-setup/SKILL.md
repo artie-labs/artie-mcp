@@ -7,7 +7,7 @@ description: Creates a draft Artie pipeline from a saved source connector, attac
 
 Take a **saved** source connector to `pipeline_start` **204**. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that.
 
-This is 1-to-N on connectors that already exist. There is no credential-entry tool.
+This only works on connectors already saved in the Dashboard. There is no credential-entry tool.
 
 ## Preconditions
 
@@ -26,14 +26,14 @@ Do not invent a second path. Create-from-source, echo, start.
    - Do **not** pass `sourceType` (creates an empty connector)
    - Do **not** pass `destinationType` (creates a stub destination)
 3. Keep the **FullPipeline** in the create response. `pipeline_list` is a summary and is not a valid update body. `pipeline_detail` is not on MCP.
-4. **`connector_fetch_tables`** on the **source** UUID (optional `databaseName` / `schemaName`; Postgres defaults to `public`, SQL Server to `dbo`). If the destination needs a schema, `connector_fetch_schemas` then pass `schemaName` into fetch-tables.
+4. **`connector_fetch_tables`** on the **source** UUID (optional `databaseName` / `schemaName`; Postgres defaults to `public`, SQL Server to `dbo`). If the source has schemas other than the default, or more than one schema, call `connector_fetch_schemas` on the **source** first, then pass the chosen `schemaName` into fetch-tables. Do not pass a destination schema into this call.
 5. If the table list is empty, leave the draft as-is. Say the source has no tables Artie can see and **do not** call `pipeline_start`.
 6. **`pipeline_update`** — full replace, not a PATCH:
    - Echo the last FullPipeline
    - Set `destinationUUID` to the saved destination
-   - Set `tables` to at least one `{name, schema}` from step 4
+   - Set `tables` to at least one `{name, schema}` from step 4 (`schema` is the **source** schema)
    - Send destination and tables **together**. A destination-only body is rejected. Omitting `tables` deletes every table.
-   - Keep `dataPlaneName` and `specificDestCfg` from the echo
+   - Keep `dataPlaneName` from the echo. For dest landing (Snowflake database/schema, etc.), set `specificDestCfg.database` / `specificDestCfg.schema` from `connector_fetch_databases` / `connector_fetch_schemas` on the **destination** UUID — not from step 4. Echo the rest of `specificDestCfg`.
 7. **`pipeline_start`**. Success is **204**. Do not call it immediately after create-from-source, and do not call it without destination + tables.
 
 Never follow create-from-source with `pipeline_create`. That attaches another pipeline to an existing reader (fan-out).
