@@ -1,5 +1,5 @@
 ---
-name: first-pipeline-setup
+name: pipeline-setup
 description: Creates a draft Artie pipeline from a saved source connector, attaches a saved destination and tables, and starts it. Use when the user already has connectors in the Artie Dashboard and wants a new pipeline, first pipeline, or to replicate an existing source. Do not use for type-support questions, Fivetran/DMS migrations, entering credentials, or checking whether data landed in the warehouse.
 ---
 
@@ -47,4 +47,4 @@ If the user wants another destination on the **same** CDC capture, stop. Sharing
 - Do not say data landed, first record verified, or the destination SELECT succeeded.
 - Do not enter or echo connector credentials.
 - Compatibility questions (types, SQL Server capture method, SSH vs PrivateLink) belong in `connector-compatibility`.
-- Fivetran / DMS mapping belongs in `migration-lift-and-shift`.
+- Fivetran / DMS mapping belongs in `migration`.
