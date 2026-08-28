@@ -5,7 +5,7 @@ description: Creates a draft Artie pipeline from a saved source connector, attac
 
 # First pipeline setup
 
-Take a **saved** source connector to `pipeline_start` **204**. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that.
+Take a **saved** source connector to `pipeline_start` returning `{"success": true}`. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that.
 
 This only works on connectors already saved in the Dashboard. There is no credential-entry tool.
 
@@ -26,7 +26,7 @@ Do not invent a second path. Create-from-source, echo, start.
    - Do **not** pass `sourceType` (creates an empty connector)
    - Do **not** pass `destinationType` (creates a stub destination)
 3. Keep the **FullPipeline** in the create response. `pipeline_list` is a summary and is not a valid update body. `pipeline_detail` is not on MCP.
-4. **`connector_fetch_tables`** on the **source** UUID (optional `databaseName` / `schemaName`; Postgres defaults to `public`, SQL Server to `dbo`). If the source has schemas other than the default, or more than one schema, call `connector_fetch_schemas` on the **source** first, then pass the chosen `schemaName` into fetch-tables. Do not pass a destination schema into this call.
+4. **`connector_fetch_tables`** on the **source** UUID. If step 1 produced a database name (Postgres, Cockroach, Oracle), pass it as `databaseName` — do not omit it and do not fall back to `defaultDatabase`. `schemaName` is optional; Postgres defaults to `public`, SQL Server to `dbo`. If the source has schemas other than the default, or more than one schema, call `connector_fetch_schemas` on the **source** first (same `databaseName` when you have one), then pass the chosen `schemaName` into fetch-tables. Do not pass a destination schema into this call.
 5. If the table list is empty, leave the draft as-is. Say the source has no tables Artie can see and **do not** call `pipeline_start`.
 6. **`pipeline_update`** — full replace, not a PATCH:
    - Echo the last FullPipeline
@@ -35,7 +35,7 @@ Do not invent a second path. Create-from-source, echo, start.
    - Send destination and tables **together**. A destination-only body is rejected. Omitting `tables` deletes every table.
    - Keep `dataPlaneName` from the echo. Echo the rest of `specificDestCfg`.
    - Dest landing is not the source schema. If this destination uses a warehouse database/schema (Snowflake, BigQuery, Redshift, …), call `connector_fetch_databases` / `connector_fetch_schemas` on the **destination** UUID. Those calls return available names, not “the” landing location — ask the user which database and schema to land in if more than one, the same way step 1 asks for the source database. Set `specificDestCfg.database` / `specificDestCfg.schema` to **that choice**. Do not pick the first name, do not copy step 4, and do not overwrite values already on the echo unless the user picks something else. If dest fetch is unsupported (S3, GCS, …), leave those fields as echoed.
-7. **`pipeline_start`**. Success is **204**. Do not call it immediately after create-from-source, and do not call it without destination + tables.
+7. **`pipeline_start`**. Success is `{"success": true}` (Dashboard HTTP 204; the MCP tool result does not include the status code). Do not call it immediately after create-from-source, and do not call it without destination + tables.
 
 Never follow create-from-source with `pipeline_create`. That attaches another pipeline to an existing reader (fan-out).
 
