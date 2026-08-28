@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "180e53882c9fb28c4251de7f0c849502d96d8476075115f349b66476ae58285f",
-  "releaseTag": "v1.0.80",
+  "policySHA256": "ec01273e1e2975bf2f7e7a8f9d829d432442e9b6bce61b18eba767e08f973f46",
+  "releaseTag": "v1.0.85",
   "tools": [
     {
       "annotations": {
@@ -23,7 +23,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a column hashing salt",
-      "triggerDescription": "Use when you need to delete a column hashing salt."
+      "triggerDescription": "Deletes a column hashing salt by UUID. Does not unhash already-landed columns."
     },
     {
       "annotations": {
@@ -45,7 +45,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "fd11fc84376a52ae7dca5ec7ff350d473a6bebd323465511e7e8a21b0654062f",
       "title": "List column hashing salts",
-      "triggerDescription": "Use when you need to list column hashing salts."
+      "triggerDescription": "Lists column hashing salt names and UUIDs (no secret)."
     },
     {
       "annotations": {
@@ -67,7 +67,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "cb3aec278629a6b160633f319d251348d8fb360e43ea0c657b7803d9d0619a31",
       "title": "Preview a column hashing salt",
-      "triggerDescription": "Use when you need to preview a column hashing salt."
+      "triggerDescription": "Hashes a sample string with this salt and returns the hex digest."
     },
     {
       "annotations": {
@@ -89,7 +89,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "8da01cc3a0de29d8d762d03c516f163c912ce759b46ffd85f9dbb44a13b5bd3e",
       "title": "Update a column hashing salt",
-      "triggerDescription": "Use when you need to update a column hashing salt."
+      "triggerDescription": "Updates the name and description of an existing column hashing salt. Does not rotate the secret."
     },
     {
       "annotations": {
@@ -111,7 +111,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "46cf34d5514c20016a93eeadc9144687b1c228f1667b39f4d9ecae0e2763fa63",
       "title": "Trigger automatic schema changes for a company",
-      "triggerDescription": "Use when you need to trigger automatic schema changes for all eligible pipelines in a company."
+      "triggerDescription": "Enqueues automatic schema changes for all eligible running pipelines. For one pipeline, use pipeline_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
@@ -133,7 +133,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a connector",
-      "triggerDescription": "Use when you need to delete a connector."
+      "triggerDescription": "Permanently deletes a saved connector by UUID and stops pipelines that depend on it."
     },
     {
       "annotations": {
@@ -155,7 +155,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Drop a PostgreSQL replication slot",
-      "triggerDescription": "Use when you need to drop a PostgreSQL replication slot."
+      "triggerDescription": "Drops an inactive PostgreSQL replication slot. Confirm the slot is unused."
     },
     {
       "annotations": {
@@ -177,7 +177,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "0b91069d3ef489ba3759e95ef6609b823f400d2cf8859414a03867db4e985273",
       "title": "Fetch databases for a saved connector",
-      "triggerDescription": "Use when you need to fetch databases for a saved connector."
+      "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
     },
     {
       "annotations": {
@@ -199,7 +199,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "8b41014596efd7bdaa3aed9b96d2c80fe0a5ed09ae747c2983293d9a7baede1d",
       "title": "Fetch schemas for a saved connector",
-      "triggerDescription": "Use when you need to fetch schemas for a saved connector."
+      "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it."
     },
     {
       "annotations": {
@@ -221,7 +221,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b92f91eb772281c9155c5a7391a6990c42c50c77657e01c73b525a6a065ebe89",
       "title": "Fetch table detail for a saved connector",
-      "triggerDescription": "Use when you need to fetch table detail for a saved connector."
+      "triggerDescription": "Returns columns and metadata for one table on a saved connector. uuid must come from connector_list (includeSourceConnectors=true for sources). Do not pass a pipeline uuid or sourceReaderUUID. tableName is required. This is column metadata, not pipeline lag or row counts."
     },
     {
       "annotations": {
@@ -243,7 +243,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d8e775ea4bd0d2307a5a6d51ecf89ac59098bb2236fc1e7786000902f642a38c",
       "title": "Fetch tables for a saved connector",
-      "triggerDescription": "Use when you need to fetch tables for a saved connector."
+      "triggerDescription": "Lists tables on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Use to choose names for pipeline_update.tables."
     },
     {
       "annotations": {
@@ -265,7 +265,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b3e1ee9f7de80a9546fb1ac5acdb7dcb80a4eb7583d5c931632d892f86b12fec",
       "title": "Generate Oracle shadow table script",
-      "triggerDescription": "Use when you need to generate Oracle shadow table script."
+      "triggerDescription": "Returns SQL to create Oracle shadow tables for CDC. Oracle sources only."
     },
     {
       "annotations": {
@@ -287,7 +287,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "8ca8c94ecb2432ed10c09fabcf354f1aec9c33e0bdaac21e04cc34add1e92be4",
       "title": "List connectors",
-      "triggerDescription": "Use when you need to list connectors."
+      "triggerDescription": "Lists saved connectors. Defaults to destinations; pass includeSourceConnectors=true for sources. Call this before connector_fetch_databases, connector_fetch_schemas, connector_fetch_tables, or connector_fetch_table_detail \u2014 those tools need a uuid from this list, not a pipeline uuid or sourceReaderUUID from pipeline_list."
     },
     {
       "annotations": {
@@ -309,7 +309,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "473dfd0473c3322ef49784e58d58b254c0556f037642935c3e25c72c016a6393",
       "title": "Start a DynamoDB export",
-      "triggerDescription": "Use when you need to start a DynamoDB export."
+      "triggerDescription": "Starts a DynamoDB point-in-time export. DynamoDB sources only; for SQL CDC use pipeline_start."
     },
     {
       "annotations": {
@@ -331,7 +331,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f7113bdd01be607d48a5d732c5c0ad49a611ffe5a9035375a0aab8ad57da20e7",
       "title": "Search the data catalog",
-      "triggerDescription": "Use when you need to search the data catalog."
+      "triggerDescription": "Searches ingested catalog metadata. For live source tables, use connector_fetch_tables."
     },
     {
       "annotations": {
@@ -353,7 +353,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an encryption key",
-      "triggerDescription": "Use when you need to delete an encryption key."
+      "triggerDescription": "Deletes an encryption key by UUID. Does not decrypt already-landed columns."
     },
     {
       "annotations": {
@@ -375,7 +375,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "109e753364e1add34c73070b3d6700ba6a42d996c6b6682a2a0e4a77c707060c",
       "title": "List encryption keys",
-      "triggerDescription": "Use when you need to list encryption keys."
+      "triggerDescription": "Lists encryption key names and UUIDs (no secret material)."
     },
     {
       "annotations": {
@@ -397,7 +397,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "b0d84f062fee3d43d5ed98fb7f3deb3c16933ba2bac246f047620442d8729034",
       "title": "Update an encryption key",
-      "triggerDescription": "Use when you need to update an encryption key."
+      "triggerDescription": "Updates the name and description of an existing encryption key. Does not rotate the key material."
     },
     {
       "annotations": {
@@ -419,7 +419,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an ingestion API key",
-      "triggerDescription": "Use when you need to delete an ingestion API key."
+      "triggerDescription": "Deletes an ingestion API key by UUID."
     },
     {
       "annotations": {
@@ -441,7 +441,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "6790d03ccc110df09d0e0558d21388f48247dac4a625733939b61703d9bf8c39",
       "title": "Update an ingestion API key",
-      "triggerDescription": "Use when you need to update an ingestion API key."
+      "triggerDescription": "Updates metadata on an existing ingestion API key. Does not mint a new key."
     },
     {
       "annotations": {
@@ -463,7 +463,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Backfill pipeline tables",
-      "triggerDescription": "Use when you need to backfill pipeline tables."
+      "triggerDescription": "Backfills tables already on a running pipeline by table UUID. To attach tables, use pipeline_update."
     },
     {
       "annotations": {
@@ -485,7 +485,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Cancel backfill",
-      "triggerDescription": "Use when you need to cancel backfill."
+      "triggerDescription": "Cancels an in-progress backfill for the given table UUIDs."
     },
     {
       "annotations": {
@@ -506,8 +506,8 @@
       ],
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
-      "title": "Create a pipeline",
-      "triggerDescription": "Use when you need to create a pipeline."
+      "title": "Create a pipeline on an existing source reader",
+      "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
     {
       "annotations": {
@@ -522,14 +522,14 @@
       "name": "pipeline_create_from_source",
       "outputSensitivity": "none",
       "path": "/pipelines/create-from-source",
-      "requestSchemaSHA256": "bdd726935f0f8e980a947ddef325a9fd6a4c91f0103577e25cb0a3eb51535b59",
+      "requestSchemaSHA256": "61f151850bb45564379e49b2aeecf788f38e6ffa85159613f004703342b0cf02",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
-      "title": "Create pipeline from source",
-      "triggerDescription": "Use when you need to create pipeline from source."
+      "title": "Create a new pipeline from a source",
+      "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
     {
       "annotations": {
@@ -551,7 +551,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete pipeline",
-      "triggerDescription": "Use when you need to delete pipeline."
+      "triggerDescription": "Permanently deletes a pipeline by UUID. Does not delete connectors."
     },
     {
       "annotations": {
@@ -573,7 +573,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Detect schema changes",
-      "triggerDescription": "Use when you need to detect schema changes."
+      "triggerDescription": "Checks the source for table or schema drift. To apply destination DDL, use pipeline_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
@@ -595,7 +595,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "527f0e94edea8837c95721324782df90bdfb4502665e4620478d18e0a99def5f",
       "title": "List pipelines",
-      "triggerDescription": "Use when you need to list pipelines."
+      "triggerDescription": "Lists pipelines with uuid, name, and status. This is not a full configuration \u2014 do not send it to pipeline_update. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
     },
     {
       "annotations": {
@@ -617,7 +617,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Start pipeline",
-      "triggerDescription": "Use when you need to start pipeline."
+      "triggerDescription": "Deploys a draft or resumes a paused pipeline once destination, tables, and (Postgres/Cockroach/Oracle) reader database are set. Do not call immediately after create-from-source."
     },
     {
       "annotations": {
@@ -639,7 +639,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "46cf34d5514c20016a93eeadc9144687b1c228f1667b39f4d9ecae0e2763fa63",
       "title": "Trigger automatic schema changes for a pipeline",
-      "triggerDescription": "Use when you need to trigger automatic schema changes for one eligible pipeline."
+      "triggerDescription": "Applies detected source DDL on one pipeline. For every eligible pipeline, use company_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
@@ -661,7 +661,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "e8c085a3d9a0d1263ae24f6dce6d17a468fa402b18f80684893fc3114ce947fa",
       "title": "Update pipeline",
-      "triggerDescription": "Use when you need to update pipeline."
+      "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
     {
       "annotations": {
@@ -683,7 +683,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "579275c06af1cfdf7bf75fab99a70b62cfaea9dbdf4ad96fa0888629bfec2429",
       "title": "Update pipeline status",
-      "triggerDescription": "Use when you need to update pipeline status."
+      "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
     },
     {
       "annotations": {
@@ -705,7 +705,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
       "title": "Create a PrivateLink connection",
-      "triggerDescription": "Use when you need to create a PrivateLink connection."
+      "triggerDescription": "Creates an AWS PrivateLink connection. Keep the returned UUID; there is no list tool."
     },
     {
       "annotations": {
@@ -727,7 +727,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a PrivateLink connection",
-      "triggerDescription": "Use when you need to delete a PrivateLink connection."
+      "triggerDescription": "Permanently deletes a PrivateLink connection by UUID."
     },
     {
       "annotations": {
@@ -749,7 +749,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
       "title": "Get a PrivateLink connection",
-      "triggerDescription": "Use when you need to get a PrivateLink connection."
+      "triggerDescription": "Returns one PrivateLink connection by UUID."
     },
     {
       "annotations": {
@@ -771,7 +771,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
       "title": "Update a PrivateLink connection",
-      "triggerDescription": "Use when you need to update a PrivateLink connection."
+      "triggerDescription": "Updates a PrivateLink connection. Region, VPC service name, data plane, and AZs are only mutable while under review or errored."
     },
     {
       "annotations": {
@@ -793,7 +793,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a source reader",
-      "triggerDescription": "Use when you need to delete a source reader."
+      "triggerDescription": "Deletes a source reader unused by any active pipeline. Does not delete the source connector."
     },
     {
       "annotations": {
@@ -815,7 +815,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Deploy a source reader",
-      "triggerDescription": "Use when you need to deploy a source reader."
+      "triggerDescription": "Deploys a shared, validated source reader. To take a draft pipeline live, use pipeline_start."
     },
     {
       "annotations": {
@@ -837,7 +837,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Create an SSH tunnel",
-      "triggerDescription": "Use when you need to create an SSH tunnel."
+      "triggerDescription": "Creates an SSH tunnel record. Keep the returned UUID; there is no list tool."
     },
     {
       "annotations": {
@@ -859,7 +859,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an SSH tunnel",
-      "triggerDescription": "Use when you need to delete an SSH tunnel."
+      "triggerDescription": "Deletes an SSH tunnel unused by any connector or pipeline."
     },
     {
       "annotations": {
@@ -881,7 +881,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Get an SSH tunnel",
-      "triggerDescription": "Use when you need to get an SSH tunnel."
+      "triggerDescription": "Returns one SSH tunnel by UUID (no private key)."
     },
     {
       "annotations": {
@@ -903,7 +903,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Update an SSH tunnel",
-      "triggerDescription": "Use when you need to update an SSH tunnel."
+      "triggerDescription": "Updates name, host, port, or username on an existing SSH tunnel. Does not rotate keys."
     }
   ]
 }
