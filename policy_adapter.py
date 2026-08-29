@@ -126,11 +126,21 @@ def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
             raise PolicyAdapterError(
                 f"response is missing required output: {sorted(missing)}"
             )
-        return {
+        shaped = {
             name: _shape_output(value[name], property_schema)
             for name, property_schema in properties.items()
             if name in value
         }
+        extra = schema.get("additionalProperties")
+        if extra is True:
+            for name, item in value.items():
+                if name not in properties:
+                    shaped[name] = item
+        elif isinstance(extra, Mapping):
+            for name, item in value.items():
+                if name not in properties:
+                    shaped[name] = _shape_output(item, extra)
+        return shaped
     if schema_type == "array":
         if not isinstance(value, list):
             raise PolicyAdapterError(
