@@ -1,6 +1,6 @@
 ---
 name: connector-compatibility
-description: Answers Artie connector compatibility questions from published docs — supported sources and destinations, SQL Server capture methods, networking (IP allowlist, SSH tunnel, PrivateLink), and source permissions. Use when the user asks whether a type, source, destination, DuckDB, capture method, or network path is supported before setup. Do not use to create or start pipelines, ping unsaved credentials, or invent a type-support matrix when docs are silent.
+description: Answers Artie connector compatibility questions from published docs — supported sources and destinations, SQL Server capture methods, networking (IP allowlist, SSH tunnel, PrivateLink), and source permissions. Use when the user asks whether a type, source, destination, DuckDB, capture method, or network path is supported before setup. Do not use to create connectors, start pipelines, or invent a type-support matrix when docs are silent.
 ---
 
 # Connector compatibility advisor
@@ -53,7 +53,7 @@ Three documented options: [Connection options](https://www.artie.com/docs/connec
 | [SSH tunnel](https://www.artie.com/docs/connection-options/ssh-tunnel) | The database is not directly reachable; a bastion is. | Customer runs the bastion and gives Artie tunnel credentials in the Dashboard. Artie connects through the tunnel. |
 | [AWS PrivateLink](https://www.artie.com/docs/connection-options/privatelink) | Traffic must stay off the public internet in AWS. | Customer and Artie complete the PrivateLink setup on that page. |
 
-Recommend one from architecture (public vs private, AWS vs not, bastion vs none). Do not run reachability tests. Unsaved ping sends credentials and is not on MCP.
+Recommend one from architecture (public vs private, AWS vs not, bastion vs none). Do not run reachability tests from this skill. When they are ready to create or ping a connector, hand off to `pipeline-setup` (`unsaved_connector_ping`, then `connector_create`).
 
 VPC peering is not a documented Artie connection option. Do not offer it.
 
@@ -64,7 +64,7 @@ VPC peering is not a documented Artie connection option. Do not offer it.
 
 ## What you must not do
 
-- Do not create or start a pipeline. Hand off to `pipeline-setup` once connectors are saved in the Dashboard.
-- Do not call `connector_create` or `unsaved_*`.
+- Do not create connectors or start a pipeline. Hand off to `pipeline-setup` when they want to create, ping, or start — that skill can save connectors now.
+- Do not call `connector_create`, `unsaved_connector_ping`, or any `unsaved_connector_fetch_*`.
 - Do not claim a type is supported or unsupported without a doc sentence you can quote.
 - Fivetran / DMS mapping belongs in `migration`.
