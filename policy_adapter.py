@@ -105,6 +105,16 @@ def _is_json(content_type: str) -> bool:
     return content_type.split(";", 1)[0].strip().lower() == "application/json"
 
 
+def _is_unconstrained_schema(schema: Any) -> bool:
+    # JSON Schema {} (and description-only objects) means allow-any, same as true.
+    if not isinstance(schema, Mapping):
+        return False
+    return not any(
+        key in schema
+        for key in ("type", "$ref", "allOf", "oneOf", "anyOf", "properties", "items")
+    )
+
+
 def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
     if "$ref" in schema:
         return _shape_output(value, _nested_schema(schema))
@@ -132,7 +142,7 @@ def _shape_output(value: Any, schema: Mapping[str, Any]) -> Any:
             if name in value
         }
         extra = schema.get("additionalProperties")
-        if extra is True:
+        if extra is True or _is_unconstrained_schema(extra):
             for name, item in value.items():
                 if name not in properties:
                     shaped[name] = item
