@@ -200,7 +200,9 @@ class TestPolicyContract(unittest.TestCase):
 
         contract = compile_policy(spec)
 
-        self.assertEqual(["source_reader_detail"], [tool.name for tool in contract.tools])
+        self.assertEqual(
+            ["source_reader_detail"], [tool.name for tool in contract.tools]
+        )
         self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
 
     def test_compile_policy_allowlists_source_reader_update_credentials(self):
@@ -232,7 +234,9 @@ class TestPolicyContract(unittest.TestCase):
 
         contract = compile_policy(spec)
 
-        self.assertEqual(["source_reader_update"], [tool.name for tool in contract.tools])
+        self.assertEqual(
+            ["source_reader_update"], [tool.name for tool in contract.tools]
+        )
         self.assertEqual("restricted-credentials", contract.tools[0].input_sensitivity)
         self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
 
