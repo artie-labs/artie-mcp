@@ -1,13 +1,13 @@
 ---
 name: pipeline-setup
-description: Creates an Artie pipeline from a source connector — creating the connector first if needed — attaches a destination and tables, and starts it. Use when the user wants a new pipeline, first pipeline, or to save a source/destination then replicate. Do not use for type-support questions, Fivetran/DMS migrations, or checking whether data landed in the warehouse.
+description: Creates an Artie pipeline from a source connector — creating the connector first if needed — attaches a destination and tables, and starts it. Use when the user wants a new pipeline, first pipeline, or to save a source/destination then replicate. Do not use for type-support questions, Fivetran/DMS migrations, pipeline health or error logs, or checking whether data landed in the warehouse.
 ---
 
 # First pipeline setup
 
-Take a source connector to `pipeline_start` returning `{"success": true}`. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that. `pipeline_usage` (when listed) is lag and row counts, not a warehouse SELECT.
+Take a source connector to `pipeline_start` returning `{"success": true}`. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that. `pipeline_usage` is lag and row counts, not a warehouse SELECT. `pipeline_error_logs` is health, not this skill.
 
-Get saved UUIDs, or create them. Then create-from-source, echo (or `pipeline_detail`), update, start. Do not invent a third path.
+Get saved UUIDs, or create them. Then create-from-source, `pipeline_detail` if you need to reload FullPipeline, update, start. Do not invent a third path.
 
 ## Connectors
 
@@ -32,7 +32,7 @@ Do not call `unsaved_connector_fetch_databases`, `unsaved_connector_fetch_schema
 
 ## Sequence (follow exactly)
 
-Create-from-source, echo or `pipeline_detail`, update, start.
+Create-from-source, reload FullPipeline with `pipeline_detail` when you do not still have the create response, update, start.
 
 1. **Source database / schema**
    - Postgres, Cockroach, Oracle, SQL Server: **`connector_fetch_databases`** on the source UUID. Ask the user which database if more than one. For Postgres, Cockroach, and Oracle the reader needs this name before start.
@@ -43,7 +43,7 @@ Create-from-source, echo or `pipeline_detail`, update, start.
    - `database` — the name from step 1 when the source is Postgres, Cockroach, or Oracle
    - Do **not** pass `sourceType` (creates an empty connector)
    - Do **not** pass `destinationType` (creates a stub destination)
-3. Keep the **FullPipeline** from `pipeline_create_from_source`. If you no longer have it (new chat, only a uuid from `pipeline_list`), call **`pipeline_detail`** on that uuid. Omit `includeRelatedObjects`. `pipeline_list` is a summary and is not a valid update body.
+3. Keep the **FullPipeline** from `pipeline_create_from_source`. If you no longer have it (new chat, only a uuid from `pipeline_list`), call **`pipeline_detail`** on that uuid. Do **not** pass `includeRelatedObjects` — MCP returns 400 (that flag wraps connectors for the Dashboard UI). `pipeline_list` is a summary and is not a valid update body.
 4. **`connector_fetch_tables`** on the **source** UUID. If step 1 produced a database name (Postgres, Cockroach, Oracle, SQL Server), pass it as `databaseName` — do not omit it and do not fall back to `defaultDatabase`. For MySQL, pass the chosen schema as `schemaName` and skip `databaseName`. `schemaName` is otherwise optional; Postgres defaults to `public`, SQL Server to `dbo`. If the source has schemas other than the default, or more than one schema, call `connector_fetch_schemas` on the **source** first (same `databaseName` when you have one), then pass the chosen `schemaName` into fetch-tables. Do not pass a destination schema into this call.
 5. If the table list is empty, leave the draft as-is. Say the source has no tables Artie can see and **do not** call `pipeline_start`.
 6. **`pipeline_update`** — full replace, not a PATCH:
@@ -57,7 +57,7 @@ Create-from-source, echo or `pipeline_detail`, update, start.
 
 Never follow create-from-source with `pipeline_create`. That attaches another pipeline to an existing reader (fan-out).
 
-If the user already has a pipeline and wants to add tables or change dest: `pipeline_list` → `pipeline_detail` → `pipeline_update` (echo FullPipeline) → `pipeline_start` if it is still a draft. Do not build the update body from `pipeline_list`.
+If the user already has a pipeline and wants to add tables or change dest: `pipeline_list` → `pipeline_detail` (no `includeRelatedObjects`) → `pipeline_update` (echo FullPipeline) → `pipeline_start` if it is still a draft. Do not build the update body from `pipeline_list`.
 
 ## Fan-out (second destination, same capture)
 
@@ -67,5 +67,6 @@ If the user wants another destination on the **same** CDC capture, stop. Sharing
 
 - Do not say data landed, first record verified, or the destination SELECT succeeded.
 - Do not echo connector credentials. Passwords on `connector_detail` are placeholders.
+- Do not call `pipeline_error_logs` or treat `pipeline_usage` lag as “the pipeline started.”
 - Compatibility questions (types, SQL Server capture method, SSH vs PrivateLink) belong in `connector-compatibility`.
 - Fivetran / DMS mapping belongs in `migration`.
