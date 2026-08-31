@@ -103,19 +103,87 @@ class TestPolicyContract(unittest.TestCase):
         self.assertEqual("restricted-credentials", contract.tools[0].input_sensitivity)
         self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
 
-    def test_compile_policy_rejects_other_exposed_credential_tools(self):
+    def test_compile_policy_allowlists_unsaved_connector_ping_credentials(self):
         spec = {
             "openapi": "3.1.0",
             "paths": {
                 "/connectors/ping": {
                     "post": {
                         "operationId": "unsaved_connector_ping",
-                        "responses": {"200": {"description": "OK"}},
+                        "responses": {"204": {"description": "No Content"}},
                         "x-artie-mcp": {
                             "exposure": "exposed",
                             "operationId": "unsaved_connector_ping",
-                            "title": "Ping an unsaved connector",
+                            "title": "Ping a connector",
                             "triggerDescription": "Pings unsaved credentials.",
+                            "readOnlyHint": True,
+                            "destructiveHint": False,
+                            "idempotentHint": True,
+                            "openWorldHint": True,
+                            "requiredScopes": ["connectors:read"],
+                            "retrySemantics": "safe",
+                            "inputSensitivity": "restricted-credentials",
+                            "outputSensitivity": "none",
+                            "bodilessSuccess": True,
+                        },
+                    }
+                }
+            },
+        }
+
+        contract = compile_policy(spec)
+
+        self.assertEqual(
+            ["unsaved_connector_ping"], [tool.name for tool in contract.tools]
+        )
+        self.assertEqual("restricted-credentials", contract.tools[0].input_sensitivity)
+        self.assertTrue(contract.tools[0].bodiless_success)
+
+    def test_compile_policy_allowlists_connector_detail_credentials(self):
+        spec = {
+            "openapi": "3.1.0",
+            "paths": {
+                "/connectors/{uuid}": {
+                    "get": {
+                        "operationId": "connector_detail",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "connector_detail",
+                            "title": "Get a saved connector",
+                            "triggerDescription": "Returns a saved connector.",
+                            "readOnlyHint": True,
+                            "destructiveHint": False,
+                            "idempotentHint": True,
+                            "openWorldHint": False,
+                            "requiredScopes": ["connectors:read"],
+                            "retrySemantics": "safe",
+                            "inputSensitivity": "none",
+                            "outputSensitivity": "restricted-credentials",
+                        },
+                    }
+                }
+            },
+        }
+
+        contract = compile_policy(spec)
+
+        self.assertEqual(["connector_detail"], [tool.name for tool in contract.tools])
+        self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
+
+    def test_compile_policy_rejects_other_exposed_credential_tools(self):
+        spec = {
+            "openapi": "3.1.0",
+            "paths": {
+                "/connectors/ping": {
+                    "post": {
+                        "operationId": "unsaved_connector_fetch_databases",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "unsaved_connector_fetch_databases",
+                            "title": "Fetch databases for an unsaved connector",
+                            "triggerDescription": "Lists databases using unsaved credentials.",
                             "readOnlyHint": True,
                             "destructiveHint": False,
                             "idempotentHint": True,

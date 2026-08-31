@@ -80,6 +80,105 @@ class TestSafeTrafficAdapter(unittest.TestCase):
             )
         self.assertNotIn("secret", str(error.exception))
 
+    def test_keeps_additional_properties_when_schema_allows_them(self):
+        adapter = self.adapter(
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {
+                        "properties": {
+                            "sharedConfig": {
+                                "additionalProperties": True,
+                                "type": "object",
+                            },
+                            "uuid": {"type": "string"},
+                        },
+                        "type": "object",
+                    },
+                    "status": "200",
+                },
+            )
+        )
+
+        self.assertEqual(
+            {
+                "sharedConfig": {
+                    "host": "db.example",
+                    "password": "__artie__masked",
+                    "user": "artie",
+                },
+                "uuid": "c1",
+            },
+            adapter.shape_response(
+                "connector_get",
+                200,
+                "application/json",
+                b'{"uuid":"c1","sharedConfig":{"host":"db.example","user":"artie","password":"__artie__masked"},"secretExtra":"drop-me"}',
+            ),
+        )
+
+    def test_keeps_additional_properties_when_schema_is_an_empty_object(self):
+        adapter = self.adapter(
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {
+                        "properties": {
+                            "sharedConfig": {
+                                "additionalProperties": {},
+                                "type": "object",
+                            },
+                            "uuid": {"type": "string"},
+                        },
+                        "type": "object",
+                    },
+                    "status": "200",
+                },
+            )
+        )
+
+        self.assertEqual(
+            {
+                "sharedConfig": {
+                    "host": "db.example",
+                    "password": "__artie__masked",
+                    "user": "artie",
+                },
+                "uuid": "c1",
+            },
+            adapter.shape_response(
+                "connector_get",
+                200,
+                "application/json",
+                b'{"uuid":"c1","sharedConfig":{"host":"db.example","user":"artie","password":"__artie__masked"}}',
+            ),
+        )
+
+    def test_shapes_additional_properties_when_a_value_schema_is_declared(self):
+        adapter = self.adapter(
+            success=(
+                {
+                    "contentType": "application/json",
+                    "schema": {
+                        "additionalProperties": {"type": "integer"},
+                        "properties": {"name": {"type": "string"}},
+                        "type": "object",
+                    },
+                    "status": "200",
+                },
+            )
+        )
+
+        self.assertEqual(
+            {"count": 2, "name": "source"},
+            adapter.shape_response(
+                "connector_get",
+                200,
+                "application/json",
+                b'{"name":"source","count":2}',
+            ),
+        )
+
     def test_selects_the_matching_one_of_output_branch(self):
         adapter = self.adapter(
             success=(
