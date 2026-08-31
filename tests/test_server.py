@@ -146,15 +146,41 @@ class TestServer(unittest.TestCase):
             "application/mcp-server-card+json", response.headers["content-type"]
         )
         self.assertEqual("*", response.headers["access-control-allow-origin"])
+        self.assertEqual(
+            {"name", "description", "version", "serverUrl", "tools"}, card.keys()
+        )
         self.assertEqual("com.artie/mcp", card["name"])
         self.assertEqual(
             self.server.policy_release_tag.removeprefix("v"), card["version"]
         )
-        # OAuth is primary: the card must not require a legacy API-key header.
-        remote = card["remotes"][0]
-        self.assertEqual("https://mcp.artie.com/mcp", remote["url"])
-        self.assertNotIn("headers", remote)
-        self.assertIn("OAuth", card["description"])
+        self.assertEqual("https://mcp.artie.com/mcp", card["serverUrl"])
+        self.assertEqual(
+            [tool.name for tool in self.server.policy_contract.tools],
+            [tool["name"] for tool in card["tools"]],
+        )
+        self.assertTrue(card["tools"])
+
+    def test_well_known_server_card_alias_matches_the_canonical_card(self):
+        async def request_cards():
+            transport = httpx.ASGITransport(app=self.server.app)
+            async with httpx.AsyncClient(
+                transport=transport, base_url="http://testserver"
+            ) as client:
+                canonical = await client.get("/mcp/server-card")
+                well_known = await client.get("/.well-known/mcp/server-card.json")
+                cached = await client.get(
+                    "/.well-known/mcp/server-card.json",
+                    headers={"If-None-Match": well_known.headers["etag"]},
+                )
+            return canonical, well_known, cached
+
+        canonical, well_known, cached = asyncio.run(request_cards())
+
+        self.assertEqual(200, canonical.status_code)
+        self.assertEqual(200, well_known.status_code)
+        self.assertEqual(canonical.content, well_known.content)
+        self.assertEqual(canonical.headers["etag"], well_known.headers["etag"])
+        self.assertEqual(304, cached.status_code)
 
     def test_openai_domain_challenge_is_public_and_exact(self):
         async def get_challenge():

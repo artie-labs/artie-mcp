@@ -37,33 +37,19 @@ _DIAGNOSTIC_CLAIM_NAMES = frozenset[str](
 _BUNDLE_DIR = Path(__file__).with_name("contract")
 _UPSTREAM_DETAIL_LIMIT = 500
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
+_SERVER_CARD_NAME = "com.artie/mcp"
+_SERVER_CARD_VERSION = "0.1.7"
+_SERVER_CARD_URL = "https://mcp.artie.com/mcp"
 _OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
 _SERVER_CARD = {
-    "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
-    "name": "com.artie/mcp",
+    "name": _SERVER_CARD_NAME,
     "description": (
         "Manage, interact with, and provision Artie resources through the Artie "
-        "MCP Server. Authenticate with OAuth (AuthKit); clients discover the "
-        "authorization server via protected-resource metadata on this origin."
+        "MCP Server. Authenticate with OAuth (AuthKit)."
     ),
-    "title": "Artie MCP Server",
-    "websiteUrl": "https://artie.com/docs/api/overview",
-    "icons": [
-        {
-            "src": "https://www.artie.com/brand/logo.svg",
-            "mimeType": "image/svg+xml",
-            "sizes": ["any"],
-        }
-    ],
-    # OAuth is the primary path: remotes carry no required API-key header so
-    # discovery clients follow AuthKit via /.well-known/oauth-protected-resource.
-    # Legacy API keys remain accepted by the server; see README.
-    "remotes": [
-        {
-            "type": "streamable-http",
-            "url": "https://mcp.artie.com/mcp",
-        }
-    ],
+    "version": _SERVER_CARD_VERSION,
+    "serverUrl": _SERVER_CARD_URL,
+    "tools": [],
 }
 
 
@@ -339,6 +325,10 @@ def _load_contract() -> tuple[dict[str, Any], PolicyContract, str]:
 
 openapi_spec, policy_contract, policy_release_tag = _load_contract()
 _SERVER_CARD["version"] = policy_release_tag.removeprefix("v")
+_SERVER_CARD["tools"] = [
+    {"name": tool.name, "description": tool.trigger_description}
+    for tool in policy_contract.tools
+]
 policy_adapter = SafeTrafficAdapter(policy_contract)
 _policy_tools = {(tool.method, tool.path): tool for tool in policy_contract.tools}
 
@@ -517,6 +507,13 @@ if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) == "true":
 
 @mcp.custom_route("/mcp/server-card", methods=["GET"])
 async def server_card(request):
+    if request.headers.get("if-none-match") == _SERVER_CARD_ETAG:
+        return _server_card_response(status_code=304)
+    return _server_card_response()
+
+
+@mcp.custom_route("/.well-known/mcp/server-card.json", methods=["GET"])
+async def well_known_server_card(request):
     if request.headers.get("if-none-match") == _SERVER_CARD_ETAG:
         return _server_card_response(status_code=304)
     return _server_card_response()
