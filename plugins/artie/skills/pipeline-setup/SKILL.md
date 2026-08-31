@@ -7,7 +7,7 @@ description: Creates an Artie pipeline from a source connector — creating the 
 
 Take a source connector to `pipeline_start` returning `{"success": true}`. That is the done-when. Do not claim a row landed in the warehouse — MCP cannot verify that. `pipeline_usage` (when listed) is lag and row counts, not a warehouse SELECT.
 
-Get saved UUIDs, or create them. Then create-from-source, echo, start. Do not invent a third path.
+Get saved UUIDs, or create them. Then create-from-source, echo (or `pipeline_detail`), update, start. Do not invent a third path.
 
 ## Connectors
 
@@ -32,7 +32,7 @@ Do not call `unsaved_connector_fetch_databases`, `unsaved_connector_fetch_schema
 
 ## Sequence (follow exactly)
 
-Create-from-source, echo, start.
+Create-from-source, echo or `pipeline_detail`, update, start.
 
 1. **Source database / schema**
    - Postgres, Cockroach, Oracle, SQL Server: **`connector_fetch_databases`** on the source UUID. Ask the user which database if more than one. For Postgres, Cockroach, and Oracle the reader needs this name before start.
@@ -43,11 +43,11 @@ Create-from-source, echo, start.
    - `database` — the name from step 1 when the source is Postgres, Cockroach, or Oracle
    - Do **not** pass `sourceType` (creates an empty connector)
    - Do **not** pass `destinationType` (creates a stub destination)
-3. Keep the **FullPipeline** in the create response. `pipeline_list` is a summary and is not a valid update body. `pipeline_detail` is not on MCP.
+3. Keep the **FullPipeline** from `pipeline_create_from_source`. If you no longer have it (new chat, only a uuid from `pipeline_list`), call **`pipeline_detail`** on that uuid. Omit `includeRelatedObjects`. `pipeline_list` is a summary and is not a valid update body.
 4. **`connector_fetch_tables`** on the **source** UUID. If step 1 produced a database name (Postgres, Cockroach, Oracle, SQL Server), pass it as `databaseName` — do not omit it and do not fall back to `defaultDatabase`. For MySQL, pass the chosen schema as `schemaName` and skip `databaseName`. `schemaName` is otherwise optional; Postgres defaults to `public`, SQL Server to `dbo`. If the source has schemas other than the default, or more than one schema, call `connector_fetch_schemas` on the **source** first (same `databaseName` when you have one), then pass the chosen `schemaName` into fetch-tables. Do not pass a destination schema into this call.
 5. If the table list is empty, leave the draft as-is. Say the source has no tables Artie can see and **do not** call `pipeline_start`.
 6. **`pipeline_update`** — full replace, not a PATCH:
-   - Echo the last FullPipeline
+   - Echo the last FullPipeline (create, a previous update, or `pipeline_detail`)
    - Set `destinationUUID` to the saved destination
    - Set `tables` to at least one `{name, schema}` from step 4 (`schema` is the **source** schema)
    - Send destination and tables **together**. A destination-only body is rejected. Omitting `tables` deletes every table.
@@ -56,6 +56,8 @@ Create-from-source, echo, start.
 7. **`pipeline_start`**. Success is `{"success": true}` (Dashboard HTTP 204; the MCP tool result does not include the status code). Do not call it immediately after create-from-source, and do not call it without destination + tables.
 
 Never follow create-from-source with `pipeline_create`. That attaches another pipeline to an existing reader (fan-out).
+
+If the user already has a pipeline and wants to add tables or change dest: `pipeline_list` → `pipeline_detail` → `pipeline_update` (echo FullPipeline) → `pipeline_start` if it is still a draft. Do not build the update body from `pipeline_list`.
 
 ## Fan-out (second destination, same capture)
 
