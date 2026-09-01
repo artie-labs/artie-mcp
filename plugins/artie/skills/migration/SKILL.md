@@ -56,7 +56,7 @@ Do not run those sequences yourself unless the user clearly wants you to execute
 
 1. List Fivetran connectors → Artie equivalent or explicit gap (especially SaaS + transforms).
 2. Compatibility + networking for each mapped database source.
-3. Save connectors; start Artie pipelines (`pipeline-setup`).
+3. Save connectors; start Artie pipelines (`pipeline-setup`). After start, status / lag / schema-change checks belong in `monitoring`.
 4. Dual-run: Fivetran and Artie both write, or Artie writes a parallel schema. MCP cannot confirm rows landed — the customer (or warehouse access) checks that.
 5. Repoint consumers when they accept parity.
 6. Pause / decommission Fivetran for the mapped connectors only. Leave SaaS and transform jobs where they are.
