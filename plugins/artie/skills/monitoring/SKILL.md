@@ -9,18 +9,23 @@ Call the tools. Do not send lag/throughput questions to the Dashboard instead of
 
 If a named tool is missing from `tools/list`, the hosted pin is older than this skill — say so, then use Dashboard only for that gap. Do not invent numbers.
 
-## Sequence (health / lag / “is it working?”)
+## Sequence
 
-Run 1–3 every time. 4–6 only if they asked.
+Resolve the pipeline with **`pipeline_list`** (`name` / `uuid`). Do not guess UUIDs. Then call only what the question needs:
 
-1. **`pipeline_list`** — find the pipeline (`name` / `uuid`). Do not guess UUIDs.
-2. **`pipeline_detail`** — `uuid` only. **Omit `includeRelatedObjects`** (MCP 400). Per-table `status` and table UUIDs live here, not on the list row.
-3. **`pipeline_usage`** — `uuid`, `from`, `to` as RFC3339. Default window if they did not specify: last **1 hour** (`from` = now−1h, `to` = now, UTC). This is lag and rows processed.
-4. Schema check or apply DDL — **Schema changes**, only if they asked.
-5. Pause / resume — **`pipeline_update_status`**, only if they asked. Confirm first.
-6. Kick or cancel a backfill — **Backfill**, only if they asked. Confirm first. Table UUIDs come from step 2, not `connector_fetch_tables`.
+| They asked | Call |
+|---|---|
+| Running / paused / name | `pipeline_list` only |
+| Lag, throughput, rows synced | list (uuid) + **`pipeline_usage`** |
+| Which tables, backfill, per-table status | list + **`pipeline_detail`** (omit `includeRelatedObjects`) |
+| “How’s my pipeline?” / “is it healthy?” | list + detail + usage |
+| Schema check / apply DDL | **Schema changes** (confirm before apply) |
+| Pause / resume | **`pipeline_update_status`** (confirm) |
+| Kick or cancel backfill | **Backfill** (confirm). Table UUIDs from `pipeline_detail`, not `connector_fetch_tables` |
 
-Then emit the **summary** at the bottom. Do not stop after `pipeline_list` on a lag or health question.
+Do not fetch `pipeline_detail` or `pipeline_usage` “just in case.” Do not paste FullPipeline or raw `tableStats` into the reply.
+
+Then emit the **summary** for the tools you actually called.
 
 ## Tools
 
@@ -53,7 +58,7 @@ This is **not** lag. Lag is `pipeline_usage`.
 
 ### `pipeline_usage`
 
-Lag and throughput. Required args: pipeline `uuid`, `from`, `to` (RFC3339).
+Lag and throughput. Required args: pipeline `uuid`, `from`, `to` (RFC3339). Default window if they did not specify: last **1 hour** UTC.
 
 Response `tableStats[]`:
 
@@ -79,7 +84,7 @@ Notifications report source changes. They do not by themselves alter the destina
 
 ### `pipeline_update_status`
 
-Sets pipeline `status` (e.g. `paused` / `running`). Confirm before calling. Not a health **read** — use list + usage for that. First deploy of a draft is `pipeline_start` (`pipeline-setup`).
+Sets pipeline `status` (e.g. `paused` / `running`). Confirm before calling. Not a health **read**. First deploy of a draft is `pipeline_start` (`pipeline-setup`).
 
 ### Backfill
 
@@ -95,21 +100,21 @@ Sets pipeline `status` (e.g. `paused` / `running`). Confirm before calling. Not 
 - Postgres replication **slot size** graphs — analytics / [integrations](https://www.artie.com/docs/monitoring/integrations)
 - `connector_drop_postgres_replication_slot` **drops** a slot; it is not a health check
 
-## Summary (always, after the calls)
+## Summary
 
-Lead with **name and UUID**. Then one block:
+Lead with **name and UUID**. Only include lines for tools you called:
 
 ```
 Status: <pipeline_list.status>  deploying=<isDeploying>  undeployed=<hasUndeployedChanges>  backfilling=<hasBackfillingTables>
-Tables: <n>  <name.schema status, …>     // from pipeline_detail
+Tables: <n>  <name.schema status, …>     // only if you called pipeline_detail
 Window: <from> → <to>
-Lag / rows (pipeline_usage):
+Lag / rows (pipeline_usage):            // only if you called pipeline_usage
   <tableName>: lag=<latency s or n/a>  rows=<count>
 ```
 
-Call out the worst lag and any table not `streaming`. Say explicitly: these row counts are Artie processed messages, not a destination SELECT.
+If you called usage: call out the worst lag; say row counts are Artie processed messages, not a destination SELECT. If you called detail: call out any table not `streaming`.
 
-If they asked why it failed and you have no error-log tool: status + usage + Dashboard logs. Do not guess a stack trace.
+If they asked why it failed and you have no error-log tool: status + (usage if you fetched it) + Dashboard logs. Do not guess a stack trace.
 
 ## What not to say
 
