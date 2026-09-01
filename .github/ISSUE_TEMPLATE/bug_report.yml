@@ -1,0 +1,47 @@
+name: Bug report
+description: A defect in this repository's MCP server, policy contract, or docs.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for bugs in **this repository**. Account, OAuth grant, and pipeline incidents belong in [Artie support](https://app.artie.com), not GitHub. Vulnerabilities go to [SECURITY.md](../SECURITY.md).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you observed versus what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Minimal steps. Do not paste credentials, customer data, or live resource IDs.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Server version, image tag, or git SHA if known.
+  - type: dropdown
+    id: client
+    attributes:
+      label: MCP client
+      options:
+        - Cursor
+        - Claude Code
+        - Codex
+        - Other
+        - Not applicable (library/CI)
+  - type: checkboxes
+    id: hosted
+    attributes:
+      label: Confirmation
+      options:
+        - label: I am reporting a hosted-service or source defect, not asking Artie to support a self-hosted deployment.
+          required: true
+        - label: This report does not contain secrets or customer data.
+          required: true
