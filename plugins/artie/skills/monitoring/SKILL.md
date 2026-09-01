@@ -113,8 +113,6 @@ If they asked why it failed and you have no error-log tool: status + usage + Das
 
 ## What not to say
 
+- When they ask about lag, throughput, or rows synced, call **`pipeline_usage`**. That is the lag tool (`latency` in seconds, `count` for the window).
 - Do not claim data landed or a destination SELECT succeeded.
-- Do not answer lag from `hasUndeployedChanges`, `isDeploying`, or `lastDeployedAt`.
-- Do not skip `pipeline_usage` on a lag/throughput/rows question.
-- Do not call `connector_create` or `unsaved_*`.
 - Creating a pipeline belongs in `pipeline-setup`. Types / network belong in `connector-compatibility`.
