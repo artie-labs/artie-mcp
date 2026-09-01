@@ -1,0 +1,27 @@
+# Example direnv config for running the server locally.
+#
+#   cp .envrc.example .envrc && direnv allow
+#
+# .envrc is git-ignored, so your endpoints and tenant stay out of the repo.
+# Running the process yourself is a contributor workflow, not a supported
+# Artie product.
+
+# Artie API to call. Defaults to https://api.artie.com when unset.
+export ARTIE_API_BASE_URL="https://api.artie.com"
+
+# OAuth through WorkOS AuthKit. These two must be set together — setting only
+# one fails at startup. Leave both unset and the server falls back to the
+# debug token verifier, which is usually what you want locally.
+# export WORKOS_AUTHKIT_DOMAIN="https://your-tenant.authkit.app"
+# export MCP_PUBLIC_BASE_URL="https://your-tunnel.ngrok.app"
+
+# Log unverified AuthKit claims while debugging token problems.
+# export WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS=true
+
+# Skips TLS verification. Only for a self-signed local Dashboard.
+# export ARTIE_API_INSECURE_SKIP_VERIFY=true
+
+if [ -f ".envrc-personal" ]; then
+	echo ".envrc-personal exists, sourcing..."
+	source .envrc-personal
+fi
