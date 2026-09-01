@@ -1,8 +1,10 @@
 # Contributing
 
-Thanks for wanting to contribute. This repository is the reference implementation behind Artie's **hosted** MCP server. Artie operates `https://mcp.artie.com/mcp`. Dashboard/API remain authoritative for identity, grants, scopes, and resource authorization.
+Thanks for wanting to contribute. This repository is the source for Artie's **hosted** MCP server at `https://mcp.artie.com/mcp`. Dashboard/API remain authoritative for identity, grants, scopes, and resource authorization.
 
-Self-hosting this process is not a supported contribution goal. Changes should keep the hosted, fail-closed security model intact.
+Self-hosting this process is not a supported contribution goal.
+
+Contributor workflows, repo map, and commands: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
 
 ## Before you start
 

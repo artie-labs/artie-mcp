@@ -1,20 +1,33 @@
 # artie-mcp
 
-Source for Artie's **hosted** [Model Context Protocol](https://modelcontextprotocol.io/) server. Compatible MCP clients can manage approved Artie pipeline and infrastructure operations through the Artie API.
+Artie's MCP service is for human-in-the-loop coding agents. Tool selection is focused on pipeline setup, connector metadata, and infrastructure operations — not every Dashboard or API action.
 
-The supported endpoint is:
+This remote MCP server is middleware to the [Artie API](https://www.artie.com/docs/api/overview). Artie Dashboard remains authoritative for identity, grants, environment binding, scopes, audit, and resource authorization.
 
-```text
-https://mcp.artie.com/mcp
+## Getting Started
+
+Use the hosted service:
+
+<https://mcp.artie.com>
+
+Client setup, OAuth, and what the tools can do: [MCP documentation](https://www.artie.com/docs/api/mcp).
+
+This repository is the source for that hosted integration. Running the process yourself is not a supported Artie product.
+
+### Claude Code plugin
+
+Install as a Claude Code plugin so skills and the Artie subagent come with the MCP connection:
+
+```shell
+claude plugin marketplace add artie-labs/artie-mcp
+claude plugin install artie@artie-mcp
 ```
 
-Artie Dashboard and API remain authoritative for identity, grants, environment binding, scopes, audit, and resource authorization. This repository is a reference implementation of that hosted integration, not a supported self-hosted Artie product.
+That registers `https://mcp.artie.com/mcp` and the pipeline-setup, connector-compatibility, and migration skills.
 
-Client setup: [MCP documentation](https://www.artie.com/docs/api/mcp). API: [API reference](https://www.artie.com/docs/api/overview).
+### Cursor
 
-## Connect with OAuth
-
-OAuth is the supported authentication path. Point an OAuth-capable client (Cursor, Claude Code, Codex, and similar) at the server URL. Do not add an Artie API key or bearer-token header for a new setup. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard.
+Add the marketplace from this repository (`.cursor-plugin/marketplace.json`) and install the `artie` plugin, or add the server directly:
 
 ```json
 {
@@ -26,11 +39,13 @@ OAuth is the supported authentication path. Point an OAuth-capable client (Curso
 }
 ```
 
-Client-specific snippets are in the [MCP documentation](https://www.artie.com/docs/api/mcp).
+On first tool use, Artie may ask you to sign in, link an environment, and approve scopes. Do not add an API key for a new setup.
 
-## Legacy API keys
+Codex and other OAuth clients: see the [MCP documentation](https://www.artie.com/docs/api/mcp).
 
-API keys still work during the OAuth migration so existing automations are not cut over blindly. **New integrations must use OAuth.** Artie Engineering owns the remaining compatibility window; there is no public sunset date yet.
+### Legacy API keys
+
+API keys still work during the OAuth migration. **New integrations must use OAuth.** Artie Engineering owns the remaining compatibility window; there is no public sunset date yet.
 
 ```json
 {
@@ -45,23 +60,9 @@ API keys still work during the OAuth migration so existing automations are not c
 }
 ```
 
-## What is not supported
+## Local Development
 
-- Running this server yourself in production, or treating a local process as an Artie product
-- Creating or updating connector credentials through MCP — configure those in the [Dashboard](https://app.artie.com), then use approved MCP tools for pipeline work
-- Filing account, pipeline, or security issues as public GitHub issues
-
-## Help and security
-
-| Topic | Route |
-| --- | --- |
-| Hosted product help, OAuth, pipelines | [SUPPORT.md](SUPPORT.md), [docs](https://www.artie.com/docs/api/mcp), [Dashboard](https://app.artie.com) |
-| Vulnerability | [SECURITY.md](SECURITY.md) — private reporting only |
-| Code or protocol bug in this repo | GitHub issue |
-
-## Development
-
-This project is not a supported self-hosted deployment. The commands below are for contributors working on this source.
+Contributors only. This is not a supported production deployment.
 
 ```bash
 uv sync --locked --all-groups
@@ -72,9 +73,13 @@ uv run python -m compileall -q server.py tests
 uv run python -m unittest discover -s tests -v
 ```
 
-### Smoke-test a local image
+Download the pinned policy bundle if `contract/policy.openapi.yaml` is missing:
 
-This check verifies that `tools/list` matches the **committed** policy contract, not a mutable upstream OpenAPI URL.
+```bash
+uv run python -m scripts.download_policy_bundle
+```
+
+Smoke-test a local image against the **committed** policy contract, not a mutable upstream OpenAPI URL:
 
 ```bash
 docker build --tag artie-mcp:local .
@@ -84,6 +89,16 @@ trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
 until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
 uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
 ```
+
+Contributor workflows and the docs index: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
+
+## Help and security
+
+| Topic | Route |
+| --- | --- |
+| Hosted product, OAuth, pipelines | [SUPPORT.md](SUPPORT.md), [docs](https://www.artie.com/docs/api/mcp), [Dashboard](https://app.artie.com) |
+| Vulnerability | [SECURITY.md](SECURITY.md) — private reporting only |
+| Code or protocol bug in this repo | GitHub issue |
 
 ## License
 

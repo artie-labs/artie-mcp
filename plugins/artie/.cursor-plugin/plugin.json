@@ -1,0 +1,7 @@
+{
+  "name": "artie",
+  "description": "Artie real-time CDC pipelines via MCP",
+  "author": {
+    "name": "Artie"
+  }
+}
