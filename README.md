@@ -90,6 +90,8 @@ until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --si
 uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
 ```
 
+Contributor workflows and the docs index: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
+
 ## Help
 
 | Topic | Route |
