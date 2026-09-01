@@ -1,6 +1,6 @@
 # Contributor Docs
 
-This directory is for humans and LLMs working on this repository. Canonical workflow lives in [../AGENTS.md](../AGENTS.md) (`CLAUDE.md` is the same file).
+This directory is for humans and LLMs working on this repository. Canonical workflow lives in [../AGENTS.md](../AGENTS.md).
 
 Customer-facing hosted MCP setup stays on [artie.com/docs/api/mcp](https://www.artie.com/docs/api/mcp), not here.
 

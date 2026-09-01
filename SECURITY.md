@@ -6,12 +6,7 @@ This repository is the source for Artie's **hosted** MCP integration at `https:/
 
 **Do not open a public GitHub issue, discussion, or pull request for a security vulnerability.**
 
-Report privately using one of:
-
-1. [GitHub private vulnerability reporting](https://github.com/artie-labs/artie-mcp/security/advisories/new) (preferred)
-2. Email [security@artie.com](mailto:security@artie.com) with a description of the issue, affected versions or commits, and steps to reproduce
-
-Please include enough detail for us to reproduce the report. Do not attach customer data, production credentials, or live pipeline identifiers.
+Report privately via [GitHub private vulnerability reporting](https://github.com/artie-labs/artie-mcp/security/advisories/new). Include enough detail to reproduce. Do not attach customer data, production credentials, or live pipeline identifiers.
 
 ## Coordinated disclosure
 
