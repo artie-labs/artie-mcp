@@ -6,7 +6,7 @@ MCP server for managing your real-time data pipelines in Artie
 
 ## MCP Client Configuration
 
-OAuth is the primary auth path. Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard.
+Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard.
 
 ```json
 {
@@ -20,24 +20,7 @@ OAuth is the primary auth path. Point an OAuth-capable client (Claude Code, Curs
 
 ## Claude plugin
 
-Customer-facing skills ship as a Claude Code plugin under `plugins/artie/`. Install from this repo as a marketplace (`.claude-plugin/marketplace.json`). The plugin points at `https://mcp.artie.com/mcp` — OAuth, no API keys in the manifest.
-
-### Legacy API key
-
-API keys still work during the OAuth migration. Prefer OAuth for new setups.
-
-```json
-{
-  "mcpServers": {
-    "artie": {
-      "url": "https://mcp.artie.com/mcp",
-      "headers": {
-        "Authorization": "Bearer <artie-api-key>"
-      }
-    }
-  }
-}
-```
+Customer-facing skills ship as a Claude Code plugin under `plugins/artie/`. Install from this repo as a marketplace (`.claude-plugin/marketplace.json`). The plugin points at `https://mcp.artie.com/mcp` and uses OAuth.
 
 ## Setup
 ```bash
