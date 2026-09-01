@@ -12,7 +12,7 @@ Customer-facing hosted MCP setup stays on [artie.com/docs/api/mcp](https://www.a
 
 ### Architecture
 
-- [architecture/overview.md](architecture/overview.md) — hosted MCP as middleware to the Artie API
+- [architecture/overview.md](architecture/overview.md) — hosted HTTP middleware: auth, policy pin, shaping, data flow
 
 ### Contributing
 
