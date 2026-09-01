@@ -49,7 +49,9 @@ jobs:
           trap cleanup EXIT
 
           docker build --tag "artie-mcp:${GITHUB_SHA}" .
-          docker run --detach --name "$container_name" -p 127.0.0.1::8000 "artie-mcp:${GITHUB_SHA}"
+          docker run --detach --name "$container_name" \
+            -e ARTIE_MCP_ALLOW_INSECURE_AUTH=true \
+            -p 127.0.0.1::8000 "artie-mcp:${GITHUB_SHA}"
           port="$(docker port "$container_name" 8000/tcp | awk -F: '{print $NF}')"
           base_url="http://127.0.0.1:${port}"
           for _ in $(seq 1 30); do

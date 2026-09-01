@@ -70,7 +70,7 @@ class TestPolicyContract(unittest.TestCase):
         self.assertEqual("List safe resources", contract.tools[0].title)
         self.assertEqual(("safe:read",), contract.tools[0].required_scopes)
 
-    def test_compile_policy_allowlists_connector_create_credentials(self):
+    def test_compile_policy_rejects_exposed_connector_create_credentials(self):
         spec = {
             "openapi": "3.1.0",
             "paths": {
@@ -97,11 +97,11 @@ class TestPolicyContract(unittest.TestCase):
             },
         }
 
-        contract = compile_policy(spec)
-
-        self.assertEqual(["connector_create"], [tool.name for tool in contract.tools])
-        self.assertEqual("restricted-credentials", contract.tools[0].input_sensitivity)
-        self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
+        with self.assertRaisesRegex(
+            PolicyContractError,
+            "cannot expose restricted credential input or output",
+        ):
+            compile_policy(spec)
 
     def test_compile_policy_allowlists_unsaved_connector_ping_credentials(self):
         spec = {

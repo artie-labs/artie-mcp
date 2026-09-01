@@ -2,6 +2,7 @@ import asyncio
 import base64
 import importlib
 import json
+import os
 import sys
 import time
 import unittest
@@ -13,12 +14,14 @@ import httpx
 class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        os.environ["ARTIE_MCP_ALLOW_INSECURE_AUTH"] = "true"
         cls._previous_server = sys.modules.pop("server", None)
         cls.server = importlib.import_module("server")
         cls.tools = asyncio.run(cls.server.mcp.list_tools())
 
     @classmethod
     def tearDownClass(cls):
+        os.environ.pop("ARTIE_MCP_ALLOW_INSECURE_AUTH", None)
         sys.modules.pop("server", None)
         if cls._previous_server is not None:
             sys.modules["server"] = cls._previous_server
@@ -28,6 +31,7 @@ class TestServer(unittest.TestCase):
             {tool.name for tool in self.server.policy_contract.tools},
             {tool.name for tool in self.tools},
         )
+        self.assertNotIn("connector_create", [tool.name for tool in self.tools])
         self.assertNotIn("unsaved_connector_ping", [tool.name for tool in self.tools])
         self.assertNotIn("Ping_a_connector", [tool.name for tool in self.tools])
 
@@ -179,11 +183,40 @@ class TestServer(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "must be set together"):
                 self.server._build_auth_provider()
 
-    def test_no_authkit_config_uses_api_key_only_verifier(self):
+    def test_no_authkit_config_without_insecure_flag_fails_closed(self):
         with patch.dict("os.environ", {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "ARTIE_MCP_ALLOW_INSECURE_AUTH"):
+                self.server._build_auth_provider()
+
+    def test_no_authkit_config_with_insecure_flag_uses_debug_verifier(self):
+        with patch.dict(
+            "os.environ",
+            {"ARTIE_MCP_ALLOW_INSECURE_AUTH": "true"},
+            clear=True,
+        ):
             provider = self.server._build_auth_provider()
 
         self.assertIsInstance(provider, self.server.DebugTokenVerifier)
+
+    def test_tls_skip_without_insecure_flag_fails_closed(self):
+        with patch.dict(
+            "os.environ",
+            {"ARTIE_API_INSECURE_SKIP_VERIFY": "true"},
+            clear=True,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "ARTIE_API_INSECURE_SKIP_VERIFY"):
+                self.server._api_verify_tls()
+
+    def test_tls_skip_requires_insecure_local_mode(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "ARTIE_MCP_ALLOW_INSECURE_AUTH": "true",
+                "ARTIE_API_INSECURE_SKIP_VERIFY": "true",
+            },
+            clear=True,
+        ):
+            self.assertFalse(self.server._api_verify_tls())
 
     def test_authkit_provider_uses_public_mcp_resource_url(self):
         with patch.dict(

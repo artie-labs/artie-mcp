@@ -31,6 +31,8 @@ from policy_contract import (
 logger = logging.getLogger("artie-mcp")
 
 _DIAGNOSTIC_CLAIMS_ENABLED = "WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS"
+_ALLOW_INSECURE_AUTH = "ARTIE_MCP_ALLOW_INSECURE_AUTH"
+_SKIP_TLS_VERIFY = "ARTIE_API_INSECURE_SKIP_VERIFY"
 _DIAGNOSTIC_CLAIM_NAMES = frozenset[str](
     {"iss", "aud", "sub", "sid", "scope", "org_id", "exp", "iat"}
 )
@@ -67,11 +69,28 @@ _SERVER_CARD = {
 }
 
 
+def _env_flag(name: str) -> bool:
+    return os.getenv(name, "").lower() == "true"
+
+
+def _insecure_local_mode() -> bool:
+    return _env_flag(_ALLOW_INSECURE_AUTH)
+
+
 def _build_auth_provider():
     authkit_domain = os.getenv("WORKOS_AUTHKIT_DOMAIN", "").rstrip("/")
     public_base_url = os.getenv("MCP_PUBLIC_BASE_URL", "").rstrip("/")
 
     if not authkit_domain and not public_base_url:
+        if not _insecure_local_mode():
+            raise RuntimeError(
+                "WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL are required. "
+                "Set ARTIE_MCP_ALLOW_INSECURE_AUTH=true only for local testing."
+            )
+        logger.warning(
+            "ARTIE_MCP_ALLOW_INSECURE_AUTH is set; debug token verification "
+            "is not a supported production configuration"
+        )
         return DebugTokenVerifier()
     if not authkit_domain or not public_base_url:
         raise RuntimeError(
@@ -111,10 +130,25 @@ _ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
     "ARTIE_DEVICE_AUTHORIZATION_URL",
     f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
 )
-# Local testing against a self-signed Dashboard only.
-_ARTIE_API_VERIFY_TLS = (
-    os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
-)
+
+
+def _api_verify_tls() -> bool:
+    if not _env_flag(_SKIP_TLS_VERIFY):
+        return True
+    if not _insecure_local_mode():
+        raise RuntimeError(
+            "ARTIE_API_INSECURE_SKIP_VERIFY requires "
+            "ARTIE_MCP_ALLOW_INSECURE_AUTH=true and is test-only"
+        )
+    logger.warning(
+        "TLS verification is disabled; this is not a supported production configuration"
+    )
+    return False
+
+
+# Local testing against a self-signed Dashboard only. Refused unless
+# ARTIE_MCP_ALLOW_INSECURE_AUTH is also set.
+_ARTIE_API_VERIFY_TLS = _api_verify_tls()
 
 _ACCESS_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:access_token"
 _TOKEN_EXCHANGE_GRANT = "urn:ietf:params:oauth:grant-type:token-exchange"
@@ -492,7 +526,7 @@ def _server_card_response(status_code=200):
     )
 
 
-if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) == "true":
+if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) == "true" and _insecure_local_mode():
 
     @mcp.tool(name="AuthKit_token_diagnostics")
     def authkit_token_diagnostics() -> dict:

@@ -61,11 +61,11 @@ This check verifies that `tools/list` renders the OpenAPI `x-artie-mcp` annotati
 
 ```bash
 docker build --tag artie-mcp:local .
-docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:local
+docker run --detach --rm --name artie-mcp-local -e ARTIE_MCP_ALLOW_INSECURE_AUTH=true -p 127.0.0.1::8000 artie-mcp:local
 port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
 trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
 until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
-uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --openapi-url "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
+uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
 ```
 
 ## Release
