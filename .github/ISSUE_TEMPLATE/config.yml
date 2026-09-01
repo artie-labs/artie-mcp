@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Artie MCP documentation
+    url: https://www.artie.com/docs/api/mcp
+    about: How to connect an MCP client to the hosted Artie MCP server.
+  - name: Account, pipeline, and Dashboard support
+    url: https://app.artie.com
+    about: Account access, environment linking, and pipeline operations stay in Artie.
+  - name: Report a security vulnerability
+    url: https://github.com/artie-labs/artie-mcp/security/advisories/new
+    about: Private coordinated disclosure. Do not file a public issue.

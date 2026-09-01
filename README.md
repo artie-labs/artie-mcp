@@ -60,6 +60,8 @@ API keys still work during the OAuth migration. **New integrations must use OAut
 }
 ```
 
+Contributor workflows and the docs index: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
+
 ## Help
 
 | Topic | Route |
