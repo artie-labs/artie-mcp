@@ -39,6 +39,21 @@ uv run python -m scripts.download_policy_bundle
 uv run python -m unittest discover -s tests -v
 ```
 
+Fetch the policy bundle when `contract/policy.openapi.yaml` is missing; it is not committed.
+
+Smoke-test a local image against the **committed** contract, not a mutable upstream OpenAPI URL:
+
+```bash
+docker build --tag artie-mcp:local .
+docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:local
+port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
+trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
+until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
+uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
+```
+
+This is a contributor workflow. Running the process yourself is not a supported Artie product.
+
 ## Workflow
 
 1. Match neighboring files before inventing a new pattern.

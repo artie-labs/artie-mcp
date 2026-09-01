@@ -16,7 +16,7 @@ This repository is the source for that hosted integration. Running the process y
 
 ### Claude Code plugin
 
-Install as a Claude Code plugin so skills and the Artie subagent come with the MCP connection:
+Install as a Claude Code plugin so the Artie subagent comes with the MCP connection:
 
 ```shell
 claude plugin marketplace add artie-labs/artie-mcp
@@ -58,36 +58,6 @@ API keys still work during the OAuth migration. **New integrations must use OAut
     }
   }
 }
-```
-
-## Local Development
-
-Contributors only. This is not a supported production deployment.
-
-```bash
-uv sync --locked --all-groups
-uv lock --check
-uv run ruff format --check .
-uv run ruff check .
-uv run python -m compileall -q server.py tests
-uv run python -m unittest discover -s tests -v
-```
-
-Download the pinned policy bundle if `contract/policy.openapi.yaml` is missing:
-
-```bash
-uv run python -m scripts.download_policy_bundle
-```
-
-Smoke-test a local image against the **committed** policy contract, not a mutable upstream OpenAPI URL:
-
-```bash
-docker build --tag artie-mcp:local .
-docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:local
-port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
-trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
-until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
-uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
 ```
 
 Contributor workflows and the docs index: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
