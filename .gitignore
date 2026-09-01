@@ -13,3 +13,18 @@ wheels/
 
 # Downloaded from the pinned release while building the image or verifying the contract.
 contract/policy.openapi.yaml
+
+# Local benchmark and triage output. These carry pipeline and connector
+# identifiers from runs against real environments, so they must never reach a
+# public remote. Root-anchored so plugins/artie/.mcp.json stays tracked.
+/results/
+/triage_results.jsonl
+/triage-findings.md
+/datadog-mcp-inventory.md
+/golden-path-tool-map.md
+/plan-addendum-local-stack.md
+/write-endpoint-test-plan.md
+/tool-tracker.csv
+/tool-tracker.md
+/.mcp.json
+tests/benchmark_fixtures.py
