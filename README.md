@@ -12,7 +12,7 @@ Use the hosted service:
 
 Client setup, OAuth, and what the tools can do: [MCP documentation](https://www.artie.com/docs/api/mcp).
 
-This repository is the source for that hosted integration. Running the process yourself is not a supported Artie product. Contributor commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
+This repository is the source for that hosted integration. Running the process yourself is not a supported Artie product.
 
 ### Claude Code plugin
 
@@ -66,7 +66,6 @@ API keys still work during the OAuth migration. **New integrations must use OAut
 | --- | --- |
 | Hosted product, OAuth, pipelines | [MCP docs](https://www.artie.com/docs/api/mcp), [Dashboard](https://app.artie.com) |
 | Code or protocol bug in this repo | GitHub issue |
-| Contributing to this repo | [DEVELOPMENT.md](DEVELOPMENT.md) |
 
 ## License
 
