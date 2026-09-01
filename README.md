@@ -92,12 +92,11 @@ uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contr
 
 Contributor workflows and the docs index: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
 
-## Help and security
+## Help
 
 | Topic | Route |
 | --- | --- |
 | Hosted product, OAuth, pipelines | [MCP docs](https://www.artie.com/docs/api/mcp), [Dashboard](https://app.artie.com) |
-| Vulnerability | [SECURITY.md](SECURITY.md) — private reporting only |
 | Code or protocol bug in this repo | GitHub issue |
 
 ## License
