@@ -28,4 +28,4 @@ If the 400 says WAL level is `replica` (or not `logical`): that is a Postgres se
 
 ## After success
 
-`ready_to_backfill` after `{"success": true}` is the queued snapshot, not a stall. Deploy and warehouse rows are outside this skill. Health, lag, or “did a row land?” → `monitoring`.
+`ready_to_backfill` after `{"success": true}` is the queued snapshot, not a stall. Deploy and warehouse rows are outside this skill, as are health, lag, and whether a row landed.
