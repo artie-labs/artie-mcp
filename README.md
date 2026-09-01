@@ -6,7 +6,7 @@ MCP server for managing your real-time data pipelines in Artie
 
 ## MCP Client Configuration
 
-Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard.
+OAuth is the primary auth path. Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard.
 
 ```json
 {
@@ -18,9 +18,22 @@ Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the s
 }
 ```
 
-## Skills
+### Legacy API key
 
-The pipeline-setup skill lives at `plugins/artie/skills/pipeline-setup/`.
+API keys still work during the OAuth migration. Prefer OAuth for new setups.
+
+```json
+{
+  "mcpServers": {
+    "artie": {
+      "url": "https://mcp.artie.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <artie-api-key>"
+      }
+    }
+  }
+}
+```
 
 ## Setup
 ```bash
