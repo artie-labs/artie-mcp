@@ -23,7 +23,7 @@ claude plugin marketplace add artie-labs/artie-mcp
 claude plugin install artie@artie-mcp
 ```
 
-That registers `https://mcp.artie.com/mcp` and the pipeline-setup, monitoring, connector-compatibility, and migration skills.
+That registers `https://mcp.artie.com/mcp` and the Artie subagent.
 
 ### Cursor
 
@@ -89,8 +89,6 @@ trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
 until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
 uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
 ```
-
-Contributor workflows and the docs index: [AGENTS.md](AGENTS.md). Topic guides: [docs/README.md](docs/README.md).
 
 ## Help
 
