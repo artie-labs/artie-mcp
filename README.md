@@ -23,7 +23,7 @@ claude plugin marketplace add artie-labs/artie-mcp
 claude plugin install artie@artie-mcp
 ```
 
-That registers `https://mcp.artie.com/mcp` and the pipeline-setup, connector-compatibility, and migration skills.
+That registers `https://mcp.artie.com/mcp` and the pipeline-setup, monitoring, connector-compatibility, and migration skills.
 
 ### Cursor
 

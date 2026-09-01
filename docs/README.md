@@ -10,8 +10,6 @@ Customer-facing hosted MCP setup stays on [artie.com/docs/api/mcp](https://www.a
 - How tools get into the server: [contributing/policy-contract.md](contributing/policy-contract.md)
 - Claude Code / Cursor plugin: [integrations/claude-code-plugin.md](integrations/claude-code-plugin.md)
 
-## Topic map
-
 ### Architecture
 
 - [architecture/overview.md](architecture/overview.md) — hosted MCP as middleware to the Artie API
