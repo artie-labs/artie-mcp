@@ -16,14 +16,14 @@ This repository is the source for that hosted integration. Running the process y
 
 ### Claude Code plugin
 
-Install as a Claude Code plugin so skills and the Artie subagent come with the MCP connection:
+Install as a Claude Code plugin so the Artie subagent comes with the MCP connection:
 
 ```shell
 claude plugin marketplace add artie-labs/artie-mcp
 claude plugin install artie@artie-mcp
 ```
 
-That registers `https://mcp.artie.com/mcp`, the Artie subagent, and skills for pipeline setup, monitoring, connector compatibility, and Fivetran migration.
+That registers `https://mcp.artie.com/mcp` and the Artie subagent.
 
 ### Cursor
 
