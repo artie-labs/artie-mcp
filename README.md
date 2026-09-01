@@ -23,7 +23,7 @@ claude plugin marketplace add artie-labs/artie-mcp
 claude plugin install artie@artie-mcp
 ```
 
-That registers `https://mcp.artie.com/mcp` and the Artie subagent.
+That registers `https://mcp.artie.com/mcp`, the Artie subagent, and skills for pipeline setup, monitoring, connector compatibility, and Fivetran migration.
 
 ### Cursor
 
