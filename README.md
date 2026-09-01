@@ -1,12 +1,33 @@
 # artie-mcp
 
-MCP server for managing your real-time data pipelines in Artie
+Artie's MCP service is for human-in-the-loop coding agents. Tool selection is focused on pipeline setup, connector metadata, and infrastructure operations — not every Dashboard or API action.
 
-[API Reference](https://www.artie.com/docs/api/overview)
+This remote MCP server is middleware to the [Artie API](https://www.artie.com/docs/api/overview). Artie Dashboard remains authoritative for identity, grants, environment binding, scopes, audit, and resource authorization.
 
-## MCP Client Configuration
+## Getting Started
 
-OAuth is the primary auth path. Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard.
+Use the hosted service:
+
+<https://mcp.artie.com>
+
+Client setup, OAuth, and what the tools can do: [MCP documentation](https://www.artie.com/docs/api/mcp).
+
+This repository is the source for that hosted integration. Running the process yourself is not a supported Artie product.
+
+### Claude Code plugin
+
+Install as a Claude Code plugin so the Artie subagent comes with the MCP connection:
+
+```shell
+claude plugin marketplace add artie-labs/artie-mcp
+claude plugin install artie@artie-mcp
+```
+
+That registers `https://mcp.artie.com/mcp` and the Artie subagent.
+
+### Cursor
+
+Add the marketplace from this repository (`.cursor-plugin/marketplace.json`) and install the `artie` plugin, or add the server directly:
 
 ```json
 {
@@ -18,9 +39,13 @@ OAuth is the primary auth path. Point an OAuth-capable client (Claude Code, Curs
 }
 ```
 
-### Legacy API key
+On first tool use, Artie may ask you to sign in, link an environment, and approve scopes. Do not add an API key for a new setup.
 
-API keys still work during the OAuth migration. Prefer OAuth for new setups.
+Codex and other OAuth clients: see the [MCP documentation](https://www.artie.com/docs/api/mcp).
+
+### Legacy API keys
+
+API keys still work during the OAuth migration. **New integrations must use OAuth.** Artie Engineering owns the remaining compatibility window; there is no public sunset date yet.
 
 ```json
 {
@@ -35,54 +60,13 @@ API keys still work during the OAuth migration. Prefer OAuth for new setups.
 }
 ```
 
-## Setup
-```bash
-uv sync
-```
+## Help
 
-## Run Server Locally
-```bash
-uvicorn server:app --reload
-```
+| Topic | Route |
+| --- | --- |
+| Hosted product, OAuth, pipelines | [MCP docs](https://www.artie.com/docs/api/mcp), [Dashboard](https://app.artie.com) |
+| Code or protocol bug in this repo | GitHub issue |
 
-## Verify
-```bash
-uv sync --locked --all-groups
-uv lock --check
-uv run ruff format --check .
-uv run ruff check .
-uv run python -m compileall -q server.py tests
-uv run python -m unittest discover -s tests -v
-```
+## License
 
-## Smoke-test the production image
-
-This check verifies that `tools/list` renders the OpenAPI `x-artie-mcp` annotation shapes without relying on a route or tool-name allowlist.
-
-```bash
-docker build --tag artie-mcp:local .
-docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:local
-port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
-trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
-until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
-uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --openapi-url "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
-```
-
-## Release
-
-1. Update version in pyproject.toml
-
-2. Update the lockfile.
-   ```
-   uv lock
-   ```
-
-3. Commit with message "Release vx.x.x"
-   ```
-   git add pyproject.toml uv.lock
-   git commit --message "Release vx.x.x"
-   ```
-4. Run release script which builds and pushes a Docker image.
-   ```bash
-   ./release.sh
-   ```
+MIT. See [LICENSE](LICENSE).
