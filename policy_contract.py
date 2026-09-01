@@ -36,7 +36,13 @@ _ALLOWED_SENSITIVITIES = frozenset(
 # Operation IDs that may be published even though request or response schemas
 # reach restricted credentials. Sensitivity must still be labeled correctly.
 _CREDENTIAL_EXPOSURE_ALLOWLIST = frozenset(
-    {"connector_create", "unsaved_connector_ping", "connector_detail"}
+    {
+        "connector_create",
+        "unsaved_connector_ping",
+        "connector_detail",
+        "source_reader_detail",
+        "source_reader_update",
+    }
 )
 
 BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))
