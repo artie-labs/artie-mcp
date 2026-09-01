@@ -1,7 +1,7 @@
 [project]
 name = "artie-mcp"
 version = "0.1.8"
-description = "Reference implementation of Artie's hosted MCP server for managing data pipelines"
+description = "Artie's hosted MCP server for managing data pipelines"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
