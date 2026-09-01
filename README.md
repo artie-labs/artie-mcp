@@ -18,9 +18,9 @@ Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the s
 }
 ```
 
-## Claude plugin
+## Skills
 
-Customer-facing skills ship as a Claude Code plugin under `plugins/artie/`. Install from this repo as a marketplace (`.claude-plugin/marketplace.json`). The plugin points at `https://mcp.artie.com/mcp` and uses OAuth.
+The pipeline-setup skill lives at `plugins/artie/skills/pipeline-setup/`.
 
 ## Setup
 ```bash
