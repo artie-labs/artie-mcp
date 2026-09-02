@@ -558,4 +558,10 @@ if __name__ == "__main__":
     import uvicorn
 
     logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
-    uvicorn.run(app, host="0.0.0.0", port=8000, ws="none", timeout_graceful_shutdown=30)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "8000")),
+        ws="none",
+        timeout_graceful_shutdown=30,
+    )
