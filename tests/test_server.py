@@ -24,12 +24,18 @@ class TestServer(unittest.TestCase):
             sys.modules["server"] = cls._previous_server
 
     def test_server_publishes_exactly_the_policy_tools(self):
+        names = [tool.name for tool in self.tools]
         self.assertEqual(
             {tool.name for tool in self.server.policy_contract.tools},
-            {tool.name for tool in self.tools},
+            set(names),
         )
-        self.assertNotIn("unsaved_connector_ping", [tool.name for tool in self.tools])
-        self.assertNotIn("Ping_a_connector", [tool.name for tool in self.tools])
+        self.assertIn("unsaved_connector_ping", names)
+        self.assertIn("connector_create", names)
+        self.assertIn("connector_detail", names)
+        self.assertIn("pipeline_detail", names)
+        self.assertIn("source_reader_detail", names)
+        self.assertIn("source_reader_update", names)
+        self.assertNotIn("Ping_a_connector", names)
 
     def test_generated_tools_use_policy_metadata(self):
         contracts = {tool.name: tool for tool in self.server.policy_contract.tools}
