@@ -6,8 +6,6 @@ services:
   workos-emulate:
     image: ghcr.io/workos/emulate:0.8.0
     command:
-      - --host
-      - "0.0.0.0"
       - --interactive
       - --issuer
       - http://host.docker.internal:4110

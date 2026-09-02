@@ -60,49 +60,7 @@ API keys still work during the OAuth migration. **New integrations must use OAut
 }
 ```
 
-## Setup
-```bash
-uv sync
-```
-
-## Run Server Locally
-```bash
-uvicorn server:app --reload
-```
-
-## Local Docker Compose
-
-Local-only WorkOS/AuthKit stand-in plus MCP. Not a supported product.
-See `authkit-shim/README.md`. Dashboard stays on the host.
-
-```bash
-docker compose up --build
-```
-
-## Verify
-```bash
-uv sync --locked --all-groups
-uv lock --check
-uv run ruff format --check .
-uv run ruff check .
-uv run python -m compileall -q server.py tests
-uv run python -m unittest discover -s tests -v
-```
-
-## Smoke-test the production image
-
-This check verifies that `tools/list` renders the OpenAPI `x-artie-mcp` annotation shapes without relying on a route or tool-name allowlist.
-
-```bash
-docker build --tag artie-mcp:local .
-docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:local
-port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
-trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
-until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
-uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --openapi-url "https://raw.githubusercontent.com/artie-labs/artie-api-spec/refs/heads/master/openapi.yaml"
-```
-
-## Release
+## Help
 
 | Topic | Route |
 | --- | --- |
