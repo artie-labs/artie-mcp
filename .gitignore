@@ -9,6 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+# Local direnv config. Copy .envrc.example to .envrc and edit it there.
+/.envrc
 **/*.envrc-personal
 
 # Downloaded from the pinned release while building the image or verifying the contract.

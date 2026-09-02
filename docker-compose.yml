@@ -1,0 +1,99 @@
+# Local-only WorkOS/AuthKit stand-in plus MCP. Not a supported Artie product.
+# Dashboard stays on the host (typically https://localhost:8000).
+# extra_hosts lets the MCP container reach published host ports and Dashboard.
+
+services:
+  workos-emulate:
+    image: ghcr.io/workos/emulate:0.8.0
+    command:
+      - --interactive
+      - --issuer
+      - http://host.docker.internal:4110
+      - --seed
+      - /app/workos-emulate.config.yaml
+    ports:
+      - "4100:4100"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./authkit-shim/workos-emulate.config.yaml:/app/workos-emulate.config.yaml:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4100/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  authkit-shim:
+    image: python:3.14-slim
+    working_dir: /app
+    command: ["python", "shim.py"]
+    volumes:
+      - ./authkit-shim:/app:ro
+    ports:
+      - "4110:4110"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      SHIM_PORT: "4110"
+      SHIM_BASE_URL: http://host.docker.internal:4110
+      EMULATOR_BASE_URL: http://workos-emulate:4100
+      EMULATOR_PUBLIC_URL: http://127.0.0.1:4100
+      EMULATOR_API_KEY: sk_test_default
+    depends_on:
+      workos-emulate:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4110/health', timeout=3)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  artie-mcp:
+    build: .
+    command:
+      - sh
+      - -c
+      - >-
+        uv run --no-dev python -m scripts.download_policy_bundle &&
+        exec uv run --no-dev uvicorn server:app --host 0.0.0.0 --port 8080 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "9000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      WORKOS_AUTHKIT_DOMAIN: http://host.docker.internal:4110
+      MCP_PUBLIC_BASE_URL: http://127.0.0.1:9000
+      ARTIE_API_BASE_URL: https://host.docker.internal:8000
+      ARTIE_API_INSECURE_SKIP_VERIFY: "true"
+      OTEL_SDK_DISABLED: "true"
+    depends_on:
+      authkit-shim:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
