@@ -35,9 +35,6 @@ _ALLOWED_SENSITIVITIES = frozenset(
 )
 # Operation IDs that may be published even though request or response schemas
 # reach restricted credentials. Sensitivity must still be labeled correctly.
-# connector_create is intentionally absent: creating a saved connector would
-# put production secrets on the agent tool path. Do not re-add it without a
-# dedicated credential-handling review and adversarial tests.
 _CREDENTIAL_EXPOSURE_ALLOWLIST = frozenset(
     {
         "connector_create",
