@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "artie-mcp",
+  "owner": { "name": "Artie", "email": "hi@artie.com" },
+  "plugins": [
+    {
+      "name": "artie",
+      "description": "Artie real-time CDC pipelines via MCP — list connectors, create and start pipelines, inspect schema changes",
+      "author": { "name": "Artie" },
+      "source": "./plugins/artie",
+      "category": "database"
+    }
+  ]
+}
