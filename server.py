@@ -107,7 +107,6 @@ _ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
     f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
 )
 
-
 # Local testing against a self-signed Dashboard only.
 _ARTIE_API_VERIFY_TLS = (
     os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
