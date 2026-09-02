@@ -37,7 +37,6 @@ _ALLOWED_SENSITIVITIES = frozenset(
 # reach restricted credentials. Sensitivity must still be labeled correctly.
 _CREDENTIAL_EXPOSURE_ALLOWLIST = frozenset(
     {
-        "connector_create",
         "unsaved_connector_ping",
         "connector_detail",
         "source_reader_detail",
