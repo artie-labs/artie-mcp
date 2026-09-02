@@ -70,13 +70,8 @@ _SERVER_CARD = {
 def _build_auth_provider():
     authkit_domain = os.getenv("WORKOS_AUTHKIT_DOMAIN", "").rstrip("/")
     public_base_url = os.getenv("MCP_PUBLIC_BASE_URL", "").rstrip("/")
-
-    if not authkit_domain and not public_base_url:
-        return DebugTokenVerifier()
     if not authkit_domain or not public_base_url:
-        raise RuntimeError(
-            "WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL must be set together"
-        )
+        raise RuntimeError("WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL are required")
 
     # Temporary dual auth during OAuth migration: AuthKit JWTs for OAuth
     # clients, plus accept-and-forward for legacy Artie API keys. The API-key
@@ -111,6 +106,7 @@ _ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
     "ARTIE_DEVICE_AUTHORIZATION_URL",
     f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
 )
+
 # Local testing against a self-signed Dashboard only.
 _ARTIE_API_VERIFY_TLS = (
     os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
