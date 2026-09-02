@@ -2,6 +2,7 @@ import asyncio
 import base64
 import importlib
 import json
+import os
 import sys
 import time
 import unittest
@@ -11,14 +12,26 @@ import httpx
 
 
 class TestServer(unittest.TestCase):
+    _TEST_AUTHKIT = {
+        "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
+        "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app",
+    }
+
     @classmethod
     def setUpClass(cls):
+        cls._auth_env_added = []
+        for key, value in cls._TEST_AUTHKIT.items():
+            if key not in os.environ:
+                os.environ[key] = value
+                cls._auth_env_added.append(key)
         cls._previous_server = sys.modules.pop("server", None)
         cls.server = importlib.import_module("server")
         cls.tools = asyncio.run(cls.server.mcp.list_tools())
 
     @classmethod
     def tearDownClass(cls):
+        for key in cls._auth_env_added:
+            os.environ.pop(key, None)
         sys.modules.pop("server", None)
         if cls._previous_server is not None:
             sys.modules["server"] = cls._previous_server
@@ -28,6 +41,7 @@ class TestServer(unittest.TestCase):
             {tool.name for tool in self.server.policy_contract.tools},
             {tool.name for tool in self.tools},
         )
+        self.assertNotIn("connector_create", [tool.name for tool in self.tools])
         self.assertNotIn("unsaved_connector_ping", [tool.name for tool in self.tools])
         self.assertNotIn("Ping_a_connector", [tool.name for tool in self.tools])
 
@@ -176,14 +190,13 @@ class TestServer(unittest.TestCase):
             {"WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app"},
             clear=True,
         ):
-            with self.assertRaisesRegex(RuntimeError, "must be set together"):
+            with self.assertRaisesRegex(RuntimeError, "are required"):
                 self.server._build_auth_provider()
 
-    def test_no_authkit_config_uses_api_key_only_verifier(self):
+    def test_missing_authkit_config_fails(self):
         with patch.dict("os.environ", {}, clear=True):
-            provider = self.server._build_auth_provider()
-
-        self.assertIsInstance(provider, self.server.DebugTokenVerifier)
+            with self.assertRaisesRegex(RuntimeError, "are required"):
+                self.server._build_auth_provider()
 
     def test_authkit_provider_uses_public_mcp_resource_url(self):
         with patch.dict(
