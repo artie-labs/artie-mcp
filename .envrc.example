@@ -1,0 +1,22 @@
+# Example direnv config for running the server locally.
+#
+#   cp .envrc.example .envrc && direnv allow
+#
+# .envrc is git-ignored, so your endpoints stay out of the repo.
+# Running the process yourself is a contributor workflow, not a supported
+# Artie product.
+
+# Local Dashboard. Unset this to fall back to https://api.artie.com.
+export ARTIE_API_BASE_URL="https://localhost:8000"
+
+# Required together. Login UI is http://127.0.0.1:4100; the issuer is :4110.
+export WORKOS_AUTHKIT_DOMAIN="http://127.0.0.1:4110"
+export MCP_PUBLIC_BASE_URL="http://127.0.0.1:9000"
+
+# Log unverified AuthKit claims while debugging token problems.
+# export WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS=true
+
+if [ -f ".envrc-personal" ]; then
+	echo ".envrc-personal exists, sourcing..."
+	source .envrc-personal
+fi
