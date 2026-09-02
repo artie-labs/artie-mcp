@@ -1,0 +1,18 @@
+# Seed for the local-OAuth emulator instance (port 4100).
+#
+# The jwtTemplate override of `aud` is the load-bearing part: FastMCP's
+# AuthKitProvider binds its JWTVerifier audience to the MCP resource URL
+# (MCP_PUBLIC_BASE_URL + /mcp). Cursor's local server is
+# http://127.0.0.1:9000/mcp. The emulator's default `aud` is the client_id,
+# which would fail that check. JWT templates are explicitly allowed to
+# override `aud` (see workos/emulate README, "What is rejected").
+users:
+  - email: local@example.com
+    first_name: Local
+    last_name: Dev
+    password: password
+    email_verified: true
+
+jwtTemplate:
+  content: >-
+    {"aud": "http://127.0.0.1:9000/mcp"}
