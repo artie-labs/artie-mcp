@@ -18,9 +18,6 @@ export ARTIE_API_BASE_URL="https://api.artie.com"
 # Log unverified AuthKit claims while debugging token problems.
 # export WORKOS_AUTHKIT_DIAGNOSTIC_CLAIMS=true
 
-# Skips TLS verification. Only for a self-signed local Dashboard.
-# export ARTIE_API_INSECURE_SKIP_VERIFY=true
-
 if [ -f ".envrc-personal" ]; then
 	echo ".envrc-personal exists, sourcing..."
 	source .envrc-personal
