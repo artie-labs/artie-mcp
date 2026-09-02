@@ -481,6 +481,7 @@ client = httpx.AsyncClient(
     base_url=_ARTIE_API_BASE_URL,
     auth=_DeviceLinkAuth(),
     verify=_ARTIE_API_VERIFY_TLS,
+    timeout=15.0,
     event_hooks={"response": [_shape_policy_response]},
 )
 mcp = FastMCP.from_openapi(

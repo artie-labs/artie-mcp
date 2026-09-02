@@ -39,7 +39,13 @@ _ALLOWED_SENSITIVITIES = frozenset(
 # put production secrets on the agent tool path. Do not re-add it without a
 # dedicated credential-handling review and adversarial tests.
 _CREDENTIAL_EXPOSURE_ALLOWLIST = frozenset(
-    {"unsaved_connector_ping", "connector_detail"}
+    {
+        "connector_create",
+        "unsaved_connector_ping",
+        "connector_detail",
+        "source_reader_detail",
+        "source_reader_update",
+    }
 )
 
 BODILESS_SUCCESS_PLANS = (({"status": "202"},), ({"status": "204"},))

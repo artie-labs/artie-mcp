@@ -171,6 +171,75 @@ class TestPolicyContract(unittest.TestCase):
         self.assertEqual(["connector_detail"], [tool.name for tool in contract.tools])
         self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
 
+    def test_compile_policy_allowlists_source_reader_detail_credentials(self):
+        spec = {
+            "openapi": "3.1.0",
+            "paths": {
+                "/source-readers/{uuid}": {
+                    "get": {
+                        "operationId": "source_reader_detail",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "source_reader_detail",
+                            "title": "Get a source reader",
+                            "triggerDescription": "Returns a source reader.",
+                            "readOnlyHint": True,
+                            "destructiveHint": False,
+                            "idempotentHint": True,
+                            "openWorldHint": False,
+                            "requiredScopes": ["source_readers:read"],
+                            "retrySemantics": "safe",
+                            "inputSensitivity": "none",
+                            "outputSensitivity": "restricted-credentials",
+                        },
+                    }
+                }
+            },
+        }
+
+        contract = compile_policy(spec)
+
+        self.assertEqual(
+            ["source_reader_detail"], [tool.name for tool in contract.tools]
+        )
+        self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
+
+    def test_compile_policy_allowlists_source_reader_update_credentials(self):
+        spec = {
+            "openapi": "3.1.0",
+            "paths": {
+                "/source-readers/{uuid}": {
+                    "post": {
+                        "operationId": "source_reader_update",
+                        "responses": {"200": {"description": "OK"}},
+                        "x-artie-mcp": {
+                            "exposure": "exposed",
+                            "operationId": "source_reader_update",
+                            "title": "Update a source reader",
+                            "triggerDescription": "Updates a source reader.",
+                            "readOnlyHint": False,
+                            "destructiveHint": False,
+                            "idempotentHint": False,
+                            "openWorldHint": False,
+                            "requiredScopes": ["source_readers:write"],
+                            "retrySemantics": "unsafe",
+                            "inputSensitivity": "restricted-credentials",
+                            "outputSensitivity": "restricted-credentials",
+                        },
+                    }
+                }
+            },
+        }
+
+        contract = compile_policy(spec)
+
+        self.assertEqual(
+            ["source_reader_update"], [tool.name for tool in contract.tools]
+        )
+        self.assertEqual("restricted-credentials", contract.tools[0].input_sensitivity)
+        self.assertEqual("restricted-credentials", contract.tools[0].output_sensitivity)
+
     def test_compile_policy_rejects_other_exposed_credential_tools(self):
         spec = {
             "openapi": "3.1.0",
