@@ -26,7 +26,7 @@ docker run --detach --rm --name artie-mcp-local -p 127.0.0.1::8000 artie-mcp:loc
 port="$(docker port artie-mcp-local 8000/tcp | awk -F: '{print $NF}')"
 trap 'docker logs artie-mcp-local; docker rm --force artie-mcp-local' EXIT
 until curl --fail --silent "http://127.0.0.1:${port}/health" && curl --fail --silent "http://127.0.0.1:${port}/ready"; do sleep 1; done
-uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp" --contract-path contract/policy.contract.json
+uv run python tests/smoke_client.py --url "http://127.0.0.1:${port}/mcp"
 ```
 
 This is a contributor workflow. Running the process yourself is not a supported Artie product.
