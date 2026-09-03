@@ -11,8 +11,6 @@ import os
 
 import httpx
 from fastmcp import FastMCP
-from fastmcp.server.auth import MultiAuth
-from fastmcp.server.auth.providers.debug import DebugTokenVerifier
 from fastmcp.server.auth.providers.workos import AuthKitProvider
 from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType
@@ -55,9 +53,8 @@ _SERVER_CARD = {
             "sizes": ["any"],
         }
     ],
-    # OAuth is the primary path: remotes carry no required API-key header so
-    # discovery clients follow AuthKit via /.well-known/oauth-protected-resource.
-    # Legacy API keys remain accepted by the server; see README.
+    # Remotes carry no required API-key header so discovery clients follow
+    # AuthKit via /.well-known/oauth-protected-resource.
     "remotes": [
         {
             "type": "streamable-http",
@@ -70,26 +67,22 @@ _SERVER_CARD = {
 def _build_auth_provider():
     authkit_domain = os.getenv("WORKOS_AUTHKIT_DOMAIN", "").rstrip("/")
     public_base_url = os.getenv("MCP_PUBLIC_BASE_URL", "").rstrip("/")
-    if not authkit_domain or not public_base_url:
-        raise RuntimeError("WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL are required")
 
-    # Temporary dual auth during OAuth migration: AuthKit JWTs for OAuth
-    # clients, plus accept-and-forward for legacy Artie API keys. The API-key
-    # verifier only accepts non-JWTs so expired/invalid AuthKit tokens cannot
-    # fall through and keep authenticating.
-    return MultiAuth(
-        server=AuthKitProvider(
-            authkit_domain=authkit_domain,
-            base_url=public_base_url,
-            resource_base_url=public_base_url,
-            resource_name="Artie MCP",
-        ),
-        verifiers=[DebugTokenVerifier(validate=lambda token: not _is_jwt(token))],
+    if not authkit_domain or not public_base_url:
+        raise RuntimeError(
+            "WORKOS_AUTHKIT_DOMAIN and MCP_PUBLIC_BASE_URL must be set together"
+        )
+
+    return AuthKitProvider(
+        authkit_domain=authkit_domain,
+        base_url=public_base_url,
+        resource_base_url=public_base_url,
+        resource_name="Artie MCP",
     )
 
 
 def _is_jwt(token: str) -> bool:
-    # WorkOS access tokens are JWTs; Artie API keys are opaque.
+    # WorkOS access tokens are JWTs.
     parts = token.split(".")
     return len(parts) == 3 and all(parts)
 
@@ -106,7 +99,6 @@ _ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
     "ARTIE_DEVICE_AUTHORIZATION_URL",
     f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
 )
-
 # Local testing against a self-signed Dashboard only.
 _ARTIE_API_VERIFY_TLS = (
     os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
@@ -135,8 +127,8 @@ class _DeviceLinkAuth(httpx.Auth):
     scopes). Exchange is stateless: every request trades the live WorkOS token
     for a fresh credential, so no long-lived token is held and any replica can
     serve any request. Pending grants surface authorization_pending + user_code;
-    missing grants bootstrap via device authorization. Opaque Bearers are legacy
-    API keys forwarded as-is during the OAuth migration.
+    missing grants bootstrap via device authorization. Non-JWT bearers are
+    rejected; Artie API keys are not accepted.
 
     Cache and single-flight locks are keyed by a hash of the full bearer token
     so distinct OAuth clients (and refreshed tokens) never share credentials,
@@ -285,12 +277,10 @@ class _DeviceLinkAuth(httpx.Auth):
         bearer_token = self._bearer_token()
 
         if bearer_token:
-            if _is_jwt(bearer_token):
-                credential = await self._credential(bearer_token)
-                request.headers["Authorization"] = f"Bearer {credential}"
-            else:
-                # Temporary API-key passthrough — upstream validates.
-                request.headers["Authorization"] = f"Bearer {bearer_token}"
+            if not _is_jwt(bearer_token):
+                raise RuntimeError("OAuth access token required")
+            credential = await self._credential(bearer_token)
+            request.headers["Authorization"] = f"Bearer {credential}"
         yield request
 
 

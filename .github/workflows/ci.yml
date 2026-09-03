@@ -57,7 +57,7 @@ jobs:
           base_url="http://127.0.0.1:${port}"
           for _ in $(seq 1 30); do
             if curl --fail --silent --show-error "$base_url/health" && curl --fail --silent --show-error "$base_url/ready"; then
-              uv run --no-sync python tests/smoke_client.py --url "$base_url/mcp" --contract-path contract/policy.contract.json
+              uv run --no-sync python tests/smoke_client.py --url "$base_url/mcp"
               exit 0
             fi
             sleep 1
