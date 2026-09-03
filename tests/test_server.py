@@ -2,7 +2,6 @@ import asyncio
 import base64
 import importlib
 import json
-import os
 import sys
 import time
 import unittest
@@ -11,28 +10,25 @@ from unittest.mock import AsyncMock, patch
 import httpx
 
 
-class TestServer(unittest.TestCase):
-    _TEST_AUTHKIT = {
-        "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
-        "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app",
-    }
+_TEST_AUTHKIT_ENV = {
+    "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
+    "MCP_PUBLIC_BASE_URL": "https://mcp.example.test",
+}
 
+
+class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._auth_env_added = []
-        for key, value in cls._TEST_AUTHKIT.items():
-            if key not in os.environ:
-                os.environ[key] = value
-                cls._auth_env_added.append(key)
+        cls._auth_env = patch.dict("os.environ", _TEST_AUTHKIT_ENV)
+        cls._auth_env.start()
         cls._previous_server = sys.modules.pop("server", None)
         cls.server = importlib.import_module("server")
         cls.tools = asyncio.run(cls.server.mcp.list_tools())
 
     @classmethod
     def tearDownClass(cls):
-        for key in cls._auth_env_added:
-            os.environ.pop(key, None)
         sys.modules.pop("server", None)
+        cls._auth_env.stop()
         if cls._previous_server is not None:
             sys.modules["server"] = cls._previous_server
 
@@ -169,7 +165,7 @@ class TestServer(unittest.TestCase):
         self.assertEqual(
             self.server.policy_release_tag.removeprefix("v"), card["version"]
         )
-        # OAuth is primary: the card must not require a legacy API-key header.
+        # OAuth clients discover AuthKit; the card must not require a bearer header.
         remote = card["remotes"][0]
         self.assertEqual("https://mcp.artie.com/mcp", remote["url"])
         self.assertNotIn("headers", remote)
@@ -190,18 +186,16 @@ class TestServer(unittest.TestCase):
         self.assertEqual(self.server._OPENAI_APPS_CHALLENGE_TOKEN, response.text)
 
     def test_authkit_provider_requires_both_settings(self):
-        with patch.dict(
-            "os.environ",
+        cases = [
             {"WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app"},
-            clear=True,
-        ):
-            with self.assertRaisesRegex(RuntimeError, "are required"):
-                self.server._build_auth_provider()
-
-    def test_missing_authkit_config_fails(self):
-        with patch.dict("os.environ", {}, clear=True):
-            with self.assertRaisesRegex(RuntimeError, "are required"):
-                self.server._build_auth_provider()
+            {"MCP_PUBLIC_BASE_URL": "https://example.ngrok.app"},
+            {},
+        ]
+        for environ in cases:
+            with self.subTest(environ=environ):
+                with patch.dict("os.environ", environ, clear=True):
+                    with self.assertRaisesRegex(RuntimeError, "must be set together"):
+                        self.server._build_auth_provider()
 
     def test_authkit_provider_uses_public_mcp_resource_url(self):
         with patch.dict(
@@ -214,36 +208,16 @@ class TestServer(unittest.TestCase):
         ):
             provider = self.server._build_auth_provider()
 
-        self.assertIsInstance(provider, self.server.MultiAuth)
-        self.assertIsInstance(provider.server, self.server.AuthKitProvider)
-        self.assertEqual(1, len(provider.verifiers))
-        self.assertIsInstance(provider.verifiers[0], self.server.DebugTokenVerifier)
-
-        authkit = provider.server
-        self.assertEqual("https://example.authkit.app", authkit.authkit_domain)
-        self.assertEqual("https://example.ngrok.app", str(authkit.base_url).rstrip("/"))
-        authkit.set_mcp_path("/mcp")
+        self.assertIsInstance(provider, self.server.AuthKitProvider)
+        self.assertEqual("https://example.authkit.app", provider.authkit_domain)
         self.assertEqual(
-            "https://example.ngrok.app/mcp", str(authkit._resource_url).rstrip("/")
+            "https://example.ngrok.app", str(provider.base_url).rstrip("/")
         )
-        self.assertEqual("Artie MCP", authkit.resource_name)
-
-    def test_api_key_verifier_rejects_jwt_shaped_tokens(self):
-        with patch.dict(
-            "os.environ",
-            {
-                "WORKOS_AUTHKIT_DOMAIN": "https://example.authkit.app",
-                "MCP_PUBLIC_BASE_URL": "https://example.ngrok.app",
-            },
-            clear=True,
-        ):
-            provider = self.server._build_auth_provider()
-
-        api_key_verifier = provider.verifiers[0]
-        self.assertIsNone(asyncio.run(api_key_verifier.verify_token("aaa.bbb.ccc")))
-        accepted = asyncio.run(api_key_verifier.verify_token("arsk_test_key"))
-        self.assertIsNotNone(accepted)
-        self.assertEqual("arsk_test_key", accepted.token)
+        provider.set_mcp_path("/mcp")
+        self.assertEqual(
+            "https://example.ngrok.app/mcp", str(provider._resource_url).rstrip("/")
+        )
+        self.assertEqual("Artie MCP", provider.resource_name)
 
     def test_is_jwt_detects_three_segment_tokens(self):
         self.assertTrue(self.server._is_jwt("aaa.bbb.ccc"))
@@ -252,7 +226,7 @@ class TestServer(unittest.TestCase):
         self.assertFalse(self.server._is_jwt("aaa..ccc"))
         self.assertFalse(self.server._is_jwt(""))
 
-    def test_device_link_auth_forwards_opaque_api_keys(self):
+    def test_device_link_auth_rejects_opaque_api_keys(self):
         auth = self.server._DeviceLinkAuth()
         request = httpx.Request("GET", "https://api.artie.com/pipelines")
 
@@ -265,18 +239,25 @@ class TestServer(unittest.TestCase):
                 return_value={"authorization": "Bearer artie-api-key"},
             ),
         ):
-            requests = asyncio.run(_collect_auth_requests(auth, request))
+            with self.assertRaisesRegex(RuntimeError, "OAuth access token required"):
+                asyncio.run(_collect_auth_requests(auth, request))
 
         credential.assert_not_called()
-        self.assertEqual("Bearer artie-api-key", requests[0].headers["Authorization"])
+        self.assertNotIn("Authorization", request.headers)
 
     def test_device_link_auth_prefers_access_token_over_headers(self):
         auth = self.server._DeviceLinkAuth()
         request = httpx.Request("GET", "https://api.artie.com/pipelines")
-        access = unittest.mock.Mock(token="artie-from-access-token")
+        access = unittest.mock.Mock(token="aaa.bbb.ccc")
+
+        async def credential(token: str) -> str:
+            self.assertEqual("aaa.bbb.ccc", token)
+            return "linked-artie-token"
 
         with (
-            patch.object(auth, "_credential") as credential,
+            patch.object(
+                auth, "_credential", side_effect=credential
+            ) as credential_mock,
             patch.object(self.server, "get_access_token", return_value=access),
             patch.object(
                 self.server,
@@ -286,9 +267,9 @@ class TestServer(unittest.TestCase):
         ):
             requests = asyncio.run(_collect_auth_requests(auth, request))
 
-        credential.assert_not_called()
+        credential_mock.assert_awaited_once_with("aaa.bbb.ccc")
         self.assertEqual(
-            "Bearer artie-from-access-token", requests[0].headers["Authorization"]
+            "Bearer linked-artie-token", requests[0].headers["Authorization"]
         )
 
     def test_device_link_auth_resolves_jwt_via_device_link(self):
