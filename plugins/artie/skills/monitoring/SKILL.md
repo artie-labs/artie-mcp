@@ -1,123 +1,77 @@
 ---
 name: monitoring
-description: Checks Artie pipeline health from MCP — list status, per-table status, ingestion lag, rows processed, schema-change detect/apply, pause/resume. Use when the user asks whether a pipeline is running or paused, wants lag, throughput, rows synced, a schema-change check, or monitors. Do not use to create pipelines, answer type-support questions, invent lag numbers, or claim a row landed in the warehouse.
+description: Monitor Artie CDC pipeline health through MCP.
 ---
 
-# Pipeline monitoring
+# Pipeline Monitoring
 
-Call the tools. Do not send lag/throughput questions to the Dashboard instead of `pipeline_usage`.
+Use the Artie MCP tools to inspect a saved pipeline’s lifecycle, per-table state, and ingestion metrics. Do not create or configure pipelines here, and do not claim that a destination query succeeded.
 
-If a named tool is missing from `tools/list`, the hosted pin is older than this skill — say so, then use Dashboard only for that gap. Do not invent numbers.
+## When to Use
 
-## Sequence
+- A user asks whether a pipeline is running, paused, deploying, or backfilling.
+- A user wants table status, ingestion lag, throughput, or Artie-processed row counts.
+- A user requests a schema-change check, schema-DDL application, a pause/resume, or a backfill action.
+- Do not use for pipeline creation (`pipeline-setup`), connector compatibility, network setup, or proof that data landed in a destination.
 
-Resolve the pipeline with **`pipeline_list`** (`name` / `uuid`). Do not guess UUIDs. Then call only what the question needs:
+## Prerequisites
 
-| They asked | Call |
-|---|---|
-| Running / paused / name | `pipeline_list` only |
-| Lag, throughput, rows synced | list (uuid) + **`pipeline_usage`** |
-| Which tables, backfill, per-table status | list + **`pipeline_detail`** (omit `includeRelatedObjects`) |
-| “How’s my pipeline?” / “is it healthy?” | list + detail + usage |
-| Schema check / apply DDL | **Schema changes** (confirm before apply) |
-| Pause / resume | **`pipeline_update_status`** (confirm) |
-| Kick or cancel backfill | **Backfill** (confirm). Table UUIDs from `pipeline_detail`, not `connector_fetch_tables` |
+1. Inspect `tools/list` before a route that depends on a named tool. If it is unavailable on the connected server, say which capability is unavailable and use the Dashboard only for that gap; never invent metrics or a tool result.
+2. Resolve a named pipeline through `pipeline_list`. Match `name` or `uuid`; never guess a UUID.
+3. Obtain explicit confirmation immediately before every mutation. A schema-change check is also a mutation because it enqueues work.
 
-Do not fetch `pipeline_detail` or `pipeline_usage` “just in case.” Do not paste FullPipeline or raw `tableStats` into the reply.
+## Procedure
 
-Then emit the **summary** for the tools you actually called.
+1. Call `pipeline_list` to resolve the pipeline and report only its returned lifecycle fields. Completion: name, UUID, and lifecycle status are unambiguous.
+2. Call only the intent-specific read tool below. Completion: the reply identifies the tool and time window used.
+3. For an action, describe its scope and consequence, ask for confirmation, then call only after the user confirms. Completion: the reply distinguishes queued work from completed destination changes.
+4. Summarize only fields returned by the tools called. Completion: the reply does not claim warehouse correctness, error-log content, or lag from lifecycle state.
 
-## Tools
+## Intent Matrix
+
+| Request | Calls after pipeline resolution | Safety rule |
+|---|---|---|
+| Running, paused, deployment state | `pipeline_list` | `status` is lifecycle, not health or lag. |
+| Tables, per-table state, backfill state | `pipeline_detail` | Omit `includeRelatedObjects`; use table UUIDs only from this response. |
+| Lag, throughput, rows processed | `pipeline_usage` | Pass RFC3339 `from` and `to`; default to the last one hour UTC if unspecified. |
+| “How is my pipeline?” | `pipeline_detail` + `pipeline_usage` | Do not fetch either for a narrower question. |
+| Check source schema drift | `pipeline_detect_schema_changes` | Explain that it enqueues a check and ask for confirmation. |
+| Apply schema changes | `pipeline_trigger_automatic_schema_changes` | Destructive: confirm; it applies supported destination DDL for one pipeline. |
+| Apply schema changes company-wide | `company_trigger_automatic_schema_changes` | Destructive and broad: confirm explicit company-wide scope. |
+| Pause or resume | `pipeline_update_status` | Confirm; first deploy is `pipeline_start`, not this action. |
+| Start or cancel a backfill | `pipeline_backfill_tables` / `pipeline_cancel_backfill_tables` | Destructive: confirm; use table UUIDs from `pipeline_detail`. |
+
+## Reading Results
 
 ### `pipeline_list`
 
-Inventory. Match on `name` / `uuid`.
-
-`status`: `draft` | `paused` | `transfer paused` | `running`. There is no failed / error status.
-
-| Field | Means | Does **not** mean |
-|---|---|---|
-| `status` | Lifecycle | Lag, stack traces, warehouse correctness |
-| `isDeploying` | Deploy in progress | Lag |
-| `hasUndeployedChanges` | Saved config not deployed | Lag or schema drift |
-| `hasBackfillingTables` | At least one table in initial backfill | Dest SELECT succeeded |
-| `lastDeployedAt` | Last deploy time | Last row flushed |
-| `sourceReaderUUID` | Reader id | A **connector** UUID — do not pass it to `connector_fetch_*` |
-
-List rows have no `tables`. Not a FullPipeline. Not a `pipeline_update` body.
+`status` is one of `draft`, `paused`, `transfer paused`, or `running`; it does not expose a failed/error state. `isDeploying`, `hasUndeployedChanges`, and `hasBackfillingTables` describe deployment/configuration/backfill state, not ingestion lag or destination correctness. `sourceReaderUUID` is a reader identifier, never a connector UUID for `connector_fetch_*` calls.
 
 ### `pipeline_detail`
 
-`GET` by pipeline `uuid`. Omit `includeRelatedObjects`.
-
-Use for: which tables this pipeline streams (`name`, `schema`, `uuid`, `status`), `destinationUUID`, `specificDestCfg`, `sourceReaderUUID` (for `source_reader_detail` / `source_reader_update`, not `connector_fetch_*`).
-
-Table `status`: `draft` | `ready_to_backfill` | `backfilling` | `streaming` | `paused`.
-
-This is **not** lag. Lag is `pipeline_usage`.
+Use it for tables (`uuid`, `name`, `schema`, `status`), per-table backfill state, destination configuration, and the reader UUID. Table status is `draft`, `ready_to_backfill`, `backfilling`, `streaming`, or `paused`. It is not a lag endpoint.
 
 ### `pipeline_usage`
 
-Lag and throughput. Required args: pipeline `uuid`, `from`, `to` (RFC3339). Default window if they did not specify: last **1 hour** UTC.
+`tableStats[].latency` is ingestion lag in seconds and can be null. `tableStats[].count` is the number of messages Artie processed in the requested interval; it is not a destination `SELECT COUNT(*)`. An empty result means no metrics in that window, which can occur for a new pipeline. Quote the exact window in the reply.
 
-Response `tableStats[]`:
+## Mutations
 
-| Field | Meaning |
-|---|---|
-| `tableName` | Table |
-| `count` | Rows Transfer/Reader **processed** in the window (Datadog). Not `SELECT COUNT(*)` on the warehouse. |
-| `latency` | Ingestion lag in **seconds** (null if no sample) |
+- `pipeline_detect_schema_changes` checks the source and queues background work; success does not return a schema diff. Review the pipeline overview or [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes) for results.
+- Automatic schema-change tools apply supported **destination** DDL. Source notifications alone do not alter the destination.
+- `pipeline_update_status` changes lifecycle status. `pipeline_backfill_tables` and `pipeline_cancel_backfill_tables` change backfill work. All require confirmation.
 
-Empty `tableStats` = no metrics in that window (often a brand-new pipeline). Quote the window you used.
+## Gaps
 
-Not slot size, not warehouse correctness, not `pipeline_list.status`.
+The following are not monitoring reads supplied by this skill: error log lines and stack traces, custom-monitor CRUD, and Postgres replication-slot-size graphs. Direct the user to the relevant [Dashboard](https://app.artie.com) view or documented monitoring integration. Never use `connector_drop_postgres_replication_slot` as a health check; it drops a replication slot.
 
-### Schema changes
+## Pitfalls
 
-Only if they asked for a source check or to apply destination DDL.
+- Do not fetch `pipeline_detail` or `pipeline_usage` “just in case.”
+- Do not use `pipeline_list` as a `pipeline_update` body; it is not a FullPipeline.
+- Do not claim an alert resolves synchronously after changing a monitor configuration; monitor evaluation is asynchronous and outcome depends on current data.
+- Do not call a missing tool, substitute invented metrics, or claim data landed in the warehouse.
 
-- **`pipeline_detect_schema_changes`** (`uuid`) — write. Enqueues a background source check (new/removed/altered tables or columns). Success is `{"success": true}` (Dashboard HTTP 204); **no diff payload**. Watch the pipeline overview / [schema change notifications](https://www.artie.com/docs/monitoring/schema-changes). `hasUndeployedChanges` is not this result.
-- **`pipeline_trigger_automatic_schema_changes`** — apply supported **destination** DDL for one pipeline. Confirm first (destructive).
-- **`company_trigger_automatic_schema_changes`** — same for every eligible pipeline. Confirm first.
+## Verification
 
-Notifications report source changes. They do not by themselves alter the destination. [Schema evolution](https://www.artie.com/docs/guides/artie/schema-evolution).
-
-### `pipeline_update_status`
-
-Sets pipeline `status` (e.g. `paused` / `running`). Confirm before calling. Not a health **read**. First deploy of a draft is `pipeline_start` (`pipeline-setup`).
-
-### Backfill
-
-- **`pipeline_backfill_tables`** — `tableUUIDs` from `pipeline_detail`. Destructive; confirm. Not `pipeline_start`.
-- **`pipeline_cancel_backfill_tables`** — cancel in-flight backfill by table UUID. Confirm.
-
-`hasBackfillingTables` / table `status` = `backfilling` is the read side.
-
-### Not MCP (do not invent a tool)
-
-- Error log lines / stack traces — pipeline in the [Dashboard](https://app.artie.com)
-- Custom monitor CRUD (volume, lag thresholds, slot-size alerts) — [custom monitors](https://www.artie.com/docs/monitoring/custom-monitors)
-- Postgres replication **slot size** graphs — analytics / [integrations](https://www.artie.com/docs/monitoring/integrations)
-- `connector_drop_postgres_replication_slot` **drops** a slot; it is not a health check
-
-## Summary
-
-Lead with **name and UUID**. Only include lines for tools you called:
-
-```
-Status: <pipeline_list.status>  deploying=<isDeploying>  undeployed=<hasUndeployedChanges>  backfilling=<hasBackfillingTables>
-Tables: <n>  <name.schema status, …>     // only if you called pipeline_detail
-Window: <from> → <to>
-Lag / rows (pipeline_usage):            // only if you called pipeline_usage
-  <tableName>: lag=<latency s or n/a>  rows=<count>
-```
-
-If you called usage: call out the worst lag; say row counts are Artie processed messages, not a destination SELECT. If you called detail: call out any table not `streaming`.
-
-If they asked why it failed and you have no error-log tool: status + (usage if you fetched it) + Dashboard logs. Do not guess a stack trace.
-
-## What not to say
-
-- When they ask about lag, throughput, or rows synced, call **`pipeline_usage`**. That is the lag tool (`latency` in seconds, `count` for the window).
-- Do not claim data landed or a destination SELECT succeeded.
-- Creating a pipeline belongs in `pipeline-setup`. Types / network belong in `connector-compatibility`.
+Before responding, verify that every named tool appears in the active `tools/list` and that every mutating operation received explicit confirmation. Report the pipeline name and UUID, tools called, the metrics window when applicable, and whether an action was merely queued or completed.
