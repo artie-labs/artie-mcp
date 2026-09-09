@@ -54,7 +54,7 @@ Always state the window you queried.
 
 `pipeline_detect_schema_changes` queues a background check of the **source**. Two things follow from that:
 
-- It returns `204` with **no body and no diff**. There is nothing to describe. Say the check is queued and point the user at the pipeline overview or [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes). Polling `pipeline_detail` afterwards will not show a diff either — do not loop. A `404` means that UUID is not a pipeline.
+- It is a bodiless-success tool: on success MCP always returns `{"success": true}`, never the upstream's `204` or a body to describe. There is no diff in that response. Say the check is queued and point the user at the pipeline overview or [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes). Polling `pipeline_detail` afterwards will not show a diff either — do not loop. An error naming the pipeline UUID as not found means that UUID is not a pipeline.
 - It reads the source and alters nothing. Applying the drift to the destination is a different tool, `pipeline_trigger_automatic_schema_changes`, and that one **is** destructive DDL and is out of scope here. Detecting drift is never permission to apply it. If the user wants it applied, say that is a state change and hand it back.
 
 ## When the fix requires changing something
@@ -65,7 +65,7 @@ Instead, finish the read, then name the action you would take and hand it back:
 
 > `orders` has been backfilling for 6h with 0 rows processed. Fixing that means cancelling and restarting the backfill, which can truncate or drop the destination table depending on how it is started — that is a state change, so I have not done it. Want me to pick that up?
 
-This matters because a backfill takes a required `beforeBackfill` argument whose values include `truncate_table` and `drop_table`, and because these tools return `204`/`202` on a queued job with no diff to undo from. Getting one wrong from inside a health check is a bad trade for saving a round trip.
+This matters because a backfill takes a required `beforeBackfill` argument whose values include `truncate_table` and `drop_table`, and because these tools are bodiless-success: MCP returns `{"success": true}` for a queued job with no diff to undo from. Getting one wrong from inside a health check is a bad trade for saving a round trip.
 
 ## Gotchas
 
