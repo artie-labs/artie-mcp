@@ -59,13 +59,11 @@ Always state the window you queried.
 
 ## When the fix requires changing something
 
-Diagnosing often lands on an action: resume it, backfill that table, apply the drift. **This skill stops at the diagnosis.** Do not call `pipeline_update_status`, `pipeline_backfill_tables`, `pipeline_cancel_backfill_tables`, `pipeline_trigger_automatic_schema_changes`, `company_trigger_automatic_schema_changes`, `pipeline_start`, or `pipeline_update` from here — not even when the user says to go ahead, and not even when the fix looks obvious.
+Diagnosing often lands on an action: resume it, backfill that table, apply the drift. **This skill stops at the diagnosis** — never call `pipeline_update_status`, `pipeline_backfill_tables`, `pipeline_cancel_backfill_tables`, `pipeline_trigger_automatic_schema_changes`, `company_trigger_automatic_schema_changes`, `pipeline_start`, or `pipeline_update` from here, even if the user says to go ahead.
 
-Instead, finish the read, then name the action you would take and hand it back:
+Instead, name the action you would take and hand it back:
 
 > `orders` has been backfilling for 6h with 0 rows processed. Fixing that means cancelling and restarting the backfill, which can truncate or drop the destination table depending on how it is started — that is a state change, so I have not done it. Want me to pick that up?
-
-This matters because a backfill takes a required `beforeBackfill` argument whose values include `truncate_table` and `drop_table`, and because these tools are bodiless-success: MCP returns `{"success": true}` for a queued job with no diff to undo from. Getting one wrong from inside a health check is a bad trade for saving a round trip.
 
 ## Gotchas
 
