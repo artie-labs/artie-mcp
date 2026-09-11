@@ -41,8 +41,6 @@ Scope is those reads plus `data_catalog_search`, plus `pipeline_detect_schema_ch
 
 **Stop at diagnosis** — never call `pipeline_update_status`, `pipeline_backfill_tables`, `pipeline_cancel_backfill_tables`, `pipeline_trigger_automatic_schema_changes`, `company_trigger_automatic_schema_changes`, `pipeline_start`, or `pipeline_update`, even if told to go ahead. Name the action and hand it back:
 
-> `orders` has been backfilling for 6h with 0 rows processed. Fixing that means cancelling and restarting the backfill, which can truncate or drop the destination table depending on how it's started — that's a state change, so I haven't done it. Want me to pick that up?
-
 ## Reply
 
 Lead with the pipeline's name and uuid, then lifecycle, table counts, and the lag window if used. Say "queued," never "done," for anything just detected or requested.
