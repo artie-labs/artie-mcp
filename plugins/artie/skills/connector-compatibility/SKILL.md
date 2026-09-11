@@ -32,4 +32,4 @@ Use the current [SQL Server overview](https://www.artie.com/docs/sources/microso
 - Do not call `connector_create`, `unsaved_connector_ping`, or any pipeline mutation. Compatibility does not prove credentials, network reachability, or a successful deployment.
 - `connector_list` may answer which connectors are already saved, but not whether a connector type or type mapping is supported.
 - Do not infer a destination's schema, a source's permissions, or supported type conversions from another connector. Use the specific page.
-- Pipeline health, lag, schema-drift detection, and destination-row verification belong to `monitoring`; Fivetran/DMS cutovers belong to `migration`.
+- Pipeline health, lag, schema-drift detection, and rows processed belong to `monitoring`; Artie MCP cannot verify that a particular row landed in the destination. Fivetran/DMS cutovers belong to `migration`.
