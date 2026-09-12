@@ -20,13 +20,13 @@ docker compose up --build
 That starts:
 
 - Emulator login UI: `http://127.0.0.1:4100`
-- AuthKit shim (JWT issuer): `http://host.docker.internal:4110`
+- AuthKit shim (JWT issuer): `http://127.0.0.1:4110`
 - MCP: `http://127.0.0.1:9000/mcp` (hot-reloads this checkout)
 
 Dashboard stays on the host. Point it at the same issuer and audience:
 
 ```bash
-WORKOS_AUTHKIT_ISSUER=http://host.docker.internal:4110
+WORKOS_AUTHKIT_ISSUER=http://127.0.0.1:4110
 MCP_RESOURCE_URL=http://127.0.0.1:9000/mcp
 ```
 
