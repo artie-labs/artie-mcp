@@ -1,6 +1,6 @@
 {
   "name": "artie",
-  "description": "Artie real-time CDC pipelines via MCP",
+  "description": "Create and start CDC pipelines, inspect schema changes, and monitor lag.",
   "author": {
     "name": "Artie"
   }

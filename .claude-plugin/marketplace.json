@@ -5,7 +5,7 @@
   "plugins": [
     {
       "name": "artie",
-      "description": "Artie real-time CDC pipelines via MCP — list connectors, create and start pipelines, inspect schema changes",
+      "description": "Create and start CDC pipelines, inspect schema changes, and monitor lag.",
       "author": { "name": "Artie" },
       "source": "./plugins/artie",
       "category": "database"
