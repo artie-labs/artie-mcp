@@ -16,6 +16,7 @@ from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
 from starlette.responses import Response
+from starlette.routing import Route
 
 from mcp_observability import MCPObservability, OpenTelemetryMetrics
 from policy_adapter import PolicyAdapterError, SafeTrafficAdapter
@@ -64,8 +65,12 @@ _SERVER_CARD = {
 }
 
 
+def _authkit_domain() -> str:
+    return os.getenv("WORKOS_AUTHKIT_DOMAIN", "").rstrip("/")
+
+
 def _build_auth_provider():
-    authkit_domain = os.getenv("WORKOS_AUTHKIT_DOMAIN", "").rstrip("/")
+    authkit_domain = _authkit_domain()
     public_base_url = os.getenv("MCP_PUBLIC_BASE_URL", "").rstrip("/")
 
     if not authkit_domain or not public_base_url:
@@ -502,6 +507,47 @@ if os.getenv(_DIAGNOSTIC_CLAIMS_ENABLED) == "true":
         }
 
 
+def _authorization_server_metadata(authkit_domain: str) -> dict[str, Any]:
+    return {
+        "agent_auth": {
+            "skill": "https://artie.com/auth.md",
+            "register_uri": f"{authkit_domain}/oauth2/register",
+            "credential_types_supported": ["access_token"],
+            "identity_types_supported": ["anonymous"],
+        }
+    }
+
+
+async def _oauth_authorization_server_metadata(request):
+    authkit_domain = _build_auth_provider().authkit_domain
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{authkit_domain}/.well-known/oauth-authorization-server"
+            )
+            response.raise_for_status()
+            metadata = response.json()
+    except (httpx.HTTPError, ValueError) as error:
+        return Response(
+            content=json.dumps(
+                {
+                    "error": "server_error",
+                    "error_description": f"Failed to fetch AuthKit metadata: {error}",
+                }
+            ),
+            media_type="application/json",
+            status_code=500,
+        )
+
+    metadata.update(_authorization_server_metadata(authkit_domain))
+    return Response(content=json.dumps(metadata), media_type="application/json")
+
+
+@mcp.custom_route("/.well-known/oauth-authorization-server", methods=["GET"])
+async def oauth_authorization_server_metadata(request):
+    return await _oauth_authorization_server_metadata(request)
+
+
 @mcp.custom_route("/mcp/server-card", methods=["GET"])
 async def server_card(request):
     if request.headers.get("if-none-match") == _SERVER_CARD_ETAG:
@@ -543,6 +589,18 @@ def _configure_logging() -> None:
 
 _configure_logging()
 app = mcp.http_app(transport="streamable-http", stateless_http=True)
+app.router.routes = [
+    Route(
+        "/.well-known/oauth-authorization-server",
+        oauth_authorization_server_metadata,
+        methods=["GET"],
+    ),
+    *[
+        route
+        for route in app.routes
+        if route.path != "/.well-known/oauth-authorization-server"
+    ],
+]
 
 if __name__ == "__main__":
     import uvicorn
