@@ -6,9 +6,11 @@ services:
   workos-emulate:
     image: ghcr.io/workos/emulate:0.8.0
     command:
+      - --host
+      - 0.0.0.0
       - --interactive
       - --issuer
-      - http://host.docker.internal:4110
+      - http://127.0.0.1:4110
       - --seed
       - /app/workos-emulate.config.yaml
     ports:
@@ -38,11 +40,14 @@ services:
       - ./authkit-shim:/app:ro
     ports:
       - "4110:4110"
+      - "9000:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
       SHIM_PORT: "4110"
-      SHIM_BASE_URL: http://host.docker.internal:4110
+      # Clients on the host (Claude Code, Cursor) must see 127.0.0.1 — OAuth
+      # libraries refuse plain HTTP token endpoints on host.docker.internal.
+      SHIM_BASE_URL: http://127.0.0.1:4110
       EMULATOR_BASE_URL: http://workos-emulate:4100
       EMULATOR_PUBLIC_URL: http://127.0.0.1:4100
       EMULATOR_API_KEY: sk_test_default
@@ -64,6 +69,7 @@ services:
 
   artie-mcp:
     build: .
+    network_mode: "service:authkit-shim"
     command:
       - sh
       - -c
@@ -72,12 +78,8 @@ services:
         exec uv run --no-dev uvicorn server:app --host 0.0.0.0 --port 8080 --reload
     volumes:
       - .:/app
-    ports:
-      - "9000:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
-      WORKOS_AUTHKIT_DOMAIN: http://host.docker.internal:4110
+      WORKOS_AUTHKIT_DOMAIN: http://127.0.0.1:4110
       MCP_PUBLIC_BASE_URL: http://127.0.0.1:9000
       ARTIE_API_BASE_URL: https://host.docker.internal:8000
       ARTIE_API_INSECURE_SKIP_VERIFY: "true"
