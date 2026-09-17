@@ -171,6 +171,63 @@ class TestServer(unittest.TestCase):
         self.assertNotIn("headers", remote)
         self.assertIn("OAuth", card["description"])
 
+    def test_agent_auth_metadata_describes_supported_registration(self):
+        self.assertEqual(
+            {
+                "agent_auth": {
+                    "skill": "https://artie.com/auth.md",
+                    "register_uri": "https://example.authkit.app/oauth2/register",
+                    "credential_types_supported": ["access_token"],
+                    "identity_types_supported": ["anonymous"],
+                }
+            },
+            self.server._authorization_server_metadata("https://example.authkit.app"),
+        )
+
+    def test_authorization_server_metadata_route_overrides_fastmcp_metadata_route(self):
+        metadata_routes = [
+            route
+            for route in self.server.app.routes
+            if route.path == "/.well-known/oauth-authorization-server"
+        ]
+
+        self.assertEqual(1, len(metadata_routes))
+        self.assertIs(
+            self.server.oauth_authorization_server_metadata,
+            metadata_routes[0].endpoint,
+        )
+
+    def test_authorization_server_metadata_preserves_upstream_oauth_fields(self):
+        async def get_metadata():
+            upstream = httpx.Response(
+                200,
+                json={
+                    "issuer": "https://example.authkit.app",
+                    "token_endpoint": "https://example.authkit.app/oauth2/token",
+                },
+                request=httpx.Request(
+                    "GET",
+                    "https://example.authkit.app/.well-known/oauth-authorization-server",
+                ),
+            )
+            with patch.object(
+                httpx.AsyncClient, "get", new=AsyncMock(return_value=upstream)
+            ):
+                return await self.server._oauth_authorization_server_metadata(None)
+
+        response = asyncio.run(get_metadata())
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/json", response.headers["content-type"])
+        self.assertEqual(
+            "https://example.authkit.app",
+            json.loads(response.body)["issuer"],
+        )
+        self.assertEqual(
+            "https://example.authkit.app/oauth2/register",
+            json.loads(response.body)["agent_auth"]["register_uri"],
+        )
+
     def test_openai_domain_challenge_is_public_and_exact(self):
         async def get_challenge():
             transport = httpx.ASGITransport(app=self.server.app)
