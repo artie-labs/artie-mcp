@@ -1,7 +1,11 @@
 {
   "name": "artie",
+  "version": "1.0.0",
   "description": "Create and start CDC pipelines, inspect schema changes, and monitor lag.",
   "author": {
-    "name": "Artie",
-  }
+    "name": "Artie Labs",
+    "url": "https://github.com/artie-labs"
+  },
+  "repository": "https://github.com/artie-labs/artie-mcp",
+  "license": "MIT"
 }
