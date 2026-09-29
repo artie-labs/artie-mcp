@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "55eef8a65b493e9d79f02a75a685afe3102714349178fbcb107de3bd827c2b9c",
-  "releaseTag": "v1.0.103",
+  "policySHA256": "c46db095155a042c47870b48a49f389248d54aa5fb1680183e76d722ced2b42b",
+  "releaseTag": "v1.0.105",
   "tools": [
     {
       "annotations": {
@@ -549,7 +549,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "cbd1d89aab2727e3c0b647c52083afaa37a4ff4491619bf214ac7b620d409e61",
+      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -571,7 +571,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "cbd1d89aab2727e3c0b647c52083afaa37a4ff4491619bf214ac7b620d409e61",
+      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -615,7 +615,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "cbd1d89aab2727e3c0b647c52083afaa37a4ff4491619bf214ac7b620d409e61",
+      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -681,7 +681,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "5d42b8248bdad5d2a00ee8241727366ed08f21c31f8424a604a66481c00e4ed6",
+      "successSchemaSHA256": "527f0e94edea8837c95721324782df90bdfb4502665e4620478d18e0a99def5f",
       "title": "List pipelines",
       "triggerDescription": "Lists pipelines with uuid, name, and status. This is not a full configuration \u2014 do not send it to pipeline_update. Full config, per-table status, and table UUIDs are pipeline_detail. Failure messages are pipeline_error_logs, not status. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
     },
@@ -747,7 +747,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "cbd1d89aab2727e3c0b647c52083afaa37a4ff4491619bf214ac7b620d409e61",
+      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -769,7 +769,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "cb18bfd1d0443e31eb77f9422c08a3f3938aac084b25ae603f50ce5ef8c8849c",
+      "successSchemaSHA256": "4992bcb25aab5935c4506257a4321a1a1c09ce71c04c40ac60251c96b8867317",
       "title": "Update pipeline status",
       "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
     },
