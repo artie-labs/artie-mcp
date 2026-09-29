@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "c46db095155a042c47870b48a49f389248d54aa5fb1680183e76d722ced2b42b",
-  "releaseTag": "v1.0.105",
+  "policySHA256": "858b1dcde2d6aac4e09b591c822315520bc2e6f272fc12485882038004c76228",
+  "releaseTag": "v1.0.106",
   "tools": [
     {
       "annotations": {
@@ -786,14 +786,14 @@
       "name": "pipeline_usage",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/usage",
-      "requestSchemaSHA256": "7fc50d1f18f43e0e371eb1596c7df13b316386aed5ab5261bf7c5bb537bca3c7",
+      "requestSchemaSHA256": "6dc00ec330e1d0622480bbb83ce58241b95534af1be885c57e62a75c626be14a",
       "requiredScopes": [
         "pipelines:read"
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "782cb20c149417c6d6fe5656df54ba8125e218d75cc60b048a802fe4c53c4b1d",
       "title": "Get pipeline usage",
-      "triggerDescription": "Returns per-table ingestion lag and row counts for a saved pipeline over a time range. Pass the pipeline uuid plus from and to as RFC3339 timestamps. Use when the user asks about lag, throughput, or rows processed. This is not slot health, warehouse correctness, pipeline_list status, pipeline_detail table status, or error logs (pipeline_error_logs)."
+      "triggerDescription": "Returns per-table ingestion lag and row counts for a saved pipeline over a time range. Pass the pipeline uuid plus from and to as RFC3339 timestamps; set excludeBackfills=true to leave backfill rows out of row counts. Use when the user asks about lag, throughput, or rows processed. This is not slot health, warehouse correctness, pipeline_list status, pipeline_detail table status, or error logs (pipeline_error_logs)."
     },
     {
       "annotations": {
