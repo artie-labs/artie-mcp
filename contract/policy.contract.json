@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "c46db095155a042c47870b48a49f389248d54aa5fb1680183e76d722ced2b42b",
-  "releaseTag": "v1.0.105",
+  "policySHA256": "b8c2bbeb3f588e50da19f593be9e77a17ef5f8a1a0d895cdaaefa342a04ea9e2",
+  "releaseTag": "v1.0.108",
   "tools": [
     {
       "annotations": {
@@ -544,12 +544,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "807c1f2ee9c07f315cd8f0f6e98276502fae835ccac43ef2821c5174022bab0b",
+      "requestSchemaSHA256": "584fde46aa5b27885af1fde2a9a554b303018475bf1fd47963713e87fff9d123",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
+      "successSchemaSHA256": "ddb75802ef5912649d87f3724f382149a09e762db94d8f2b3a26337aa206e793",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -571,7 +571,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
+      "successSchemaSHA256": "ddb75802ef5912649d87f3724f382149a09e762db94d8f2b3a26337aa206e793",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -615,7 +615,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
+      "successSchemaSHA256": "ddb75802ef5912649d87f3724f382149a09e762db94d8f2b3a26337aa206e793",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -681,7 +681,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "527f0e94edea8837c95721324782df90bdfb4502665e4620478d18e0a99def5f",
+      "successSchemaSHA256": "8e42fda10c31f2db482dc45cfa20760da17d110f89cd6569d5c4ca1c11f95995",
       "title": "List pipelines",
       "triggerDescription": "Lists pipelines with uuid, name, and status. This is not a full configuration \u2014 do not send it to pipeline_update. Full config, per-table status, and table UUIDs are pipeline_detail. Failure messages are pipeline_error_logs, not status. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
     },
@@ -742,12 +742,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "91db46d5376c4a2ca7e06246f1c2e38b2e6b1f1af1278104bc29437c1910f068",
+      "requestSchemaSHA256": "4bbd01b3dd584f50904560230ceb5ae088306cb6800c9a26ed6e154968807ef9",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "08d0505c53a00c38bd74ad01ad5e69236c07302fd92a76e55ff0b72fee223faf",
+      "successSchemaSHA256": "ddb75802ef5912649d87f3724f382149a09e762db94d8f2b3a26337aa206e793",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -769,7 +769,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "4992bcb25aab5935c4506257a4321a1a1c09ce71c04c40ac60251c96b8867317",
+      "successSchemaSHA256": "309b11e729b59b366972eae6681c0aa63dced70675a339646af96f5353507c04",
       "title": "Update pipeline status",
       "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
     },
@@ -786,14 +786,14 @@
       "name": "pipeline_usage",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/usage",
-      "requestSchemaSHA256": "7fc50d1f18f43e0e371eb1596c7df13b316386aed5ab5261bf7c5bb537bca3c7",
+      "requestSchemaSHA256": "6dc00ec330e1d0622480bbb83ce58241b95534af1be885c57e62a75c626be14a",
       "requiredScopes": [
         "pipelines:read"
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "782cb20c149417c6d6fe5656df54ba8125e218d75cc60b048a802fe4c53c4b1d",
       "title": "Get pipeline usage",
-      "triggerDescription": "Returns per-table ingestion lag and row counts for a saved pipeline over a time range. Pass the pipeline uuid plus from and to as RFC3339 timestamps. Use when the user asks about lag, throughput, or rows processed. This is not slot health, warehouse correctness, pipeline_list status, pipeline_detail table status, or error logs (pipeline_error_logs)."
+      "triggerDescription": "Returns per-table ingestion lag and row counts for a saved pipeline over a time range. Pass the pipeline uuid plus from and to as RFC3339 timestamps; set excludeBackfills=true to leave backfill rows out of row counts. Use when the user asks about lag, throughput, or rows processed. This is not slot health, warehouse correctness, pipeline_list status, pipeline_detail table status, or error logs (pipeline_error_logs)."
     },
     {
       "annotations": {
