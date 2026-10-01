@@ -6,7 +6,7 @@
     {
       "name": "artie",
       "description": "Create and start CDC pipelines, inspect schema changes, and monitor lag.",
-      "author": { "name": "Artie" },
+      "author": { "name": "Artie Labs", "url": "https://github.com/artie-labs" },
       "source": "./plugins/artie",
       "category": "database"
     }
