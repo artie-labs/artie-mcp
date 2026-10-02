@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "6ce73dadbd4c7bfd1154495faf0d936dc4c4f072893fee0b2b64b2ab6ea5f649",
-  "releaseTag": "v1.0.112",
+  "policySHA256": "db65e22762719f1308b843fabb1b2408cbf5acdacfa01824e88bd2721aef4c61",
+  "releaseTag": "v1.0.121",
   "tools": [
     {
       "annotations": {
@@ -214,12 +214,12 @@
       "name": "connector_fetch_databases",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/databases",
-      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requestSchemaSHA256": "ecdcfcfa9443962540bd1d3d1cfa452fd6218b0cbd79697d7623de560c6a93e5",
       "requiredScopes": [
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "9e513ada17e78f4e7e212dbda838c7c1b857336ce70e93845599ee414735653d",
+      "successSchemaSHA256": "7d5901957823ee9a883d9e4ec77f59378a468450f8e9c3dbe52a2225d3f99d8a",
       "title": "Fetch databases for a saved connector",
       "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
     },
@@ -285,7 +285,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8b41014596efd7bdaa3aed9b96d2c80fe0a5ed09ae747c2983293d9a7baede1d",
+      "successSchemaSHA256": "a5c309d0287ccde74910166d52951ac8447534adb6c5f6e4cabc3f4cf82c33b4",
       "title": "Fetch schemas for a saved connector",
       "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it."
     },
