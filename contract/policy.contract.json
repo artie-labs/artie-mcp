@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "f7c2587965a0cf9ba8ec9e1d2be9c9ae8b2db4ec2ecc72506e5388d2f0ea4284",
-  "releaseTag": "v1.0.110",
+  "policySHA256": "6ce73dadbd4c7bfd1154495faf0d936dc4c4f072893fee0b2b64b2ab6ea5f649",
+  "releaseTag": "v1.0.112",
   "tools": [
     {
       "annotations": {
@@ -199,7 +199,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Drop a PostgreSQL replication slot",
-      "triggerDescription": "Drops an inactive PostgreSQL replication slot. Confirm the slot is unused."
+      "triggerDescription": "Drops an inactive PostgreSQL replication slot. Check connector_fetch_postgres_replication_slots first: only an inactive or lost slot can be dropped."
     },
     {
       "annotations": {
@@ -222,6 +222,50 @@
       "successSchemaSHA256": "9e513ada17e78f4e7e212dbda838c7c1b857336ce70e93845599ee414735653d",
       "title": "Fetch databases for a saved connector",
       "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "connector_fetch_postgres_replication_slots",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/postgres-replication-slots",
+      "requestSchemaSHA256": "ecdcfcfa9443962540bd1d3d1cfa452fd6218b0cbd79697d7623de560c6a93e5",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "5e94794bab8f8f889fecf794f83dc1cf4f92a8969b9b8fcccde5330f714be40e",
+      "title": "List PostgreSQL replication slots",
+      "triggerDescription": "Lists replication slots on a saved Postgres source (name, database, active, walStatus, retainedWALBytes, isReplica). uuid must come from connector_list with includeSourceConnectors=true, not a pipeline uuid or sourceReaderUUID; pass databaseName for the pipeline's reader database. Use for slot health and WAL retention, and to confirm a slot is inactive before connector_drop_postgres_replication_slot."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "connector_fetch_postgres_settings",
+      "outputSensitivity": "none",
+      "path": "/connectors/{uuid}/postgres-settings",
+      "requestSchemaSHA256": "ecdcfcfa9443962540bd1d3d1cfa452fd6218b0cbd79697d7623de560c6a93e5",
+      "requiredScopes": [
+        "connectors:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "94e7bce6443a28638d35bdf5fada9e984b5e05d5bbd0272c4b2e03322e669927",
+      "title": "Fetch PostgreSQL settings",
+      "triggerDescription": "Returns replication-relevant server settings (name, value, unit, category) for a saved Postgres source, such as wal_level, max_replication_slots, max_wal_senders, and max_slot_wal_keep_size. uuid must come from connector_list with includeSourceConnectors=true. Use to check CDC prerequisites (wal_level must be logical) before pipeline_start or after it fails. Settings are changed on the database, not through Artie."
     },
     {
       "annotations": {
@@ -373,7 +417,7 @@
         "data_catalog:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "f7113bdd01be607d48a5d732c5c0ad49a611ffe5a9035375a0aab8ad57da20e7",
+      "successSchemaSHA256": "3b6b8868532da58282acb00514e97fd301f0e68294f1e2d4c76233847bfd2875",
       "title": "Search the data catalog",
       "triggerDescription": "Searches ingested catalog metadata. For live source tables, use connector_fetch_tables."
     },
