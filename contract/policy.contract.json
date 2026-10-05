@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "6ce73dadbd4c7bfd1154495faf0d936dc4c4f072893fee0b2b64b2ab6ea5f649",
-  "releaseTag": "v1.0.112",
+  "policySHA256": "0be0603ceb3ec156cdbec0c9fac99938fabd2f52fa492b5993ec4723b9bfa8db",
+  "releaseTag": "v1.0.122",
   "tools": [
     {
       "annotations": {
@@ -214,12 +214,12 @@
       "name": "connector_fetch_databases",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/databases",
-      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requestSchemaSHA256": "ecdcfcfa9443962540bd1d3d1cfa452fd6218b0cbd79697d7623de560c6a93e5",
       "requiredScopes": [
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "9e513ada17e78f4e7e212dbda838c7c1b857336ce70e93845599ee414735653d",
+      "successSchemaSHA256": "7d5901957823ee9a883d9e4ec77f59378a468450f8e9c3dbe52a2225d3f99d8a",
       "title": "Fetch databases for a saved connector",
       "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
     },
@@ -285,7 +285,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8b41014596efd7bdaa3aed9b96d2c80fe0a5ed09ae747c2983293d9a7baede1d",
+      "successSchemaSHA256": "a5c309d0287ccde74910166d52951ac8447534adb6c5f6e4cabc3f4cf82c33b4",
       "title": "Fetch schemas for a saved connector",
       "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it."
     },
@@ -989,7 +989,7 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "3dd045eb99749555d0db6afdec6d75b6975287cdc941062528b1e39aa4acdc83",
+      "successSchemaSHA256": "c535eb3d9071469ac15783e56816dc8a0d15af67a94b320c21a00268920465a3",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
@@ -1006,12 +1006,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "2301ae28e4bea93f3df6c778e6b4a2ab45ba776af1684777b3c14840628c0092",
+      "requestSchemaSHA256": "7f162a029b803c65acd043b96314b460ad8e92d84c49c0648821e4f15bb10913",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "3dd045eb99749555d0db6afdec6d75b6975287cdc941062528b1e39aa4acdc83",
+      "successSchemaSHA256": "c535eb3d9071469ac15783e56816dc8a0d15af67a94b320c21a00268920465a3",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
