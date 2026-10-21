@@ -100,10 +100,6 @@ _ARTIE_API_BASE_URL = os.getenv("ARTIE_API_BASE_URL", "https://api.artie.com").r
 _ARTIE_TOKEN_EXCHANGE_URL = os.getenv(
     "ARTIE_TOKEN_EXCHANGE_URL", f"{_ARTIE_API_BASE_URL}/oauth/token"
 )
-_ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
-    "ARTIE_DEVICE_AUTHORIZATION_URL",
-    f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
-)
 # Local testing against a self-signed Dashboard only.
 _ARTIE_API_VERIFY_TLS = (
     os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
@@ -202,9 +198,13 @@ class _DeviceLinkAuth(httpx.Auth):
                     await asyncio.sleep(_SLOW_DOWN_SECONDS)
                     continue
 
-                # No usable grant (none, denied, expired, or new session): bootstrap.
-                raise _authorization_required(
-                    await self._device_authorize(workos_token)
+                # No usable grant (none, denied, expired, or disconnected). Access
+                # is picked during sign-in now, so the user has to sign in again.
+                raise RuntimeError(
+                    "No Artie access is set up for this connection. Re-authenticate "
+                    "the Artie MCP server (in Claude Code: /mcp, select artie, then "
+                    "re-authenticate) and choose the environment and scopes in the "
+                    "browser."
                 )
 
     def _store_credential(self, key: str, payload: dict[str, Any]) -> str:
@@ -240,30 +240,6 @@ class _DeviceLinkAuth(httpx.Auth):
             error or response.text,
         )
         return "error", body
-
-    async def _device_authorize(self, workos_token: str) -> _PendingLink:
-        response = await self._client.post(
-            _ARTIE_DEVICE_AUTHORIZATION_URL,
-            data={
-                "subject_token": workos_token,
-                "subject_token_type": _ACCESS_TOKEN_TYPE,
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-        if response.status_code != 200:
-            logger.warning(
-                "Artie device authorization failed (%s): %s",
-                response.status_code,
-                response.text,
-            )
-            raise RuntimeError(
-                f"Artie device authorization failed ({response.status_code})"
-            )
-        payload = response.json()
-        return _PendingLink(
-            user_code=payload.get("user_code", ""),
-            verification_uri=payload.get("verification_uri", ""),
-        )
 
     def _bearer_token(self) -> str:
         # get_access_token() is reliable for Streamable HTTP; header is fallback.

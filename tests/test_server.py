@@ -355,31 +355,17 @@ class TestServer(unittest.TestCase):
             "Bearer linked-artie-token", requests[0].headers["Authorization"]
         )
 
-    def test_credential_bootstraps_link_when_no_grant(self):
+    def test_credential_asks_to_reconnect_when_no_grant(self):
         auth = self.server._DeviceLinkAuth()
-        pending = self.server._PendingLink(
-            user_code="K7QM-3PXR",
-            verification_uri="https://dash.artie.com/mcp/link",
-        )
 
         async def exchange(_token: str):
             return "error", {"error": "authorization_required"}
 
-        async def device_authorize(_token: str):
-            return pending
-
-        with (
-            patch.object(auth, "_exchange", side_effect=exchange),
-            patch.object(
-                auth, "_device_authorize", side_effect=device_authorize
-            ) as device_authorize_mock,
-        ):
+        with patch.object(auth, "_exchange", side_effect=exchange):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
 
-        device_authorize_mock.assert_awaited_once()
-        self.assertIn("K7QM-3PXR", str(ctx.exception))
-        self.assertIn("https://dash.artie.com/mcp/link", str(ctx.exception))
+        self.assertIn("Re-authenticate", str(ctx.exception))
 
     def test_credential_exchanges_approved_grant(self):
         auth = self.server._DeviceLinkAuth()
@@ -409,14 +395,10 @@ class TestServer(unittest.TestCase):
 
         # The user_code comes from the exchange response, so no separate device
         # authorization call is needed to surface it.
-        with (
-            patch.object(auth, "_exchange", side_effect=exchange),
-            patch.object(auth, "_device_authorize") as device_authorize_mock,
-        ):
+        with patch.object(auth, "_exchange", side_effect=exchange):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(token))
 
-        device_authorize_mock.assert_not_called()
         self.assertIn("K7QM-3PXR", str(ctx.exception))
         self.assertIn("https://dash.artie.com/mcp/link", str(ctx.exception))
 
@@ -452,7 +434,6 @@ class TestServer(unittest.TestCase):
 
         with (
             patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
-            patch.object(auth, "_device_authorize") as device_authorize_mock,
             patch.object(
                 self.server.asyncio, "sleep", new_callable=AsyncMock
             ) as sleep_mock,
@@ -462,7 +443,6 @@ class TestServer(unittest.TestCase):
         self.assertEqual("amcp_credential", credential)
         self.assertEqual(2, exchange_mock.await_count)
         sleep_mock.assert_awaited_once_with(self.server._SLOW_DOWN_SECONDS)
-        device_authorize_mock.assert_not_called()
 
     def test_credential_slow_down_does_not_bootstrap_device_auth(self):
         auth = self.server._DeviceLinkAuth()
@@ -473,14 +453,12 @@ class TestServer(unittest.TestCase):
 
         with (
             patch.object(auth, "_exchange", side_effect=exchange) as exchange_mock,
-            patch.object(auth, "_device_authorize") as device_authorize_mock,
             patch.object(self.server.asyncio, "sleep", new_callable=AsyncMock),
         ):
             with self.assertRaisesRegex(RuntimeError, "rate-limited"):
                 asyncio.run(auth._credential(token))
 
         self.assertEqual(self.server._SLOW_DOWN_MAX_ATTEMPTS, exchange_mock.await_count)
-        device_authorize_mock.assert_not_called()
 
     def test_token_key_hashes_full_bearer(self):
         token_a = _encode_jwt(
