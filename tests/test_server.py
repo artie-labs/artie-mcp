@@ -367,6 +367,23 @@ class TestServer(unittest.TestCase):
 
         self.assertIn("Re-authenticate", str(ctx.exception))
 
+    def test_credential_passes_through_denials_it_cannot_fix(self):
+        auth = self.server._DeviceLinkAuth()
+
+        async def exchange(_token: str):
+            return "error", {
+                "error": "access_denied",
+                "error_description": "account is not a member of the granted company",
+            }
+
+        with patch.object(auth, "_exchange", side_effect=exchange):
+            with self.assertRaises(RuntimeError) as ctx:
+                asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
+
+        self.assertEqual(
+            "account is not a member of the granted company", str(ctx.exception)
+        )
+
     def test_credential_exchanges_approved_grant(self):
         auth = self.server._DeviceLinkAuth()
         token = _encode_jwt({"sub": "acct-123"})
@@ -393,8 +410,7 @@ class TestServer(unittest.TestCase):
                 "verification_uri": "https://dash.artie.com/mcp/link",
             }
 
-        # The user_code comes from the exchange response, so no separate device
-        # authorization call is needed to surface it.
+        # The user_code comes from the exchange response.
         with patch.object(auth, "_exchange", side_effect=exchange):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(token))
@@ -444,7 +460,7 @@ class TestServer(unittest.TestCase):
         self.assertEqual(2, exchange_mock.await_count)
         sleep_mock.assert_awaited_once_with(self.server._SLOW_DOWN_SECONDS)
 
-    def test_credential_slow_down_does_not_bootstrap_device_auth(self):
+    def test_credential_slow_down_gives_up_after_max_attempts(self):
         auth = self.server._DeviceLinkAuth()
         token = _encode_jwt({"sub": "acct-123"})
 

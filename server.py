@@ -112,6 +112,8 @@ _EXCHANGE_EXPIRY_SKEW_SECONDS = 30.0
 # Bounded retry when Dashboard rate-limits minting (RFC 8628 slow_down).
 _SLOW_DOWN_MAX_ATTEMPTS = 5
 _SLOW_DOWN_SECONDS = 5.0
+# Exchange errors that mean "sign in again" (no grant, or the WorkOS token is bad).
+_REAUTHENTICATE_ERRORS = {"authorization_required", "invalid_token"}
 
 
 @dataclass
@@ -128,8 +130,8 @@ class _DeviceLinkAuth(httpx.Auth):
     scopes). Exchange is stateless: every request trades the live WorkOS token
     for a fresh credential, so no long-lived token is held and any replica can
     serve any request. Pending grants surface authorization_pending + user_code;
-    missing grants bootstrap via device authorization. Non-JWT bearers are
-    rejected; Artie API keys are not accepted.
+    a missing grant asks the user to re-authenticate, since access is picked
+    during sign-in. Non-JWT bearers are rejected; Artie API keys are not accepted.
 
     Cache and single-flight locks are keyed by a hash of the full bearer token
     so distinct OAuth clients (and refreshed tokens) never share credentials,
@@ -198,13 +200,20 @@ class _DeviceLinkAuth(httpx.Auth):
                     await asyncio.sleep(_SLOW_DOWN_SECONDS)
                     continue
 
-                # No usable grant (none, denied, expired, or disconnected). Access
-                # is picked during sign-in now, so the user has to sign in again.
+                # No grant for this connection (none yet, expired or disconnected):
+                # access is picked during sign-in, so only signing in again fixes it.
+                if payload.get("error") in _REAUTHENTICATE_ERRORS:
+                    raise RuntimeError(
+                        "No Artie access is set up for this connection. "
+                        "Re-authenticate the Artie MCP server in your MCP client "
+                        "(in Claude Code: /mcp, select artie, then re-authenticate) "
+                        "and choose the environment and scopes in the browser."
+                    )
+                # Denials (SSO-only company, not a member, admin required) and
+                # server errors: re-authenticating won't help, so say what happened.
                 raise RuntimeError(
-                    "No Artie access is set up for this connection. Re-authenticate "
-                    "the Artie MCP server (in Claude Code: /mcp, select artie, then "
-                    "re-authenticate) and choose the environment and scopes in the "
-                    "browser."
+                    payload.get("error_description")
+                    or "Artie token exchange failed; try this command again shortly."
                 )
 
     def _store_credential(self, key: str, payload: dict[str, Any]) -> str:
