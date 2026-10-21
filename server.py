@@ -100,10 +100,6 @@ _ARTIE_API_BASE_URL = os.getenv("ARTIE_API_BASE_URL", "https://api.artie.com").r
 _ARTIE_TOKEN_EXCHANGE_URL = os.getenv(
     "ARTIE_TOKEN_EXCHANGE_URL", f"{_ARTIE_API_BASE_URL}/oauth/token"
 )
-_ARTIE_DEVICE_AUTHORIZATION_URL = os.getenv(
-    "ARTIE_DEVICE_AUTHORIZATION_URL",
-    f"{_ARTIE_API_BASE_URL}/oauth/device_authorization",
-)
 # Local testing against a self-signed Dashboard only.
 _ARTIE_API_VERIFY_TLS = (
     os.getenv("ARTIE_API_INSECURE_SKIP_VERIFY", "").lower() != "true"
@@ -116,6 +112,8 @@ _EXCHANGE_EXPIRY_SKEW_SECONDS = 30.0
 # Bounded retry when Dashboard rate-limits minting (RFC 8628 slow_down).
 _SLOW_DOWN_MAX_ATTEMPTS = 5
 _SLOW_DOWN_SECONDS = 5.0
+# Exchange errors that mean "sign in again" (no grant, or the WorkOS token is bad).
+_REAUTHENTICATE_ERRORS = {"authorization_required", "invalid_token"}
 
 
 @dataclass
@@ -132,8 +130,8 @@ class _DeviceLinkAuth(httpx.Auth):
     scopes). Exchange is stateless: every request trades the live WorkOS token
     for a fresh credential, so no long-lived token is held and any replica can
     serve any request. Pending grants surface authorization_pending + user_code;
-    missing grants bootstrap via device authorization. Non-JWT bearers are
-    rejected; Artie API keys are not accepted.
+    a missing grant asks the user to re-authenticate, since access is picked
+    during sign-in. Non-JWT bearers are rejected; Artie API keys are not accepted.
 
     Cache and single-flight locks are keyed by a hash of the full bearer token
     so distinct OAuth clients (and refreshed tokens) never share credentials,
@@ -202,9 +200,36 @@ class _DeviceLinkAuth(httpx.Auth):
                     await asyncio.sleep(_SLOW_DOWN_SECONDS)
                     continue
 
-                # No usable grant (none, denied, expired, or new session): bootstrap.
-                raise _authorization_required(
-                    await self._device_authorize(workos_token)
+                # No grant for this connection (none yet, expired or disconnected):
+                # access is picked during sign-in, so only signing in again fixes it.
+                if payload.get("error") in _REAUTHENTICATE_ERRORS:
+                    if payload.get("error") == "invalid_token":
+                        # Also what an AuthKit issuer/audience mismatch looks like,
+                        # which re-authenticating can't fix: make it visible.
+                        logger.warning(
+                            "Artie token exchange rejected the WorkOS token: %s",
+                            payload.get("error_description", ""),
+                        )
+                    raise RuntimeError(
+                        "No Artie access is set up for this connection. "
+                        "Re-authenticate the Artie MCP server in your MCP client "
+                        "(in Claude Code: /mcp, select artie, then re-authenticate) "
+                        "and choose the environment and scopes in the browser."
+                    )
+                # Denials and server errors: say what happened. Some denials (access
+                # removed, role changed) are fixed by signing in again to choose anew.
+                description = payload.get("error_description")
+                if not description:
+                    # Server errors carry only "error" (with a support reference).
+                    detail = payload.get("error")
+                    raise RuntimeError(
+                        "Artie token exchange failed; try this command again shortly."
+                        + (f" ({detail})" if detail else "")
+                    )
+                raise RuntimeError(
+                    f"Artie token exchange failed: {description}. If this connection's "
+                    "access changed, re-authenticate the Artie MCP server to choose "
+                    "it again."
                 )
 
     def _store_credential(self, key: str, payload: dict[str, Any]) -> str:
@@ -240,30 +265,6 @@ class _DeviceLinkAuth(httpx.Auth):
             error or response.text,
         )
         return "error", body
-
-    async def _device_authorize(self, workos_token: str) -> _PendingLink:
-        response = await self._client.post(
-            _ARTIE_DEVICE_AUTHORIZATION_URL,
-            data={
-                "subject_token": workos_token,
-                "subject_token_type": _ACCESS_TOKEN_TYPE,
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-        if response.status_code != 200:
-            logger.warning(
-                "Artie device authorization failed (%s): %s",
-                response.status_code,
-                response.text,
-            )
-            raise RuntimeError(
-                f"Artie device authorization failed ({response.status_code})"
-            )
-        payload = response.json()
-        return _PendingLink(
-            user_code=payload.get("user_code", ""),
-            verification_uri=payload.get("verification_uri", ""),
-        )
 
     def _bearer_token(self) -> str:
         # get_access_token() is reliable for Streamable HTTP; header is fallback.
