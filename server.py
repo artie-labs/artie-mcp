@@ -220,8 +220,11 @@ class _DeviceLinkAuth(httpx.Auth):
                 # removed, role changed) are fixed by signing in again to choose anew.
                 description = payload.get("error_description")
                 if not description:
+                    # Server errors carry only "error" (with a support reference).
+                    detail = payload.get("error")
                     raise RuntimeError(
                         "Artie token exchange failed; try this command again shortly."
+                        + (f" ({detail})" if detail else "")
                     )
                 raise RuntimeError(
                     f"Artie token exchange failed: {description}. If this connection's "

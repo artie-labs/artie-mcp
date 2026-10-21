@@ -384,6 +384,7 @@ class TestServer(unittest.TestCase):
             "Artie token exchange failed: account is not a member of the granted company",
             str(ctx.exception),
         )
+        self.assertIn("re-authenticate", str(ctx.exception))
 
     def test_credential_asks_to_reconnect_on_invalid_token(self):
         auth = self.server._DeviceLinkAuth()
@@ -391,7 +392,10 @@ class TestServer(unittest.TestCase):
         async def exchange(_token: str):
             return "error", {"error": "invalid_token"}
 
-        with patch.object(auth, "_exchange", side_effect=exchange):
+        with (
+            patch.object(auth, "_exchange", side_effect=exchange),
+            self.assertLogs(self.server.logger, level="WARNING"),
+        ):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
 
@@ -401,13 +405,14 @@ class TestServer(unittest.TestCase):
         auth = self.server._DeviceLinkAuth()
 
         async def exchange(_token: str):
-            return "error", {}
+            return "error", {"error": "Something went wrong; reference abc123."}
 
         with patch.object(auth, "_exchange", side_effect=exchange):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
 
         self.assertIn("try this command again shortly", str(ctx.exception))
+        self.assertIn("reference abc123", str(ctx.exception))
 
     def test_credential_exchanges_approved_grant(self):
         auth = self.server._DeviceLinkAuth()
