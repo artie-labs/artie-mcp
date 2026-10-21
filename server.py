@@ -203,17 +203,30 @@ class _DeviceLinkAuth(httpx.Auth):
                 # No grant for this connection (none yet, expired or disconnected):
                 # access is picked during sign-in, so only signing in again fixes it.
                 if payload.get("error") in _REAUTHENTICATE_ERRORS:
+                    if payload.get("error") == "invalid_token":
+                        # Also what an AuthKit issuer/audience mismatch looks like,
+                        # which re-authenticating can't fix: make it visible.
+                        logger.warning(
+                            "Artie token exchange rejected the WorkOS token: %s",
+                            payload.get("error_description", ""),
+                        )
                     raise RuntimeError(
                         "No Artie access is set up for this connection. "
                         "Re-authenticate the Artie MCP server in your MCP client "
                         "(in Claude Code: /mcp, select artie, then re-authenticate) "
                         "and choose the environment and scopes in the browser."
                     )
-                # Denials (SSO-only company, not a member, admin required) and
-                # server errors: re-authenticating won't help, so say what happened.
+                # Denials and server errors: say what happened. Some denials (access
+                # removed, role changed) are fixed by signing in again to choose anew.
+                description = payload.get("error_description")
+                if not description:
+                    raise RuntimeError(
+                        "Artie token exchange failed; try this command again shortly."
+                    )
                 raise RuntimeError(
-                    payload.get("error_description")
-                    or "Artie token exchange failed; try this command again shortly."
+                    f"Artie token exchange failed: {description}. If this connection's "
+                    "access changed, re-authenticate the Artie MCP server to choose "
+                    "it again."
                 )
 
     def _store_credential(self, key: str, payload: dict[str, Any]) -> str:

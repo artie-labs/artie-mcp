@@ -380,9 +380,34 @@ class TestServer(unittest.TestCase):
             with self.assertRaises(RuntimeError) as ctx:
                 asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
 
-        self.assertEqual(
-            "account is not a member of the granted company", str(ctx.exception)
+        self.assertIn(
+            "Artie token exchange failed: account is not a member of the granted company",
+            str(ctx.exception),
         )
+
+    def test_credential_asks_to_reconnect_on_invalid_token(self):
+        auth = self.server._DeviceLinkAuth()
+
+        async def exchange(_token: str):
+            return "error", {"error": "invalid_token"}
+
+        with patch.object(auth, "_exchange", side_effect=exchange):
+            with self.assertRaises(RuntimeError) as ctx:
+                asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
+
+        self.assertIn("Re-authenticate", str(ctx.exception))
+
+    def test_credential_reports_server_errors_as_temporary(self):
+        auth = self.server._DeviceLinkAuth()
+
+        async def exchange(_token: str):
+            return "error", {}
+
+        with patch.object(auth, "_exchange", side_effect=exchange):
+            with self.assertRaises(RuntimeError) as ctx:
+                asyncio.run(auth._credential(_encode_jwt({"sub": "acct-123"})))
+
+        self.assertIn("try this command again shortly", str(ctx.exception))
 
     def test_credential_exchanges_approved_grant(self):
         auth = self.server._DeviceLinkAuth()
