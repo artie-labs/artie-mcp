@@ -32,6 +32,25 @@ class TestServer(unittest.TestCase):
         if cls._previous_server is not None:
             sys.modules["server"] = cls._previous_server
 
+    def test_responses_carry_security_headers(self):
+        app = self.server.app
+
+        async def get(path):
+            transport = httpx.ASGITransport(app=app)
+            async with app.router.lifespan_context(app):
+                async with httpx.AsyncClient(
+                    transport=transport, base_url="http://test"
+                ) as client:
+                    return await client.get(path)
+
+        # A normal route, the MCP endpoint's 405 and the router's 404.
+        for path, status in (("/health", 200), ("/mcp", 405), ("/no-such-path", 404)):
+            with self.subTest(path=path):
+                response = asyncio.run(get(path))
+                self.assertEqual(status, response.status_code)
+                for name, value in self.server._SECURITY_HEADERS:
+                    self.assertEqual(value.decode(), response.headers[name.decode()])
+
     def test_server_publishes_exactly_the_policy_tools(self):
         names = [tool.name for tool in self.tools]
         self.assertEqual(

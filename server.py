@@ -15,8 +15,10 @@ from fastmcp.server.auth.providers.workos import AuthKitProvider
 from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType
 from mcp.types import ToolAnnotations
+from starlette.middleware import Middleware
 from starlette.responses import Response
 from starlette.routing import Route
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mcp_observability import MCPObservability, OpenTelemetryMetrics
 from policy_adapter import PolicyAdapterError, SafeTrafficAdapter
@@ -570,6 +572,43 @@ async def ready_check(_request):
     return Response(status_code=200)
 
 
+# The same response headers api.artie.com sends. Strict-Transport-Security is
+# already added in front of this app, so it isn't repeated here.
+_SECURITY_HEADERS = (
+    (b"content-security-policy", b"default-src 'self'; frame-ancestors 'none'"),
+    (b"permissions-policy", b"geolocation=(), microphone=(), camera=()"),
+    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+    (b"x-content-type-options", b"nosniff"),
+    (b"x-frame-options", b"DENY"),
+)
+
+
+class SecurityHeadersMiddleware:
+    """Adds _SECURITY_HEADERS to every HTTP response, including errors.
+
+    A plain ASGI middleware rather than BaseHTTPMiddleware, so streamed MCP
+    responses aren't buffered. A header the route already set is kept.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_headers(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                present = {name.lower() for name, _ in headers}
+                headers.extend(h for h in _SECURITY_HEADERS if h[0] not in present)
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, send_with_headers)
+
+
 class _HealthCheckFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         msg = record.getMessage()
@@ -588,7 +627,11 @@ def _configure_logging() -> None:
 
 
 _configure_logging()
-app = mcp.http_app(transport="streamable-http", stateless_http=True)
+app = mcp.http_app(
+    transport="streamable-http",
+    stateless_http=True,
+    middleware=[Middleware(SecurityHeadersMiddleware)],
+)
 app.router.routes = [
     Route(
         "/.well-known/oauth-authorization-server",
