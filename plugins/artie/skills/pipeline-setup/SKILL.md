@@ -48,7 +48,9 @@ Copy this checklist and mark steps as you go. Stop at a failed gate. Do not skip
 - Postgres ping/create needs top-level `defaultDatabase` (database name). Oracle: that same field is the service name. S3: that same field is the bucket. Do not put it inside `sharedConfig`.
 - `unsaved_connector_ping` succeeds with `{"success": true}`. A 422 means the connection failed (unreachable host, bad credentials, missing permissions); quote its error, which says why. A 400 means the request body is wrong — fix the body, not the credentials. Do not switch to a different saved connector. Stop on a 422; a saved connector that fails needs fixing in the [Artie Dashboard](https://app.artie.com).
 - Do not echo the password. Do not call `unsaved_connector_fetch_*` — fetch after the connector is saved.
-- If `connector_create` or `unsaved_connector_ping` is missing from `tools/list`, or ping returns 403 (it needs the `connectors:write` scope), send them to the [Artie Dashboard](https://app.artie.com) to save the connector, then resume.
+- If `connector_create` or `unsaved_connector_ping` is missing from `tools/list`, or ping returns 403 (it needs the `connectors:write` scope):
+  - New connector: send them to the [Artie Dashboard](https://app.artie.com) to save it, then resume.
+  - Saved connector: don't block on the ping. A warehouse destination still gets a live check from step 10's catalog fetch. Otherwise (an S3/GCS destination, or a source with no catalog fetch before the draft), say the connector couldn't be checked and continue only if they agree.
 
 ### Catalog
 
