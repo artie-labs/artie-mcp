@@ -3,43 +3,69 @@ name: monitoring
 description: >
   Reports Artie pipeline health: status, per-table state, total and
   per-table lag, throughput, rows processed, recent error logs, and Postgres
-  replication slot health.
-  Use when the user asks whether a pipeline is healthy, stuck, behind, or
-  caught up, why it is failing or a table isn't syncing, or wants lag or
-  row counts — even without saying "monitor" or "health". Read-only: never
-  pauses, resumes, backfills, detects or applies schema changes, even if
-  asked to.
-  Do not use for pipeline setup, type-support or network questions, or
-  proving rows landed in the destination.
+  replication slot and WAL health. Use when the user asks whether a pipeline
+  is healthy, stuck, behind, or caught up, why it is failing, won't start,
+  or a table isn't syncing, or wants lag or row counts — even without
+  saying "monitor" or "health". Read-only: never pauses, resumes,
+  backfills, detects or applies schema changes, even if asked to. Do not
+  use for pipeline setup, type-support or network questions, Kafka
+  clusters, or proving rows landed in the destination.
 ---
 
 ## Monitoring a pipeline
 
-Resolve the pipeline with `pipeline_list`, matching `name` or `uuid` — never guess. Call only what the question needs.
+Resolve the pipeline with `pipeline_list`, matching `name` or `uuid` — never guess. Its row already has `status`, `isDeploying`, `hasBackfillingTables`, `hasUndeployedChanges`, `lastDeployError`, `lastDeployFailedAt`, `sourceType` and `sourceReaderUUID`. Then call only what the question needs.
 
-| Question | Call |
+| Question | Calls after `pipeline_list` |
 |---|---|
-| Running, paused, deploying, backfilling? | `pipeline_list` |
+| Running, paused, deploying, backfilling? | none — answer from the row |
+| How far behind? | `analytics_query` (see [Lag](#lag)) |
+| Which tables are behind? Rows synced? | `pipeline_usage` |
 | Per-table status? | `pipeline_detail` (omit `includeRelatedObjects`) |
-| Why is it failing? Error messages? | `pipeline_error_logs` |
-| How far behind (total lag)? | `analytics_query` with `pipelineUUID`, `datasets[]=readerLag` and `datasets[]=ingestionLag`, RFC3339 `from`/`to`; total lag = readerLag + ingestionLag at each timestamp |
-| Per-table lag, throughput, rows processed? | `pipeline_usage` with RFC3339 `from`/`to` (default: last hour UTC — always state the window); `excludeBackfills=true` to count CDC rows only |
-| Overall health? | `pipeline_list` → `pipeline_detail` → `pipeline_usage` → `pipeline_error_logs` |
-| Postgres slot or WAL health? | `connector_fetch_postgres_replication_slots` and `connector_fetch_postgres_settings` on the **source connector** UUID |
+| Why is it failing? | `pipeline_error_logs` |
+| Won't start or keeps failing? | [Won't start](#wont-start-or-keeps-failing) |
+| Postgres slot or WAL growing? | [Slots](#postgres-slots-and-wal) |
+| Overall health? | `pipeline_detail` → `analytics_query` → `pipeline_error_logs` |
 | Source table columns? | `connector_fetch_table_detail` on a **connector** UUID |
 
-Scope is those reads plus `connector_list` and `data_catalog_search`. Nothing else.
+Reads in scope: the tools above, plus `connector_list`, `source_reader_detail`, `connector_fetch_postgres_settings`, `connector_fetch_postgres_replication_slots` and `data_catalog_search`. Nothing else.
+
+## Lag
+
+- Total lag: one `analytics_query` with `pipelineUUID`, `datasets[]=readerLag`, `datasets[]=ingestionLag`, RFC3339 `from`/`to` (default: last hour UTC — always state the window). Total lag = readerLag + ingestionLag at each timestamp. Report the latest total and the max in the window.
+- Each dataset comes back as `datasets.<name>` with its own `unit` and `err`. Read `unit`; don't assume seconds. A non-null `err` means that dataset is unavailable — say so, don't treat it as zero.
+- Per table: `pipeline_usage` with the same window. `tableStats[].latency` is ingestion lag only, in seconds — never call it total lag. `count` is rows processed; pass `excludeBackfills=true` to count CDC rows only.
+- Throughput over time: `analytics_query` `datasets[]=rowsSyncedByTime`.
+
+## Won't start or keeps failing
+
+1. `pipeline_list` row: quote `lastDeployError` and `lastDeployFailedAt` when set.
+2. Postgres source only: `source_reader_detail` with `sourceReaderUUID` → `connectorUUID` and `database`. Then `connector_fetch_postgres_settings` (`uuid` = `connectorUUID`, `databaseName` = `database`). `wal_level` must be `logical`; check `max_replication_slots` and `max_wal_senders` leave room for Artie.
+3. `connector_fetch_postgres_replication_slots` with the same args. Look for the reader's slot (`settings.replicationSlotOverride`, else `artie`).
+4. `pipeline_error_logs`. Quote the newest messages and their timestamps.
+
+Stop there and report which step showed the problem.
+
+## Postgres slots and WAL
+
+Get `connectorUUID` and `database` as in step 2 above, then `connector_fetch_postgres_replication_slots`.
+
+- `active: false` on the reader's slot means nothing is reading it; WAL keeps growing while it stays inactive.
+- `retainedWALBytes` is the WAL the slot holds on the source. Report it in GB.
+- `walStatus` is Postgres's `wal_status`: `lost` means the slot can no longer be used. `notFound: true` means the reader's slot isn't on the database.
+- `connector_fetch_postgres_settings` `max_slot_wal_keep_size` caps retained WAL (`-1` = no cap).
+- Settings are changed on the database, not through Artie. Dropping a slot is a change — hand it back.
 
 ## Gotchas
 
 - `status`: `draft` | `paused` | `transfer paused` | `running`, and **may be absent** — say "not reported," never assume `draft`. `transfer paused` ≠ `paused` (capture still runs, delivery stops).
 - `isDeploying`, `hasBackfillingTables`, `hasUndeployedChanges` are independent of `status` — check each; `hasUndeployedChanges: true` means saved config isn't live yet.
 - `disableReplication: true` on a table is intentional — list it as excluded, not failing.
-- `pipeline_usage.tableStats[].latency` is ingestion lag only (seconds), not total lag. It is nullable: `null` ≠ 0, exclude it before taking a max. `count: 0` means nothing moved in the window, not an empty table. `tableStats: []` means no metrics in that window — widen it before calling anything unhealthy. Rows key on `tableName` only, with no `uuid`/`schema`.
-- Source schema drift: do not call `pipeline_detect_schema_changes` here. It is a write — on pipelines with auto-replicate or auto-history for new tables it adds the new tables to the pipeline and emails a summary. Point to the pipeline overview or [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes) instead, and hand detection back like any other change.
-- `pipeline_error_logs` returns recent logged errors (`message`, `errorDetail`, table/schema, timestamps). Quote what it says and when; an empty list means no recent logged errors, not proof of health.
-- Slot tools take a **source connector** UUID (`connector_list` with `includeSourceConnectors=true`), not a pipeline uuid or `sourceReaderUUID`; pass the pipeline's reader database as `databaseName`. `connector_drop_postgres_replication_slot` drops a slot — never a health check. Never invent logs, metrics, or a destination row count.
-- Report what a field says, not why — a stale lag or a status mismatch has causes these tools can't show. Flag it; don't explain it.
+- `pipeline_usage` `latency` is nullable: `null` ≠ 0, exclude it before taking a max. `count: 0` means nothing moved in the window, not an empty table. `tableStats: []` means no metrics in that window — widen it before calling anything unhealthy. Rows key on `tableName` only, with no `uuid`/`schema`.
+- `pipeline_error_logs`: an empty list means no recent logged errors, not proof of health.
+- Slot and settings tools take a **source connector** UUID, never a pipeline uuid or `sourceReaderUUID`. `source_reader_detail` may hold sensitive fields — never echo them.
+- Source schema drift: do not call `pipeline_detect_schema_changes`. It is a write — on pipelines with auto-replicate or auto-history for new tables it adds the new tables and emails a summary. Point to [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes) and hand detection back.
+- Report what a field says, not why — a stale lag or a status mismatch has causes these tools can't show. Flag it; don't explain it. Never invent logs, metrics, or a destination row count.
 - MCP can't verify the destination. Report rows processed, not "landed."
 
 ## When the fix requires changing something
@@ -50,4 +76,4 @@ Scope is those reads plus `connector_list` and `data_catalog_search`. Nothing el
 
 ## Reply
 
-Lead with the pipeline's name and uuid, then lifecycle, table counts, and the lag window if used. Say "queued," never "done," for anything just detected or requested.
+Lead with the pipeline's name and uuid, then lifecycle, the lag window and total lag, and the tables behind. Say "queued," never "done," for anything just requested.
