@@ -1,0 +1,656 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Artie",
+    "subtitle": "Manage CDC pipelines",
+    "description": "Artie helps data teams set up, monitor, and operate change-data-capture pipelines from databases and APIs into warehouses. Use it to check connector compatibility, create and start pipelines, inspect table metadata, monitor lag and throughput, detect schema drift, and manage supporting infrastructure like SSH tunnels and PrivateLink connections—all within your authenticated Artie environment.",
+    "category": "DEVELOPER_TOOLS"
+  },
+  "tools": {
+    "column_hashing_salt_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a column hashing salt by UUID in the authenticated Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes a column hashing salt; previously hashed destination values are not reversed."
+      }
+    },
+    "column_hashing_salt_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists column hashing salt names and UUIDs without modifying salts or pipeline data.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "column_hashing_salt_preview": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Hashes a sample string with a selected salt and returns the digest without changing stored configuration.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "column_hashing_salt_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Updates salt name and description metadata without rotating the secret or deleting the salt.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "company_trigger_automatic_schema_changes": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Enqueues company-wide automatic schema-change jobs for eligible running pipelines.",
+        "open_world_justification": "Can enqueue schema-change work that alters customer destination warehouse schemas.",
+        "destructive_justification": "Enqueues automatic schema-change jobs that can alter destination DDL across eligible pipelines."
+      }
+    },
+    "connector_create": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates a saved connector record in the authenticated Artie account using supplied connection settings.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a saved connector by UUID in the authenticated Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes a saved connector and stops pipelines that depend on it."
+      }
+    },
+    "connector_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns saved connector metadata for one UUID without creating, updating, or deleting connectors.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_drop_postgres_replication_slot": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Requests removal of an inactive PostgreSQL replication slot on the linked source database.",
+        "open_world_justification": "Changes PostgreSQL replication infrastructure on the customer's database server.",
+        "destructive_justification": "Drops an inactive PostgreSQL replication slot on the customer database, which is irreversible from Artie."
+      }
+    },
+    "connector_fetch_databases": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Lists database names visible to a saved connector without changing Artie or database configuration.",
+        "open_world_justification": "Connects to the customer's external database to list accessible databases.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_fetch_schemas": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Lists schemas on a saved connector without modifying connector or pipeline settings.",
+        "open_world_justification": "Queries the customer's external database system to list schemas.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_fetch_table_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Returns live column metadata for one table without altering source or destination schemas.",
+        "open_world_justification": "Queries the customer's external database for live table and column metadata.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_fetch_tables": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Lists tables on a saved connector without attaching them to a pipeline or writing data.",
+        "open_world_justification": "Queries the customer's external database to list tables.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_generate_shadow_script": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns Oracle shadow-table SQL for review and does not execute statements on the source.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists saved connectors in the Artie account without mutating connector records.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_start_dynamo_db_export": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Starts a DynamoDB point-in-time export for a configured source connector.",
+        "open_world_justification": "Starts a DynamoDB export job in the customer's AWS environment.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "data_catalog_search": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Searches ingested Artie catalog metadata without changing pipelines or connectors.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "encryption_key_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes an encryption key record by UUID in the authenticated Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes an encryption key record without decrypting already-landed data."
+      }
+    },
+    "encryption_key_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists encryption key names and UUIDs without exposing secret key material.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "encryption_key_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Updates encryption key name and description without rotating key material.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "ingestion_api_key_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes an ingestion API key by UUID in the authenticated Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes an ingestion API key and revokes future use of that credential."
+      }
+    },
+    "ingestion_api_key_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Updates ingestion API key metadata without minting a replacement key.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_backfill_tables": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Starts a backfill for selected tables on an existing pipeline.",
+        "open_world_justification": "Moves historical data from customer source systems into the destination warehouse.",
+        "destructive_justification": "Starts a historical backfill that reprocesses table data into the destination warehouse."
+      }
+    },
+    "pipeline_cancel_backfill_tables": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Requests cancellation of an in-progress backfill for selected tables.",
+        "open_world_justification": "Stops active backfill work against customer source and destination systems.",
+        "destructive_justification": "Cancels an in-progress backfill for the specified table UUIDs."
+      }
+    },
+    "pipeline_create": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates a new pipeline attached to an existing source reader in the Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_create_from_source": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates a draft pipeline and dedicated source reader for a new capture path.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a pipeline by UUID in the authenticated Artie account.",
+        "open_world_justification": "Removes a live replication pipeline between customer source and destination systems.",
+        "destructive_justification": "Permanently deletes a pipeline configuration from the Artie account."
+      }
+    },
+    "pipeline_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns full pipeline configuration and table status without modifying the pipeline.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_detect_schema_changes": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Checks a pipeline source for schema drift without applying destination DDL by itself.",
+        "open_world_justification": "Inspects the customer source for schema drift relative to the configured pipeline.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists pipeline names and statuses without changing pipeline configuration.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_start": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deploys or resumes a configured pipeline so replication can run.",
+        "open_world_justification": "Deploys or resumes live CDC replication between customer source and destination systems.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_trigger_automatic_schema_changes": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Applies automatic schema changes for one pipeline after drift is detected.",
+        "open_world_justification": "Applies schema changes to tables in the customer's destination warehouse.",
+        "destructive_justification": "Applies detected source schema changes to destination tables for one pipeline."
+      }
+    },
+    "pipeline_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Replaces full pipeline configuration, including destination and table selection, in the Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_update_status": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Updates pipeline run status to pause or resume replication.",
+        "open_world_justification": "Pauses or resumes live replication for a configured pipeline.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_usage": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Returns ingestion lag and row counts for a pipeline over a requested time range.",
+        "open_world_justification": "Reads live ingestion metrics for pipelines that move data between customer source and destination systems.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "private_link_connection_create": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Creates a PrivateLink connection record in the authenticated Artie account.",
+        "open_world_justification": "Creates AWS PrivateLink configuration connecting Artie to customer network infrastructure.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "private_link_connection_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a PrivateLink connection by UUID in the authenticated Artie account.",
+        "open_world_justification": "Removes PrivateLink configuration affecting connectivity to customer infrastructure.",
+        "destructive_justification": "Permanently deletes a PrivateLink connection record."
+      }
+    },
+    "private_link_connection_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one PrivateLink connection record without changing network configuration.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "private_link_connection_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Updates PrivateLink connection fields while the connection is under review or errored.",
+        "open_world_justification": "Updates PrivateLink settings that affect customer network integration.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "source_reader_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes an unused source reader by UUID in the authenticated Artie account.",
+        "open_world_justification": "Removes CDC capture configuration that reads from a customer source database.",
+        "destructive_justification": "Deletes an unused source reader capture configuration."
+      }
+    },
+    "source_reader_deploy": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deploys a validated shared source reader configuration.",
+        "open_world_justification": "Deploys CDC capture infrastructure that connects to a customer source system.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "source_reader_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns source reader configuration for one UUID without applying updates.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "source_reader_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Updates source reader configuration such as database, tables, or replication settings.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "ssh_tunnel_create": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates an SSH tunnel record used by connectors in the Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "ssh_tunnel_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes an SSH tunnel by UUID when it is unused by connectors or pipelines.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Deletes an SSH tunnel record when it is not referenced by connectors or pipelines."
+      }
+    },
+    "ssh_tunnel_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns SSH tunnel metadata without exposing private keys or changing the record.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "ssh_tunnel_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Updates SSH tunnel host or username metadata without rotating keys.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "unsaved_connector_ping": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Tests connector connectivity using supplied type and connection settings before saving a connector.",
+        "open_world_justification": "Tests connectivity to a customer-provided database or cloud endpoint using supplied connection settings.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Monitor overall pipeline health including status and per-table state.",
+      "user_prompt": "Is my production Postgres-to-Snowflake pipeline healthy right now? Show status and any tables that look stuck.",
+      "file_attachment_urls": null,
+      "tools_triggered": "pipeline_list,pipeline_detail",
+      "expected_output": "Resolves the pipeline by name, reports lifecycle status flags, and summarizes per-table state without pausing, resuming, or backfilling.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Check ingestion lag and row throughput for a running pipeline.",
+      "user_prompt": "What is the ingestion lag for my orders pipeline over the last hour?",
+      "file_attachment_urls": null,
+      "tools_triggered": "pipeline_list,pipeline_usage",
+      "expected_output": "Identifies the pipeline UUID and returns per-table lag and row counts for the requested time window.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Set up a draft CDC pipeline from saved source and destination connectors.",
+      "user_prompt": "Create a new Artie pipeline from my saved Postgres production source to my Snowflake warehouse destination using the public.orders and public.users tables, but leave it as a draft.",
+      "file_attachment_urls": null,
+      "tools_triggered": "connector_list,pipeline_create_from_source,connector_fetch_tables,pipeline_update",
+      "expected_output": "Uses saved connector UUIDs, creates a draft pipeline with a dedicated source reader, selects the requested tables, and saves destination landing settings without starting replication.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Discover source tables through a saved connector before pipeline changes.",
+      "user_prompt": "List my source connectors and show tables available on my Postgres production connector.",
+      "file_attachment_urls": null,
+      "tools_triggered": "connector_list,connector_fetch_tables",
+      "expected_output": "Returns saved source connectors, then table names from the selected connector UUID suitable for pipeline table selection.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Detect source schema drift on a running pipeline without applying DDL.",
+      "user_prompt": "Check whether my prod Postgres pipeline has any source schema changes waiting.",
+      "file_attachment_urls": null,
+      "tools_triggered": "pipeline_list,pipeline_detect_schema_changes",
+      "expected_output": "Resolves the pipeline UUID and requests schema-drift detection without applying automatic schema changes to the destination.",
+      "expected_output_url": null
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Do not trigger for unrelated calendar scheduling.",
+      "user_prompt": "What meetings do I have tomorrow?",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because calendar scheduling is outside Artie pipeline management workflows.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for arbitrary warehouse SQL analytics.",
+      "user_prompt": "Run SELECT COUNT(*) FROM analytics.revenue WHERE date = yesterday on Snowflake.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not run ad hoc SQL queries; it manages Artie replication pipelines rather than acting as a query engine.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for public social posting.",
+      "user_prompt": "Post an update to LinkedIn that our migration finished.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because it does not publish content to social networks.",
+      "expected_output_url": null
+    }
+  ]
+}
