@@ -25,7 +25,7 @@ Resolve the pipeline with `pipeline_list`, matching `name` or `uuid` — never g
 | Why is it failing? | `pipeline_error_logs` |
 | Won't start or keeps failing? | [Won't start](#wont-start-or-keeps-failing) |
 | Postgres slot or WAL growing? | [Slots](#postgres-slots-and-wal) |
-| Overall health? | `pipeline_detail` → `analytics_query` → `pipeline_error_logs` |
+| Overall health? | `pipeline_detail` → `analytics_query` → `pipeline_usage` → `pipeline_error_logs` |
 | Source table columns? | `connector_fetch_table_detail` on a **connector** UUID |
 
 Reads in scope: the tools above, plus `connector_list`, `source_reader_detail`, `connector_fetch_postgres_settings`, `connector_fetch_postgres_replication_slots` and `data_catalog_search`. Nothing else.
@@ -33,15 +33,15 @@ Reads in scope: the tools above, plus `connector_list`, `source_reader_detail`, 
 ## Lag
 
 - Total lag: one `analytics_query` with `pipelineUUID`, `datasets[]=readerLag`, `datasets[]=ingestionLag`, RFC3339 `from`/`to` (default: last hour UTC — always state the window). Total lag = readerLag + ingestionLag at each timestamp, matched by timestamp. Ingestion lag is only reported when Artie flushes, so a timestamp with only one dataset counts the missing one as 0 (an idle stretch has reader lag only), as the Dashboard's lag chart does. Report the total at the latest timestamp either dataset has, and the max in the window.
-- Each dataset comes back as `datasets.<name>` with its own `unit` and `err`. Read `unit`; don't assume seconds. A non-null `err` means that dataset is unavailable — say so, don't treat it as zero.
+- Each dataset comes back as `datasets.<name>` with its own `unit` and `err`. Read `unit`; don't assume seconds. A non-null `err` means that dataset is unavailable — say so, don't treat it as zero. `ingestionLag` with no points and a null `err` is normal for a Kafka destination: `readerLag` is then the whole lag.
 - Per table: `pipeline_usage` with the same window. `tableStats[].latency` is ingestion lag only, in seconds — never call it total lag. `count` is rows processed; pass `excludeBackfills=true` to count CDC rows only.
 - Throughput over time: `analytics_query` `datasets[]=rowsSyncedByTime`.
 
 ## Won't start or keeps failing
 
 1. `pipeline_list` row: quote `lastDeployError` and `lastDeployFailedAt` when set.
-2. Postgres source only: `source_reader_detail` with `sourceReaderUUID` → `connectorUUID` and `database`. Then `connector_fetch_postgres_settings` (`uuid` = `connectorUUID`, `databaseName` = `database`). `wal_level` must be `logical`; check `max_replication_slots` and `max_wal_senders` leave room for Artie.
-3. `connector_fetch_postgres_replication_slots` with the same args. Look for the reader's slot (`settings.replicationSlotOverride`, else `artie`).
+2. Postgres source only: `source_reader_detail` with `sourceReaderUUID` → `connectorUUID` and `database`. If it's denied, use `connector_list` with `includeSourceConnectors=true`; if more than one Postgres source could match, ask which one and its database. Then `connector_fetch_postgres_settings` (`uuid` = `connectorUUID`, `databaseName` = `database`). `wal_level` must be `logical`; check `max_replication_slots` and `max_wal_senders` leave room for Artie.
+3. `connector_fetch_postgres_replication_slots` with the same args. Look for the reader's slot (`settings.replicationSlotOverride`, else `artie`). No entry with that `name` means the slot doesn't exist — normal before the pipeline's first start.
 4. `pipeline_error_logs`. Quote the newest messages and their timestamps.
 
 Stop there and report which step showed the problem.
@@ -52,8 +52,9 @@ Get `connectorUUID` and `database` as in step 2 above, then `connector_fetch_pos
 
 - `active: false` on the reader's slot means nothing is reading it; WAL keeps growing while it stays inactive.
 - `retainedWALBytes` is the WAL the slot holds on the source. Report it in GB.
-- `walStatus` is Postgres's `wal_status`: `lost` means the slot can no longer be used. `notFound: true` means the reader's slot isn't on the database.
-- `connector_fetch_postgres_settings` `max_slot_wal_keep_size` caps retained WAL (`-1` = no cap).
+- `walStatus` is Postgres's `wal_status`: `unreserved` means the slot is about to lose WAL it needs; `lost` means it can no longer be used. On Postgres 12 and older it is always `N/A`.
+- The reader's slot is missing if no entry's `name` matches (see step 3).
+- `connector_fetch_postgres_settings` `max_slot_wal_keep_size` caps retained WAL (`-1` = no cap). It doesn't exist on Postgres 12 and older.
 - Settings are changed on the database, not through Artie. Dropping a slot is a change — hand it back.
 
 ## Gotchas
@@ -76,4 +77,4 @@ Get `connectorUUID` and `database` as in step 2 above, then `connector_fetch_pos
 
 ## Reply
 
-Lead with the pipeline's name and uuid, then lifecycle, the lag window and total lag, and the tables behind. This skill changes nothing, so never say a fix is queued or done.
+Lead with the pipeline's name and uuid, then lifecycle. If you checked lag, give the window, total lag and the tables behind. This skill changes nothing, so never say a fix is queued or done.
