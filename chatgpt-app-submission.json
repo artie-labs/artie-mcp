@@ -8,6 +8,18 @@
     "category": "DEVELOPER_TOOLS"
   },
   "tools": {
+    "analytics_query": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Returns pipeline lag and throughput time series over a requested time range without changing pipelines.",
+        "open_world_justification": "Reads live metrics for pipelines that move data between customer source and destination systems.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
     "column_hashing_salt_delete": {
       "annotations": {
         "readOnlyHint": false,
@@ -125,6 +137,30 @@
       "justifications": {
         "read_only_justification": "Lists database names visible to a saved connector without changing Artie or database configuration.",
         "open_world_justification": "Connects to the customer's external database to list accessible databases.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_fetch_postgres_replication_slots": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Lists PostgreSQL replication slots and their WAL retention on a saved source without dropping or changing slots.",
+        "open_world_justification": "Queries the customer's external PostgreSQL database for replication slot state.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "connector_fetch_postgres_settings": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Returns replication-related PostgreSQL server settings for a saved source without changing them.",
+        "open_world_justification": "Queries the customer's external PostgreSQL database for server settings.",
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
     },
@@ -272,6 +308,330 @@
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
     },
+    "kafka_admin_user_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes an admin-profile Kafka user by UUID on a Kafka cluster.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes the Kafka user and revokes its credentials and ACLs, cutting off clients that use it."
+      }
+    },
+    "kafka_admin_user_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one admin-profile Kafka user without its password and without changing it.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one Kafka cluster's status and configuration without changing the cluster.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists the company's Kafka clusters without changing them.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_metrics_graph": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns broker, topic, partition, CPU, and memory metrics for a Kafka cluster without changing it.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_rates": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns a Managed Kafka cluster's message and byte rates and consumer group lag without changing it.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_settings": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns a BYOC Kafka cluster's version, broker count, and disk settings without changing them.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_storage_graph": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns broker disk utilization over time for a Kafka cluster without changing storage.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_cluster_summary": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns topic and consumer group counts for a Kafka cluster without changing it.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_consumer_group_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one consumer group's members and per-partition offset lag without changing offsets.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_consumer_group_details": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns every consumer group's members and per-topic offset lag on a Managed Kafka cluster without changing offsets.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_consumer_group_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists consumer group IDs on a Kafka cluster without changing them.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_managed_user_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a Managed Kafka cluster's user by UUID.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes the Kafka user; Kafka refuses its password within seconds."
+      }
+    },
+    "kafka_managed_user_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists a Managed Kafka cluster's users and their ACLs without passwords and without changing them.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_managed_user_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Replaces a Managed Kafka cluster user's ACLs.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Replaces the user's ACLs without deleting the user or changing its password."
+      }
+    },
+    "kafka_topic_create": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates a Kafka topic with the requested partitions and replication factor.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Creates a new topic and does not delete or change existing topics or messages."
+      }
+    },
+    "kafka_topic_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a Kafka topic by name on a Kafka cluster.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes the topic and all of its messages."
+      }
+    },
+    "kafka_topic_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one Kafka topic's settings, partition sizes, and pipelines without changing the topic.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_topic_latest_message": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns the newest message from a topic's first partition without changing messages.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_topic_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists Kafka topics with partition counts and retention without changing them.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_topic_partitions_increase": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Increases a Kafka topic's partition count.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Adds partitions without deleting messages; Artie-managed topics are refused because new partitions change per-key ordering."
+      }
+    },
+    "kafka_topic_retention_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Changes a Kafka topic's retention.ms setting.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Shorter retention makes Kafka delete messages older than the new limit."
+      }
+    },
+    "kafka_topic_settings_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Changes a Kafka topic's retention and tiered storage settings.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Shorter retention deletes older messages, and turning tiered storage off deletes the topic's remote data."
+      }
+    },
+    "kafka_topic_sizes": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns partition sizes for every Kafka topic without changing topics.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_user_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a producer/consumer Kafka user by UUID on a Kafka cluster.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes the Kafka user and revokes its credentials and ACLs, cutting off clients that use it."
+      }
+    },
+    "kafka_user_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one Kafka user without its password and without changing it.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "kafka_user_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists Kafka users on a cluster without passwords and without changing them.",
+        "open_world_justification": "Operates on the company's Artie Kafka clusters without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
     "pipeline_backfill_tables": {
       "annotations": {
         "readOnlyHint": false,
@@ -353,6 +713,18 @@
       "justifications": {
         "read_only_justification": "Checks a pipeline source for schema drift without applying destination DDL by itself.",
         "open_world_justification": "Inspects the customer source for schema drift relative to the configured pipeline.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "pipeline_error_logs": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns recent error logs for a pipeline without changing the pipeline.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
     },
@@ -476,6 +848,66 @@
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
     },
+    "snowflake_eco_schedule_create": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates a Snowflake Eco Mode schedule record in the authenticated Artie account.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "snowflake_eco_schedule_delete": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a Snowflake Eco Mode schedule by UUID when no pipeline uses it.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Permanently deletes the Snowflake Eco Mode schedule record."
+      }
+    },
+    "snowflake_eco_schedule_detail": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Returns one Snowflake Eco Mode schedule without changing it.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "snowflake_eco_schedule_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists Snowflake Eco Mode schedules without changing them.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
+    "snowflake_eco_schedule_update": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Replaces a Snowflake Eco Mode schedule's name and peak-hour settings.",
+        "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
+        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+      }
+    },
     "source_reader_delete": {
       "annotations": {
         "readOnlyHint": false,
@@ -590,8 +1022,8 @@
       "description": "Monitor overall pipeline health including status and per-table state.",
       "user_prompt": "Is my production Postgres-to-Snowflake pipeline healthy right now? Show status and any tables that look stuck.",
       "file_attachment_urls": null,
-      "tools_triggered": "pipeline_list,pipeline_detail",
-      "expected_output": "Resolves the pipeline by name, reports lifecycle status flags, and summarizes per-table state without pausing, resuming, or backfilling.",
+      "tools_triggered": "pipeline_list,pipeline_detail,analytics_query,pipeline_error_logs",
+      "expected_output": "Resolves the pipeline by name, reports lifecycle status flags, total lag, per-table state, and recent error logs without pausing, resuming, or backfilling.",
       "expected_output_url": null
     },
     {
@@ -606,7 +1038,7 @@
       "description": "Set up a draft CDC pipeline from saved source and destination connectors.",
       "user_prompt": "Create a new Artie pipeline from my saved Postgres production source to my Snowflake warehouse destination using the public.orders and public.users tables, but leave it as a draft.",
       "file_attachment_urls": null,
-      "tools_triggered": "connector_list,pipeline_create_from_source,connector_fetch_tables,pipeline_update",
+      "tools_triggered": "connector_list,connector_fetch_databases,pipeline_create_from_source,connector_fetch_tables,connector_fetch_schemas,pipeline_update",
       "expected_output": "Uses saved connector UUIDs, creates a draft pipeline with a dedicated source reader, selects the requested tables, and saves destination landing settings without starting replication.",
       "expected_output_url": null
     },
@@ -638,10 +1070,10 @@
     },
     {
       "description": "Do not trigger for arbitrary warehouse SQL analytics.",
-      "user_prompt": "Run SELECT COUNT(*) FROM analytics.revenue WHERE date = yesterday on Snowflake.",
+      "user_prompt": "Write and run a SQL query on my Snowflake warehouse that sums yesterday's revenue by region.",
       "file_attachment_urls": null,
       "tools_triggered": null,
-      "expected_output": "The app should not run ad hoc SQL queries; it manages Artie replication pipelines rather than acting as a query engine.",
+      "expected_output": "The app should not run ad hoc warehouse SQL; it manages Artie replication pipelines, and analytics_query only returns Artie pipeline metrics such as lag and rows synced.",
       "expected_output_url": null
     },
     {
