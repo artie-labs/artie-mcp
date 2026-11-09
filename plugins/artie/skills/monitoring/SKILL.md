@@ -32,7 +32,7 @@ Reads in scope: the tools above, plus `connector_list`, `source_reader_detail`, 
 
 ## Lag
 
-- Total lag: one `analytics_query` with `pipelineUUID`, `datasets[]=readerLag`, `datasets[]=ingestionLag`, RFC3339 `from`/`to` (default: last hour UTC — always state the window). Total lag = readerLag + ingestionLag at each timestamp. Report the latest total and the max in the window.
+- Total lag: one `analytics_query` with `pipelineUUID`, `datasets[]=readerLag`, `datasets[]=ingestionLag`, RFC3339 `from`/`to` (default: last hour UTC — always state the window). Total lag = readerLag + ingestionLag at each timestamp, matched by timestamp. Ingestion lag is only reported when Artie flushes, so a timestamp with only one dataset counts the missing one as 0 (an idle stretch has reader lag only), as the Dashboard's lag chart does. Report the total at the latest timestamp either dataset has, and the max in the window.
 - Each dataset comes back as `datasets.<name>` with its own `unit` and `err`. Read `unit`; don't assume seconds. A non-null `err` means that dataset is unavailable — say so, don't treat it as zero.
 - Per table: `pipeline_usage` with the same window. `tableStats[].latency` is ingestion lag only, in seconds — never call it total lag. `count` is rows processed; pass `excludeBackfills=true` to count CDC rows only.
 - Throughput over time: `analytics_query` `datasets[]=rowsSyncedByTime`.
