@@ -24,11 +24,11 @@ Resolve the pipeline with `pipeline_list`, matching `name` or `uuid` — never g
 | Why is it failing? Error messages? | `pipeline_error_logs` |
 | How far behind (total lag)? | `analytics_query` with `pipelineUUID`, `datasets[]=readerLag` and `datasets[]=ingestionLag`, RFC3339 `from`/`to`; total lag = readerLag + ingestionLag at each timestamp |
 | Per-table lag, throughput, rows processed? | `pipeline_usage` with RFC3339 `from`/`to` (default: last hour UTC — always state the window); `excludeBackfills=true` to count CDC rows only |
-| Overall health? | `pipeline_list` → `pipeline_detail` → `pipeline_usage` → `pipeline_error_logs` |
-| Postgres slot or WAL health? | `connector_fetch_postgres_replication_slots` and `connector_fetch_postgres_settings` on the **source connector** UUID |
+| Overall health? | `pipeline_list` → `pipeline_detail` → `analytics_query` (total lag) → `pipeline_usage` → `pipeline_error_logs` |
+| Postgres slot or WAL health? | `pipeline_detail.sourceReaderUUID` → `source_reader_detail` (`connectorUUID`, `database`) → `connector_fetch_postgres_replication_slots` and `connector_fetch_postgres_settings` with that `connectorUUID` and `databaseName` = `database` |
 | Source table columns? | `connector_fetch_table_detail` on a **connector** UUID |
 
-Scope is those reads plus `connector_list` and `data_catalog_search`. Nothing else.
+Scope is those reads plus `connector_list`, `data_catalog_search` and `source_reader_detail`. Nothing else. Never echo `source_reader_detail` output — it can hold credentials; use only `connectorUUID` and `database`.
 
 ## Gotchas
 
@@ -38,7 +38,7 @@ Scope is those reads plus `connector_list` and `data_catalog_search`. Nothing el
 - `pipeline_usage.tableStats[].latency` is ingestion lag only (seconds), not total lag. It is nullable: `null` ≠ 0, exclude it before taking a max. `count: 0` means nothing moved in the window, not an empty table. `tableStats: []` means no metrics in that window — widen it before calling anything unhealthy. Rows key on `tableName` only, with no `uuid`/`schema`.
 - Source schema drift: do not call `pipeline_detect_schema_changes` here. It is a write — on pipelines with auto-replicate or auto-history for new tables it adds the new tables to the pipeline and emails a summary. Point to the pipeline overview or [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes) instead, and hand detection back like any other change.
 - `pipeline_error_logs` returns recent logged errors (`message`, `errorDetail`, table/schema, timestamps). Quote what it says and when; an empty list means no recent logged errors, not proof of health.
-- Slot tools take a **source connector** UUID (`connector_list` with `includeSourceConnectors=true`), not a pipeline uuid or `sourceReaderUUID`; pass the pipeline's reader database as `databaseName`. `connector_drop_postgres_replication_slot` drops a slot — never a health check. Never invent logs, metrics, or a destination row count.
+- Slot tools take a **source connector** UUID (`source_reader_detail.connectorUUID`), not a pipeline uuid or `sourceReaderUUID`; pass the reader's `database` as `databaseName`. `connector_drop_postgres_replication_slot` drops a slot — never a health check. Never invent logs, metrics, or a destination row count.
 - Report what a field says, not why — a stale lag or a status mismatch has causes these tools can't show. Flag it; don't explain it.
 - MCP can't verify the destination. Report rows processed, not "landed."
 
@@ -50,4 +50,4 @@ Scope is those reads plus `connector_list` and `data_catalog_search`. Nothing el
 
 ## Reply
 
-Lead with the pipeline's name and uuid, then lifecycle, table counts, and the lag window if used. Say "queued," never "done," for anything just detected or requested.
+Lead with the pipeline's name and uuid, then lifecycle, table counts, and the lag window if used. This skill changes nothing, so never say a fix is queued or done.
