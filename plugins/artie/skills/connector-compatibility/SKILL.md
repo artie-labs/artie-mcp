@@ -26,7 +26,7 @@ This is a read-only workflow, mostly documentation. Start with [Artie docs index
 
 ## Saved Postgres: ready for CDC?
 
-If the source is already saved, answer from the live server: `connector_fetch_postgres_settings` with the source `uuid` from `connector_list` (`includeSourceConnectors=true`) and the database as `databaseName`. Check `wal_level` is `logical` and that `max_replication_slots` and `max_wal_senders` are at least the docs' minimums, then compare with the current Postgres source page from the docs index. Settings are changed on the database, not through Artie. If the fetch fails with a connection or auth error, say the saved connector couldn't reach the database and point to the [Artie Dashboard](https://app.artie.com) to fix it.
+If the source is already saved, answer from the live server: `connector_fetch_postgres_settings` with the source `uuid` from `connector_list` (`includeSourceConnectors=true`). These settings are server-wide, so omit `databaseName` unless the user names a database. Check `wal_level` is `logical` and that `max_replication_slots` and `max_wal_senders` are at least the docs' minimums, then compare with the current Postgres source page from the docs index. Settings are changed on the database, not through Artie. If the fetch fails with a connection or auth error, say the saved connector couldn't reach the database and point to the [Artie Dashboard](https://app.artie.com) to fix it.
 
 ## SQL Server capture
 
