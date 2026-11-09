@@ -5,7 +5,8 @@ description: >
   optionally starts it. Use when the user wants a new pipeline, a first
   pipeline, CDC, a stream or sync, or to replicate a source into a warehouse
   — even if they have not saved the connector yet and want to provide
-  connection details now, or they already have saved connectors. Do not
+  connection details now, or they already have saved connectors. Also use
+  to attach a Snowflake Eco Mode schedule to a pipeline. Do not
   use for type-support or network questions, pipeline health or lag,
   checking whether data landed in the warehouse, adding tables to a running
   pipeline, attaching a second destination to an existing reader (fan-out),
@@ -17,12 +18,12 @@ description: >
 Copy this checklist and mark steps as you go. Stop at a failed gate. Do not skip ahead.
 
 - [ ] Step 1: Acquire a source connector. Call `connector_list` with `includeSourceConnectors=true`. If they named one, match `label` / `uuid` and do not re-ask. If none, ask: saved source, or create one now?
-- [ ] Step 2: Ping the source with `unsaved_connector_ping`. Stop if ping fails.
-  - Saved: Call `connector_detail`. Pass that whole body into `unsaved_connector_ping`. Leave `uuid` on it. Add `connectionRole=source`. `connector_detail` does not return the real password; `uuid` is how Dashboard loads it.
+- [ ] Step 2: Ping a **new** source with `unsaved_connector_ping`. Stop if ping fails.
+  - Saved: skip the ping. The catalog fetches in steps 7 and 9 reach the same host; if it fails, the saved connector needs fixing in the [Artie Dashboard](https://app.artie.com) (MCP can't edit connectors).
   - New: Ask for type, label, host, port, user, password, and type-specific fields. Confirm. `sharedConfig` is the inner config (`host`, `port`, `user`, `password` for Postgres). `defaultDatabase` is a **top-level** field, not inside `sharedConfig`. Do not send `uuid`. Add `connectionRole=source`.
 - [ ] Step 3: Create the source if it is new. Call `connector_create` with type, label, `sharedConfig`, and `defaultDatabase` from the ping. Drop `uuid` and `connectionRole` (`connectionRole` is ping-only). Keep the returned UUID. Skip if it was already saved.
 - [ ] Step 4: Acquire a destination connector. Call `connector_list` **without** `includeSourceConnectors`. If they named one, match `label` / `uuid` and do not re-ask. If none, ask: saved destination, or create one now?
-- [ ] Step 5: Ping the destination with `unsaved_connector_ping`. Same two bodies as step 2, but `connectionRole=destination`. Stop if ping fails.
+- [ ] Step 5: Ping a **new** destination with `unsaved_connector_ping`. Same body as step 2, but `connectionRole=destination`. Stop if ping fails. Saved: skip it, as in step 2.
 - [ ] Step 6: Create the destination if it is new. Same as step 3 (`connectionRole` is ping-only). Keep the UUID. Skip if it was already saved.
 - [ ] Step 7: Choose the reader database (or MySQL schema). This is not `defaultDatabase` from the connector. Ask if more than one.
   - Postgres / Cockroach / Oracle: `connector_fetch_databases` on the **source** UUID. Keep that name for steps 8–9.
@@ -30,11 +31,11 @@ Copy this checklist and mark steps as you go. Stop at a failed gate. Do not skip
 - [ ] Step 8: Create the draft with `pipeline_create_from_source` (`sourceConnectorUUID`, plus `database` when step 7 produced one for Postgres/Cockroach/Oracle). Keep the FullPipeline.
 - [ ] Step 9: Choose tables. Call `connector_fetch_tables` on the **source** UUID (`databaseName` / `schemaName` are query args). Pass `databaseName` when step 7 produced one for Postgres/Cockroach/Oracle. For MySQL pass the chosen schema as `schemaName` and skip `databaseName`. Do not pass a destination schema. Tables are in `items` (`name`, `schema`). Ask which to replicate. If `items` is empty, leave the draft and do not start.
 - [ ] Step 10: Choose dest landing. Overlay this onto `specificDestCfg` in step 12.
-  - S3 / GCS: skip catalog fetch. Set `specificDestCfg.bucketName` to the bucket from ping (`defaultDatabase`).
+  - S3 / GCS: skip catalog fetch. Set `specificDestCfg.bucketName` to the bucket (`defaultDatabase` from the ping body, or from `connector_detail` for a saved destination).
   - Else: `connector_fetch_databases` on the **destination** UUID. If it 400s or is empty, skip database. Then `connector_fetch_schemas` with `databaseName` when you have one — if that 400s, skip schema (BigQuery has datasets only). Ask if more than one. Set `specificDestCfg.database` and, when the dest has schemas, `specificDestCfg.schema`. Do not copy the source schema. Do not pick the first name. Dests with schemas (Snowflake, Redshift, Postgres, …) require `specificDestCfg.schema` unless `useSameSchemaAsSource` (do not set that).
 - [ ] Step 11: Name the pipeline. Default is `From {source label}`. Ask if they want a different name.
-- [ ] Step 12: Echo the plan (source, dest, landing, tables, name). Wait for confirm. Then `pipeline_update` with path `uuid` = the pipeline UUID and body key `pipeline` (not a flat FullPipeline). Echo the last FullPipeline **into `pipeline`**, overlay `name`, `destinationUUID`, `specificDestCfg` (from step 10), and `tables` (`{name, schema}` from step 9; `schema` is the **source** schema). Keep `sourceReaderUUID` and `dataPlaneName` from the echo.
-- [ ] Step 13: Ask whether to start now or leave it as a draft. If start: `pipeline_start`. Success is `{"success": true}` — stop. Do not call `pipeline_usage`, do not poll table status, do not claim a row landed. Health, lag, and whether a row landed are outside this skill. If `pipeline_start` 400s or times out, read [references/start-failures.md](references/start-failures.md).
+- [ ] Step 12: Echo the plan (source, dest, landing, tables, name). Wait for confirm. Then `pipeline_update` with path `uuid` = the pipeline UUID and body key `pipeline` (not a flat FullPipeline). Echo the last FullPipeline **into `pipeline`**, overlay `name`, `destinationUUID`, `specificDestCfg` (from step 10), and `tables` (`{name, schema}` from step 9; `schema` is the **source** schema). Keep `sourceReaderUUID` and `dataPlaneName` from the echo. If they want an Eco Mode schedule (Snowflake destination only), add `snowflakeEcoScheduleUUID` (see [Snowflake Eco Mode](#snowflake-eco-mode)).
+- [ ] Step 13: Ask whether to start now or leave it as a draft. Postgres source: first call `connector_fetch_postgres_settings` (source UUID, `databaseName` from step 7). If `wal_level` is not `logical`, do not start — follow WAL level in [references/start-failures.md](references/start-failures.md). If start: `pipeline_start`. Success is `{"success": true}` — stop. Do not call `pipeline_usage`, do not poll table status, do not claim a row landed. Health, lag, and whether a row landed are outside this skill. If `pipeline_start` 400s or times out, read [references/start-failures.md](references/start-failures.md).
 
 ## Gotchas
 
@@ -44,7 +45,7 @@ Copy this checklist and mark steps as you go. Stop at a failed gate. Do not skip
 - Postgres ping/create needs top-level `defaultDatabase` (database name). Oracle: that same field is the service name. S3: that same field is the bucket. Do not put it inside `sharedConfig`.
 - `unsaved_connector_ping` succeeds with `{"success": true}`. A 422 means the connection failed (unreachable host, bad credentials, missing permissions); quote its error, which says why. A 400 means the request body is wrong — fix the body, not the credentials. Do not switch to a different saved connector. Stop on a 422.
 - Do not echo the password. Do not call `unsaved_connector_fetch_*` — fetch after the connector is saved.
-- If `connector_create` or `unsaved_connector_ping` is missing from `tools/list`, send them to the [Artie Dashboard](https://app.artie.com) to save the connector, then resume.
+- If `connector_create` or `unsaved_connector_ping` is missing from `tools/list`, or ping returns 403 (it needs the `connectors:write` scope), send them to the [Artie Dashboard](https://app.artie.com) to save the connector, then resume.
 
 ### Catalog
 
@@ -58,3 +59,9 @@ Copy this checklist and mark steps as you go. Stop at a failed gate. Do not skip
 - `pipeline_list` is not a FullPipeline. If you lose the create response, reload with `pipeline_detail` and omit `includeRelatedObjects`.
 - `pipeline_update` is a full replace, not a PATCH. Args are `uuid` + `pipeline`. Send `destinationUUID`, `specificDestCfg`, and `tables` together. Omitting `tables` deletes every table. Keep `sourceReaderUUID` and `dataPlaneName` from the echo.
 - Do not call `pipeline_start` until destination and tables are saved.
+
+### Snowflake Eco Mode
+
+- A schedule sets peak hours; outside them, attached pipelines use its off-peak flush rules. List with `snowflake_eco_schedule_list`; ask which one, or whether to create one with `snowflake_eco_schedule_create` (`name`, `settings`: `timezone`, `days`, `startTimeOfDay`, `endTimeOfDay`, `offPeakFlushIntervalSeconds`, `offPeakBufferRows`, `offPeakFlushSizeKb`). Confirm before creating.
+- Attach by setting `snowflakeEcoScheduleUUID` in the step 12 `pipeline_update` body. On an existing pipeline, echo `pipeline_detail` into `pipeline`, change only `snowflakeEcoScheduleUUID`, and keep `tables` — `pipeline_update` is a full replace and omitting `tables` deletes every table.
+- `snowflake_eco_schedule_delete` fails while a pipeline uses the schedule. Confirm before deleting.

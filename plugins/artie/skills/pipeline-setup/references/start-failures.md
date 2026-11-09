@@ -1,6 +1,6 @@
 # pipeline_start failures
 
-Read this only when `pipeline_start` 400s or times out. After a `{"success": true}`, do not use this file.
+Read this only when `pipeline_start` 400s or times out, or the Postgres settings check in step 13 fails. After a `{"success": true}`, do not use this file.
 
 ## Slot already in use
 
@@ -11,13 +11,13 @@ If `source_reader_detail` or `source_reader_update` is missing from `tools/list`
 Otherwise:
 
 1. `source_reader_detail` with path `uuid` = the pipeline's `sourceReaderUUID` (not a connector uuid).
-2. Set `settings.replicationSlotOverride` to a unique lowercase name (digits/underscores, ≤63).
+2. `connector_fetch_postgres_replication_slots` on the reader's `connectorUUID` (with `databaseName` = the reader's `database`) to see the slot names already taken. Set `settings.replicationSlotOverride` to a lowercase name (digits/underscores, ≤63) that is not in that list. Do not drop the other reader's slot.
 3. `source_reader_update` with that same path `uuid` and the echoed reader as the body (not wrapped in `pipeline`). Omitting `name`, `database`, or `connectorUUID` blanks them.
 4. Call `pipeline_start` again.
 
 ## WAL level
 
-If the 400 says WAL level is `replica` (or not `logical`): that is a Postgres server setting, not an Artie config. Tell them to set `wal_level = logical` and restart Postgres, then call `pipeline_start` again. Do not `ALTER SYSTEM` yourself.
+If the 400 says WAL level is `replica` (or not `logical`), or `connector_fetch_postgres_settings` shows `wal_level` is not `logical`: that is a Postgres server setting, not an Artie config. Tell them to set `wal_level = logical` and restart Postgres, then check `connector_fetch_postgres_settings` once and call `pipeline_start`. Do not `ALTER SYSTEM` yourself.
 
 ## Timeout
 
