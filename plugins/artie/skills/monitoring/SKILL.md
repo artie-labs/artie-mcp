@@ -63,7 +63,7 @@ Get `connectorUUID` and `database` as in step 2 above, then `connector_fetch_pos
 - `disableReplication: true` on a table is intentional — list it as excluded, not failing.
 - `pipeline_usage` `latency` is nullable: `null` ≠ 0, exclude it before taking a max. `count: 0` means nothing moved in the window, not an empty table. `tableStats: []` means no metrics in that window — widen it before calling anything unhealthy. Rows key on `tableName` only, with no `uuid`/`schema`.
 - `pipeline_error_logs`: an empty list means no recent logged errors, not proof of health.
-- Slot and settings tools take a **source connector** UUID, never a pipeline uuid or `sourceReaderUUID`. `source_reader_detail` may hold sensitive fields — never echo them.
+- Slot and settings tools take a **source connector** UUID, never a pipeline uuid or `sourceReaderUUID`. `source_reader_detail` can hold credentials — never echo its output; use only `connectorUUID`, `database` and the slot override.
 - Source schema drift: do not call `pipeline_detect_schema_changes`. It is a write — on pipelines with auto-replicate or auto-history for new tables it adds the new tables and emails a summary. Point to [schema-change notifications](https://www.artie.com/docs/monitoring/schema-changes) and hand detection back.
 - Report what a field says, not why — a stale lag or a status mismatch has causes these tools can't show. Flag it; don't explain it. Never invent logs, metrics, or a destination row count.
 - MCP can't verify the destination. Report rows processed, not "landed."
@@ -76,4 +76,4 @@ Get `connectorUUID` and `database` as in step 2 above, then `connector_fetch_pos
 
 ## Reply
 
-Lead with the pipeline's name and uuid, then lifecycle, the lag window and total lag, and the tables behind. Say "queued," never "done," for anything just requested.
+Lead with the pipeline's name and uuid, then lifecycle, the lag window and total lag, and the tables behind. This skill changes nothing, so never say a fix is queued or done.
