@@ -20,7 +20,7 @@ Resolve the pipeline with `pipeline_list`, matching `name` or `uuid` — never g
 |---|---|
 | Running, paused, deploying, backfilling? | none — answer from the row |
 | How far behind? | `analytics_query` (see [Lag](#lag)) |
-| Which tables are behind? Rows synced? | `pipeline_usage` |
+| Which tables are behind? Rows synced? | `pipeline_usage` with RFC3339 `from`/`to` (see [Lag](#lag)) |
 | Per-table status? | `pipeline_detail` (omit `includeRelatedObjects`) |
 | Why is it failing? | `pipeline_error_logs` |
 | Won't start or keeps failing? | [Won't start](#wont-start-or-keeps-failing) |
@@ -41,7 +41,7 @@ Reads in scope: the tools above, plus `connector_list`, `source_reader_detail`, 
 
 1. `pipeline_list` row: quote `lastDeployError` and `lastDeployFailedAt` when set.
 2. Postgres source only: `source_reader_detail` with `sourceReaderUUID` → `connectorUUID` and `database`. If it's denied, use `connector_list` with `includeSourceConnectors=true`; if more than one Postgres source could match, ask which one and its database. Then `connector_fetch_postgres_settings` (`uuid` = `connectorUUID`, `databaseName` = `database`). `wal_level` must be `logical`; check `max_replication_slots` and `max_wal_senders` leave room for Artie.
-3. `connector_fetch_postgres_replication_slots` with the same args. Look for the reader's slot (`settings.replicationSlotOverride`, else `artie`). No entry with that `name` means the slot doesn't exist — normal before the pipeline's first start.
+3. Postgres source only: `connector_fetch_postgres_replication_slots` with the same args. Look for the reader's slot (`settings.replicationSlotOverride`, else `artie`). No entry with that `name` means the slot doesn't exist — normal before the pipeline's first start. If you fell back to `connector_list`, you can't see the override: report every slot's `active` and `walStatus` instead of assuming `artie`.
 4. `pipeline_error_logs`. Quote the newest messages and their timestamps.
 
 Stop there and report which step showed the problem.
@@ -77,4 +77,4 @@ Get `connectorUUID` and `database` as in step 2 above, then `connector_fetch_pos
 
 ## Reply
 
-Lead with the pipeline's name and uuid, then lifecycle. If you checked lag, give the window, total lag and the tables behind. This skill changes nothing, so never say a fix is queued or done.
+Lead with the pipeline's name and uuid, then lifecycle. If you checked lag or rows synced, always give the window, then total lag, the tables behind and row counts as asked. This skill changes nothing, so never say a fix is queued or done.
