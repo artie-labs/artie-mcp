@@ -24,7 +24,7 @@ Resolve the pipeline with `pipeline_list`, matching `name` or `uuid` — never g
 | Why is it failing? Error messages? | `pipeline_error_logs` |
 | How far behind (total lag)? | `analytics_query` with `pipelineUUID`, `datasets[]=readerLag` and `datasets[]=ingestionLag`, RFC3339 `from`/`to`; total lag = readerLag + ingestionLag at each timestamp |
 | Per-table lag, throughput, rows processed? | `pipeline_usage` with RFC3339 `from`/`to` (default: last hour UTC — always state the window); `excludeBackfills=true` to count CDC rows only |
-| Overall health? | `pipeline_list` → `pipeline_detail` → `pipeline_usage` → `pipeline_error_logs` |
+| Overall health? | `pipeline_list` → `pipeline_detail` → `analytics_query` (total lag) → `pipeline_usage` → `pipeline_error_logs` |
 | Postgres slot or WAL health? | `connector_fetch_postgres_replication_slots` and `connector_fetch_postgres_settings` on the **source connector** UUID |
 | Source table columns? | `connector_fetch_table_detail` on a **connector** UUID |
 
