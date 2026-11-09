@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "ae919b09d13f298352160ed1e7e80150f02e9fb5ce1f3ea5b03394b77f08e4ad",
-  "releaseTag": "v1.0.211",
+  "policySHA256": "7b801eab618d5d0d9c13cbb18e977c71204ffdfd7a3579343f03e245b1b4cd12",
+  "releaseTag": "v1.0.212",
   "tools": [
     {
       "annotations": {
@@ -573,7 +573,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d54a17c2c97c39e0f62eb68f2a6570268e4e0b3984416c9712ab241bce4d61a4",
       "title": "Delete an admin Kafka user",
-      "triggerDescription": "Use when you need to delete an admin Kafka user."
+      "triggerDescription": "Deletes an admin Kafka user on a BYOC cluster. Kafka revokes its access within seconds, so clients using it stop working. userUUID comes from kafka_user_list where accessProfile is admin. Confirm with the user first."
     },
     {
       "annotations": {
@@ -595,7 +595,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
       "title": "Get an admin Kafka user",
-      "triggerDescription": "Use when you need to get an admin Kafka user."
+      "triggerDescription": "One admin Kafka user on a BYOC cluster, without its password. There is no admin user list: find the userUUID in kafka_user_list where accessProfile is admin."
     },
     {
       "annotations": {
@@ -617,7 +617,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "575b8c5886e61072eb276a9d14ab67da8b0efab55125d5bb55b0483d24180ad1",
       "title": "Get a Kafka cluster",
-      "triggerDescription": "Use when you need to get a Kafka cluster."
+      "triggerDescription": "Gets one Kafka cluster by the uuid from kafka_cluster_list. For a Managed cluster it also returns the cluster's saved configuration; for a BYOC cluster it matches its kafka_cluster_list entry."
     },
     {
       "annotations": {
@@ -639,7 +639,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "c2c2d3309706290774ed203ee973d93b11eda5d31ecc9fdb9a3a8a3385537983",
       "title": "List Kafka clusters",
-      "triggerDescription": "Use when you need to list Kafka clusters."
+      "triggerDescription": "Start here for any Kafka question: lists the company's Kafka clusters with uuid, name, status and isManaged. Every other kafka_* tool takes that uuid. isManaged decides which tools work: Managed clusters use kafka_managed_user_*, kafka_cluster_rates and kafka_consumer_group_details; BYOC clusters (isManaged false) use kafka_user_*, kafka_admin_user_* and kafka_cluster_settings."
     },
     {
       "annotations": {
@@ -661,7 +661,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "bbbff1576459ff95bcf0345c2b56760b16600f5c7b28b322f17cf211784df4af",
       "title": "Get Kafka metrics graphs",
-      "triggerDescription": "Use when you need to get Kafka metrics graphs."
+      "triggerDescription": "Broker, topic and partition metrics and per-broker CPU over time, between from and to, for a Strimzi cluster. Use for trends and CPU questions; for current throughput and consumer lag on a Managed cluster, kafka_cluster_rates is quicker."
     },
     {
       "annotations": {
@@ -683,7 +683,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3e68be0c88cb7e1340b5f8382012201284e88e1c89cb269232b7fc1c454cea79",
       "title": "Get Managed Kafka cluster rates",
-      "triggerDescription": "Use when you need to get Managed Kafka cluster rates."
+      "triggerDescription": "Managed clusters only, and the cluster must be active (400 or 409 otherwise). Shows current messages in and bytes out per second, each topic's message rate, and each consumer group's lag per topic over range (1h or 6h). Use first for whether a Managed cluster is busy or any consumer is behind."
     },
     {
       "annotations": {
@@ -705,7 +705,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b3b8eb40e0c22d6711536aa5b658211c223c5a871983667f2fc4982fd325e17f",
       "title": "Get a BYOC Kafka cluster's settings",
-      "triggerDescription": "Use when you need to get a BYOC Kafka cluster's settings."
+      "triggerDescription": "BYOC Strimzi clusters only: Kafka version, broker count, and disk size and storage class per broker. Managed and MSK clusters return supported false; for a Managed cluster's configuration use kafka_cluster_detail."
     },
     {
       "annotations": {
@@ -727,7 +727,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "be6036acdeb474ef8a472044d33176f8b7d890a7ac16b9fc57485edb41a203d2",
       "title": "Get Kafka storage graph",
-      "triggerDescription": "Use when you need to get Kafka storage graph."
+      "triggerDescription": "Broker disk usage over time, between from and to. Use for whether the disk is filling up; follow with kafka_topic_sizes to see which topics use the space."
     },
     {
       "annotations": {
@@ -749,7 +749,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "9d12f13fd2f0f3da23c4ce8c77a5b12aa0efdd4b76be4d48ca6b8fd832b4ea48",
       "title": "Get Kafka cluster summary",
-      "triggerDescription": "Use when you need to get Kafka cluster summary."
+      "triggerDescription": "Returns only two counts for a cluster: topics and consumer groups. For status or configuration use kafka_cluster_detail."
     },
     {
       "annotations": {
@@ -771,7 +771,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "599e7273d3e9590662b1363fa24477ec7effc3c7269058227a18f2e5a7fb310a",
       "title": "Get Kafka consumer group detail",
-      "triggerDescription": "Use when you need to get Kafka consumer group detail."
+      "triggerDescription": "One consumer group's members and per-topic offset lag, on any cluster type. Use for whether a specific consumer is behind. groupID comes from kafka_consumer_group_list."
     },
     {
       "annotations": {
@@ -793,7 +793,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "6f9e7ada9d1df99eaaa8448a0e0559beb93bcae3c91e41a8e64ab4e5828a2210",
       "title": "Get every Kafka consumer group's detail",
-      "triggerDescription": "Use when you need to get every Kafka consumer group's detail."
+      "triggerDescription": "Managed clusters only (400 otherwise): every consumer group's members and per-topic offset lag in one call. Use instead of calling kafka_consumer_group_detail once per group."
     },
     {
       "annotations": {
@@ -815,7 +815,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "85c2fd147d1e5be242fd06dab2331269351b7795c95c6d39dfe6401f024f5275",
       "title": "List Kafka consumer groups",
-      "triggerDescription": "Use when you need to list Kafka consumer groups."
+      "triggerDescription": "Lists consumer group IDs on a cluster, without lag. groupID is what kafka_consumer_group_detail takes. For lag on every group of a Managed cluster in one call, use kafka_consumer_group_details instead."
     },
     {
       "annotations": {
@@ -837,7 +837,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a Managed Kafka cluster's user",
-      "triggerDescription": "Use when you need to delete a Managed Kafka cluster's user."
+      "triggerDescription": "Managed clusters only: deletes a login. Kafka rejects its password within seconds, so clients using it stop working. Confirm with the user first."
     },
     {
       "annotations": {
@@ -859,7 +859,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "697abb3ef298c2902db2246f26be73cd7af5b5478fbcf92ee1a6cd27aec606e7",
       "title": "List a Managed Kafka cluster's users",
-      "triggerDescription": "Use when you need to list a Managed Kafka cluster's users."
+      "triggerDescription": "Managed clusters only: lists the cluster's extra Kafka logins with their ACLs, without passwords. userUUID is what kafka_managed_user_update and kafka_managed_user_delete take."
     },
     {
       "annotations": {
@@ -881,7 +881,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "8b3089b23c6683b1ed01f7532bfa8988cbd5c7a379180a76d3724f7c93bd2e87",
       "title": "Change a Managed Kafka cluster's user's ACLs",
-      "triggerDescription": "Use when you need to change a Managed Kafka cluster's user's ACLs."
+      "triggerDescription": "Managed clusters only: replaces a login's ACLs with the acls you send, so any ACL left out is removed. The password stays the same. Read the current ACLs with kafka_managed_user_list and confirm the change with the user first."
     },
     {
       "annotations": {
@@ -903,7 +903,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "44aab98754d9fbb6436df3bba003acc79dce72b412b8510b15284cbcd88037aa",
       "title": "Create a Kafka topic",
-      "triggerDescription": "Use when you need to create a Kafka topic."
+      "triggerDescription": "Creates a topic with topic, partitionCount, replicationFactor and optional configEntries. On a BYOC cluster the name must start with <companyUUID>.customer.; on a Managed cluster any name works except the cluster's own (__ and strimzi.cruisecontrol.*), and the cluster must be active. Confirm the settings with the user first."
     },
     {
       "annotations": {
@@ -925,7 +925,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a Kafka topic",
-      "triggerDescription": "Use when you need to delete a Kafka topic."
+      "triggerDescription": "Deletes a topic and every message in it; this can't be undone. Don't delete a topic with artieManaged true (it feeds Artie pipelines) unless the user asked for that exact topic. Confirm the topic name with the user first."
     },
     {
       "annotations": {
@@ -947,7 +947,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d3534ec14c0afd04011f1c800514865e21b0c7158fc666a71db32c2ef5e9030c",
       "title": "Get Kafka topic detail",
-      "triggerDescription": "Use when you need to get Kafka topic detail."
+      "triggerDescription": "One topic's per-partition sizes, replication, leaders and offsets, plus the Artie pipelines (names and uuids) that read it. topic comes from kafka_topic_list. Use before changing or deleting a topic to see what depends on it."
     },
     {
       "annotations": {
@@ -969,7 +969,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "a8493b48d1274a28e9bdcbdc2865564036f73597abf76af3df21d2e0099c7bb4",
       "title": "Get latest Kafka topic message",
-      "triggerDescription": "Use when you need to get latest Kafka topic message."
+      "triggerDescription": "Returns the contents of the newest message on partition 0 of a topic. It can be customer data, so call it only when the user asks to see a message, and quote no more than needed. Fails unless the company allows reading Kafka messages."
     },
     {
       "annotations": {
@@ -991,7 +991,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f728cd2238bc17ef8535c334245c0d774537cee583f8b06939a1f30dd5dba115",
       "title": "List Kafka topics",
-      "triggerDescription": "Use when you need to list Kafka topics."
+      "triggerDescription": "Lists a cluster's topics with partitionCount, retention, tiered storage and artieManaged. artieManaged true means the topic carries Artie CDC data that pipelines read. The topic name is the topic other topic tools take. Cached for 2 minutes; pass forceRefresh after creating a topic."
     },
     {
       "annotations": {
@@ -1013,7 +1013,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Increase Kafka topic partitions",
-      "triggerDescription": "Use when you need to increase Kafka topic partitions."
+      "triggerDescription": "Adds partitions to a topic; this can't be undone and changes which partition each key lands on. Refused on artieManaged topics. Send currentPartitionCount from kafka_topic_list and the new total as newPartitionCount. Confirm with the user first."
     },
     {
       "annotations": {
@@ -1035,7 +1035,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Change Kafka topic retention",
-      "triggerDescription": "Use when you need to change Kafka topic retention."
+      "triggerDescription": "Sets only a topic's retention.ms. Prefer kafka_topic_settings_update, which also handles local retention and tiered storage. Shorter retention deletes older messages for good. Confirm the change with the user first."
     },
     {
       "annotations": {
@@ -1057,7 +1057,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "7e9ed3f13f8f5c6bf2501808745adfae0c07b09ae7d17f168a659cacd8d06400",
       "title": "Change Kafka topic settings",
-      "triggerDescription": "Use when you need to change Kafka topic settings."
+      "triggerDescription": "Changes a topic's retentionMS, localRetentionMS and tieredStorage; send only what changes. Shorter retention deletes older messages for good, and on an artieManaged topic can drop change events before pipelines read them. Confirm the change with the user first."
     },
     {
       "annotations": {
@@ -1079,7 +1079,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "9048ac059b420799063ca4b0db13f25d48dcf3c1d40142df3b94f785265be4f1",
       "title": "Get Kafka topic partition sizes",
-      "triggerDescription": "Use when you need to get Kafka topic partition sizes."
+      "triggerDescription": "Bytes used by every topic on a cluster, per partition, in one call. Use to find which topics fill the disk. Cached unless forceRefresh is true."
     },
     {
       "annotations": {
@@ -1101,7 +1101,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d54a17c2c97c39e0f62eb68f2a6570268e4e0b3984416c9712ab241bce4d61a4",
       "title": "Delete a Kafka user",
-      "triggerDescription": "Use when you need to delete a Kafka user."
+      "triggerDescription": "Deletes a producer_consumer Kafka user on a BYOC cluster. Kafka revokes its access within seconds, so clients using it stop working. userUUID comes from kafka_user_list. Confirm with the user first."
     },
     {
       "annotations": {
@@ -1123,7 +1123,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
       "title": "Get a Kafka user",
-      "triggerDescription": "Use when you need to get a Kafka user."
+      "triggerDescription": "One producer_consumer Kafka user on a BYOC cluster, without its password. userUUID comes from kafka_user_list. Passwords aren't available through MCP; the user can copy one from the Artie dashboard."
     },
     {
       "annotations": {
@@ -1145,7 +1145,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "bdb38b5e05d8804a4e938c1ba7162a3f3c6afe85d335e0993de86ecca49e8fb8",
       "title": "List Kafka users",
-      "triggerDescription": "Use when you need to list Kafka users."
+      "triggerDescription": "BYOC clusters only; Managed clusters return 400, so use kafka_managed_user_list there. Lists Kafka users of both access profiles, without passwords. accessProfile picks the tools for a user: producer_consumer uses kafka_user_detail and kafka_user_delete, admin uses kafka_admin_user_detail and kafka_admin_user_delete."
     },
     {
       "annotations": {
