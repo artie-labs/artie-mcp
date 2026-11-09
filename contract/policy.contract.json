@@ -1,8 +1,30 @@
 {
   "formatVersion": 2,
-  "policySHA256": "6ce73dadbd4c7bfd1154495faf0d936dc4c4f072893fee0b2b64b2ab6ea5f649",
-  "releaseTag": "v1.0.112",
+  "policySHA256": "ae919b09d13f298352160ed1e7e80150f02e9fb5ce1f3ea5b03394b77f08e4ad",
+  "releaseTag": "v1.0.211",
   "tools": [
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "analytics_query",
+      "outputSensitivity": "none",
+      "path": "/analytics",
+      "requestSchemaSHA256": "1b2dc8c80caa2e1d9f278e2b55683b6ce3620b0b174e55b405898c2333344206",
+      "requiredScopes": [
+        "pipelines:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "14a55add6344f772438112daeb1eb2d29c3989d64851cbb66198690d6440be95",
+      "title": "Query analytics",
+      "triggerDescription": "Returns time series for named datasets (datasets[]) such as rowsSyncedByTime, ingestionLag, readerLag, rowLag and flushTime over from/to (RFC3339). Pass pipelineUUID from pipeline_list to scope to one pipeline; it is required for environment-scoped keys. Total lag is readerLag plus ingestionLag at each timestamp. Use for lag or throughput over time. For one per-table lag number and row count, use pipeline_usage."
+    },
     {
       "annotations": {
         "destructiveHint": true,
@@ -126,12 +148,12 @@
       "name": "connector_create",
       "outputSensitivity": "restricted-credentials",
       "path": "/connectors",
-      "requestSchemaSHA256": "9c418c897ce9d47f40febadcaa6db95227dc3d209a8ece57168e8285f6efa4b9",
+      "requestSchemaSHA256": "f648365e06ab46f31cd07095508989937a5abf74356cd4b15e1a4c432e512e60",
       "requiredScopes": [
         "connectors:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "b8a3c2b4734204d409822f516a2683c1f197db9e779a75c7af7706bde6972c78",
+      "successSchemaSHA256": "0e8ddbdf346f5c6da8e9e15812547cb6d0c449f64ed38bfd59c2e55f34b8b72b",
       "title": "Create a connector",
       "triggerDescription": "Creates a saved source or destination connector. Pass type, label, and sharedConfig (host, user, password, and type-specific fields). Keep the returned UUID for pipeline_create_from_source."
     },
@@ -175,9 +197,9 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "b8a3c2b4734204d409822f516a2683c1f197db9e779a75c7af7706bde6972c78",
+      "successSchemaSHA256": "0e8ddbdf346f5c6da8e9e15812547cb6d0c449f64ed38bfd59c2e55f34b8b72b",
       "title": "Get a saved connector",
-      "triggerDescription": "Returns a saved connector by uuid from connector_list, not a pipeline uuid or sourceReaderUUID. Includes type, label, and sharedConfig. Sensitive fields may be masked placeholders. To ping that connector, pass this payload into unsaved_connector_ping and keep uuid set so stored secrets unmask."
+      "triggerDescription": "Returns a saved connector by uuid from connector_list, not a pipeline uuid or sourceReaderUUID. Includes type, label, and sharedConfig. Sensitive fields may be masked placeholders. With connectors:write, you can ping that connector by passing this payload into unsaved_connector_ping with uuid set so stored secrets unmask."
     },
     {
       "annotations": {
@@ -214,12 +236,12 @@
       "name": "connector_fetch_databases",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/databases",
-      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requestSchemaSHA256": "ecdcfcfa9443962540bd1d3d1cfa452fd6218b0cbd79697d7623de560c6a93e5",
       "requiredScopes": [
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "9e513ada17e78f4e7e212dbda838c7c1b857336ce70e93845599ee414735653d",
+      "successSchemaSHA256": "7d5901957823ee9a883d9e4ec77f59378a468450f8e9c3dbe52a2225d3f99d8a",
       "title": "Fetch databases for a saved connector",
       "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
     },
@@ -285,7 +307,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8b41014596efd7bdaa3aed9b96d2c80fe0a5ed09ae747c2983293d9a7baede1d",
+      "successSchemaSHA256": "a5c309d0287ccde74910166d52951ac8447534adb6c5f6e4cabc3f4cf82c33b4",
       "title": "Fetch schemas for a saved connector",
       "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it."
     },
@@ -373,7 +395,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8ca8c94ecb2432ed10c09fabcf354f1aec9c33e0bdaac21e04cc34add1e92be4",
+      "successSchemaSHA256": "e75f9ba7f7a24c34017ce44fc8561ebc701b09537819b980689a213ddbc56643",
       "title": "List connectors",
       "triggerDescription": "Lists saved connectors. Defaults to destinations; pass includeSourceConnectors=true for sources. Call this before connector_fetch_databases, connector_fetch_schemas, connector_fetch_tables, or connector_fetch_table_detail \u2014 those tools need a uuid from this list, not a pipeline uuid or sourceReaderUUID from pipeline_list."
     },
@@ -390,7 +412,7 @@
       "name": "connector_start_dynamo_db_export",
       "outputSensitivity": "none",
       "path": "/connectors/{uuid}/start-dynamodb-export",
-      "requestSchemaSHA256": "80895c133bb1d88cf70a7c6658f3e009d69d6ec2867c9d4a4da35c01a8223a06",
+      "requestSchemaSHA256": "8259269f3aa61415ae45ee7b1d19c04fb93e019539e0fbd4e3178fdada219883",
       "requiredScopes": [
         "connectors:write"
       ],
@@ -534,6 +556,600 @@
     {
       "annotations": {
         "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "kafka_admin_user_delete",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/admin-users/{userUUID}",
+      "requestSchemaSHA256": "e7b4984dbfb32e737dbbea969c3bf1f6b744852e0167814a532a873bc4b6bea7",
+      "requiredScopes": [
+        "kafka_admin_users:delete"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "d54a17c2c97c39e0f62eb68f2a6570268e4e0b3984416c9712ab241bce4d61a4",
+      "title": "Delete an admin Kafka user",
+      "triggerDescription": "Use when you need to delete an admin Kafka user."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_admin_user_detail",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/admin-users/{userUUID}",
+      "requestSchemaSHA256": "e7b4984dbfb32e737dbbea969c3bf1f6b744852e0167814a532a873bc4b6bea7",
+      "requiredScopes": [
+        "kafka_admin_users:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
+      "title": "Get an admin Kafka user",
+      "triggerDescription": "Use when you need to get an admin Kafka user."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_detail",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "575b8c5886e61072eb276a9d14ab67da8b0efab55125d5bb55b0483d24180ad1",
+      "title": "Get a Kafka cluster",
+      "triggerDescription": "Use when you need to get a Kafka cluster."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_list",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters",
+      "requestSchemaSHA256": "617da7bbe784738b00b46b8c81ec0f861e85f890b7658870b51a00bc245f3d0d",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "c2c2d3309706290774ed203ee973d93b11eda5d31ecc9fdb9a3a8a3385537983",
+      "title": "List Kafka clusters",
+      "triggerDescription": "Use when you need to list Kafka clusters."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_metrics_graph",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/metrics-graph",
+      "requestSchemaSHA256": "22db9fe10cc40b4e207fa26ec905fd08d5a75c66245a45e9df2c7d24a29725c3",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "bbbff1576459ff95bcf0345c2b56760b16600f5c7b28b322f17cf211784df4af",
+      "title": "Get Kafka metrics graphs",
+      "triggerDescription": "Use when you need to get Kafka metrics graphs."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_rates",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/rates",
+      "requestSchemaSHA256": "1a26c4d8122d50bf06bdcb2af378249ba8b756730dafcb2dbe14ecbe5af71606",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "3e68be0c88cb7e1340b5f8382012201284e88e1c89cb269232b7fc1c454cea79",
+      "title": "Get Managed Kafka cluster rates",
+      "triggerDescription": "Use when you need to get Managed Kafka cluster rates."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_settings",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/settings",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "b3b8eb40e0c22d6711536aa5b658211c223c5a871983667f2fc4982fd325e17f",
+      "title": "Get a BYOC Kafka cluster's settings",
+      "triggerDescription": "Use when you need to get a BYOC Kafka cluster's settings."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_storage_graph",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/storage-graph",
+      "requestSchemaSHA256": "22db9fe10cc40b4e207fa26ec905fd08d5a75c66245a45e9df2c7d24a29725c3",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "be6036acdeb474ef8a472044d33176f8b7d890a7ac16b9fc57485edb41a203d2",
+      "title": "Get Kafka storage graph",
+      "triggerDescription": "Use when you need to get Kafka storage graph."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_summary",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/summary",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "9d12f13fd2f0f3da23c4ce8c77a5b12aa0efdd4b76be4d48ca6b8fd832b4ea48",
+      "title": "Get Kafka cluster summary",
+      "triggerDescription": "Use when you need to get Kafka cluster summary."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_consumer_group_detail",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/consumer-groups/{groupID}",
+      "requestSchemaSHA256": "8d841d313d552129d8afcad31cd579d726254c462b105d94e6bf8829abafa8c7",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "599e7273d3e9590662b1363fa24477ec7effc3c7269058227a18f2e5a7fb310a",
+      "title": "Get Kafka consumer group detail",
+      "triggerDescription": "Use when you need to get Kafka consumer group detail."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_consumer_group_details",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/consumer-group-details",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "6f9e7ada9d1df99eaaa8448a0e0559beb93bcae3c91e41a8e64ab4e5828a2210",
+      "title": "Get every Kafka consumer group's detail",
+      "triggerDescription": "Use when you need to get every Kafka consumer group's detail."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_consumer_group_list",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/consumer-groups",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "85c2fd147d1e5be242fd06dab2331269351b7795c95c6d39dfe6401f024f5275",
+      "title": "List Kafka consumer groups",
+      "triggerDescription": "Use when you need to list Kafka consumer groups."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "kafka_managed_user_delete",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/managed-users/{userUUID}",
+      "requestSchemaSHA256": "e7b4984dbfb32e737dbbea969c3bf1f6b744852e0167814a532a873bc4b6bea7",
+      "requiredScopes": [
+        "kafka_admin_users:delete"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a Managed Kafka cluster's user",
+      "triggerDescription": "Use when you need to delete a Managed Kafka cluster's user."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_managed_user_list",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/managed-users",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "kafka_users:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "697abb3ef298c2902db2246f26be73cd7af5b5478fbcf92ee1a6cd27aec606e7",
+      "title": "List a Managed Kafka cluster's users",
+      "triggerDescription": "Use when you need to list a Managed Kafka cluster's users."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "patch",
+      "name": "kafka_managed_user_update",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/managed-users/{userUUID}",
+      "requestSchemaSHA256": "18ab7902e27c9bec8157c103fcc71c902a6dc6064f1b940d8c526a81593cde59",
+      "requiredScopes": [
+        "kafka_admin_users:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "8b3089b23c6683b1ed01f7532bfa8988cbd5c7a379180a76d3724f7c93bd2e87",
+      "title": "Change a Managed Kafka cluster's user's ACLs",
+      "triggerDescription": "Use when you need to change a Managed Kafka cluster's user's ACLs."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "kafka_topic_create",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics",
+      "requestSchemaSHA256": "dc1af16de016bb3658e18f573b3438c27848e160d44bf5679184576afc76679e",
+      "requiredScopes": [
+        "kafka:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "44aab98754d9fbb6436df3bba003acc79dce72b412b8510b15284cbcd88037aa",
+      "title": "Create a Kafka topic",
+      "triggerDescription": "Use when you need to create a Kafka topic."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "kafka_topic_delete",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics/{topic}",
+      "requestSchemaSHA256": "509c88b5956ecd39dc459a13363e7e772675d1ae59c1b2026c0ce6f50c83570a",
+      "requiredScopes": [
+        "kafka:delete"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a Kafka topic",
+      "triggerDescription": "Use when you need to delete a Kafka topic."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_topic_detail",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics/{topic}",
+      "requestSchemaSHA256": "7b846fb7ff723667336d9556cb18e5e5f1a348c5bdc7d8f2aaa213d0e10aa058",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "d3534ec14c0afd04011f1c800514865e21b0c7158fc666a71db32c2ef5e9030c",
+      "title": "Get Kafka topic detail",
+      "triggerDescription": "Use when you need to get Kafka topic detail."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_topic_latest_message",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics/{topic}/latest-message",
+      "requestSchemaSHA256": "509c88b5956ecd39dc459a13363e7e772675d1ae59c1b2026c0ce6f50c83570a",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "a8493b48d1274a28e9bdcbdc2865564036f73597abf76af3df21d2e0099c7bb4",
+      "title": "Get latest Kafka topic message",
+      "triggerDescription": "Use when you need to get latest Kafka topic message."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_topic_list",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "f728cd2238bc17ef8535c334245c0d774537cee583f8b06939a1f30dd5dba115",
+      "title": "List Kafka topics",
+      "triggerDescription": "Use when you need to list Kafka topics."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "kafka_topic_partitions_increase",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics/{topic}/partitions",
+      "requestSchemaSHA256": "59dc9bd54758b62b01380cdfe85fb5e6887b692a3e7fdc5a299bd876dbb586f4",
+      "requiredScopes": [
+        "kafka:write"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Increase Kafka topic partitions",
+      "triggerDescription": "Use when you need to increase Kafka topic partitions."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "kafka_topic_retention_update",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics/{topic}/retention",
+      "requestSchemaSHA256": "07a33d26afafa1594429fbb2ab50b4180cc93706a82bfb6f4827def0ed0c9051",
+      "requiredScopes": [
+        "kafka:write"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Change Kafka topic retention",
+      "triggerDescription": "Use when you need to change Kafka topic retention."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "kafka_topic_settings_update",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topics/{topic}",
+      "requestSchemaSHA256": "06563c41fef6586fb7245d1c76674881ce76860341d5062d45570c758b5e6cf5",
+      "requiredScopes": [
+        "kafka:write"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "7e9ed3f13f8f5c6bf2501808745adfae0c07b09ae7d17f168a659cacd8d06400",
+      "title": "Change Kafka topic settings",
+      "triggerDescription": "Use when you need to change Kafka topic settings."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_topic_sizes",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/topic-sizes",
+      "requestSchemaSHA256": "df0b8d7a3ac4586964c9b543f56fe820a250504c4e0724a5863bd48b417e31c2",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "9048ac059b420799063ca4b0db13f25d48dcf3c1d40142df3b94f785265be4f1",
+      "title": "Get Kafka topic partition sizes",
+      "triggerDescription": "Use when you need to get Kafka topic partition sizes."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "kafka_user_delete",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/users/{userUUID}",
+      "requestSchemaSHA256": "e7b4984dbfb32e737dbbea969c3bf1f6b744852e0167814a532a873bc4b6bea7",
+      "requiredScopes": [
+        "kafka_users:delete"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "d54a17c2c97c39e0f62eb68f2a6570268e4e0b3984416c9712ab241bce4d61a4",
+      "title": "Delete a Kafka user",
+      "triggerDescription": "Use when you need to delete a Kafka user."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_user_detail",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/users/{userUUID}",
+      "requestSchemaSHA256": "e7b4984dbfb32e737dbbea969c3bf1f6b744852e0167814a532a873bc4b6bea7",
+      "requiredScopes": [
+        "kafka_users:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
+      "title": "Get a Kafka user",
+      "triggerDescription": "Use when you need to get a Kafka user."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_user_list",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/users",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "kafka_users:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "bdb38b5e05d8804a4e938c1ba7162a3f3c6afe85d335e0993de86ecca49e8fb8",
+      "title": "List Kafka users",
+      "triggerDescription": "Use when you need to list Kafka users."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": true,
         "readOnlyHint": false
@@ -544,7 +1160,7 @@
       "name": "pipeline_backfill_tables",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/backfill",
-      "requestSchemaSHA256": "4cc6609ded943f7ad806b1900ea2da49df330c5bcdc838ed0c18efa53196270b",
+      "requestSchemaSHA256": "36528bf4e8230273e9c0a135566d4649d9ce2a264f21ac39bde2665a6ff1f725",
       "requiredScopes": [
         "pipelines:write"
       ],
@@ -588,12 +1204,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "584fde46aa5b27885af1fde2a9a554b303018475bf1fd47963713e87fff9d123",
+      "requestSchemaSHA256": "f29682a0a42f3237a83dcb28cb9ee231922a9bccc2514c05684ca35fd5761f3d",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "1b9e1b7d176a2589cfb5f8eae5a5130fb51095fc70752467d802ebb62dc0694e",
+      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -615,7 +1231,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "1b9e1b7d176a2589cfb5f8eae5a5130fb51095fc70752467d802ebb62dc0694e",
+      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -659,7 +1275,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "1b9e1b7d176a2589cfb5f8eae5a5130fb51095fc70752467d802ebb62dc0694e",
+      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -725,7 +1341,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8e42fda10c31f2db482dc45cfa20760da17d110f89cd6569d5c4ca1c11f95995",
+      "successSchemaSHA256": "8917bca0b9dd01df1acd2e2f73e4e9f8286cd0c923e730086fa7b0612ef8fa9e",
       "title": "List pipelines",
       "triggerDescription": "Lists pipelines with uuid, name, and status. This is not a full configuration \u2014 do not send it to pipeline_update. Full config, per-table status, and table UUIDs are pipeline_detail. Failure messages are pipeline_error_logs, not status. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
     },
@@ -786,12 +1402,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "4bbd01b3dd584f50904560230ceb5ae088306cb6800c9a26ed6e154968807ef9",
+      "requestSchemaSHA256": "81a18f7a06d433eafc790db13d14ca66179f98c15822578568d60258af2b670a",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "1b9e1b7d176a2589cfb5f8eae5a5130fb51095fc70752467d802ebb62dc0694e",
+      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -813,7 +1429,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "0096cae0a9ff3a3d3362a13e803b2f0c78a70bc193f9ba789c0bdc3c5a651f26",
+      "successSchemaSHA256": "fca07f76db4289107ec4be76b72526be96d102a96f7d59b779491b53e0053589",
       "title": "Update pipeline status",
       "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
     },
@@ -852,14 +1468,14 @@
       "name": "private_link_connection_create",
       "outputSensitivity": "none",
       "path": "/privatelink-connections",
-      "requestSchemaSHA256": "a6239c7da05c2ab10967a2cf2d29b1b258470e689b0620ba427c87df52df894b",
+      "requestSchemaSHA256": "f70de11dcf2a4cb090040c236c1346bc111da7dbdec91a04ee8c9b89515fed5c",
       "requiredScopes": [
         "private_link_connections:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
+      "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Create a PrivateLink connection",
-      "triggerDescription": "Creates an AWS PrivateLink connection. Keep the returned UUID; there is no list tool."
+      "triggerDescription": "Creates a PrivateLink connection: pass vpcServiceName and availabilityZoneIds for an AWS data plane, or privateLinkServiceAlias for an Azure one. Keep the returned UUID; there is no list tool."
     },
     {
       "annotations": {
@@ -901,7 +1517,7 @@
         "private_link_connections:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
+      "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Get a PrivateLink connection",
       "triggerDescription": "Returns one PrivateLink connection by UUID."
     },
@@ -918,14 +1534,124 @@
       "name": "private_link_connection_update",
       "outputSensitivity": "none",
       "path": "/privatelink-connections/{uuid}",
-      "requestSchemaSHA256": "b2f5fa53053f7ac8d99c8a3a8b7a547fe455985828134eb2980bd2c428d691b7",
+      "requestSchemaSHA256": "8adc4a52d7fd8349b91e0efff087e7c4f2ade3d611994bdad6f8c4b8add2f27f",
       "requiredScopes": [
         "private_link_connections:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "078387ae6565f1eb95825da4c2d88c38fe895caca8437fe6c49a399bfc9320d0",
+      "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Update a PrivateLink connection",
-      "triggerDescription": "Updates a PrivateLink connection. Region, VPC service name, data plane, and AZs are only mutable while under review or errored."
+      "triggerDescription": "Updates a PrivateLink connection. The data plane and Private Link target (VPC service name and AZs on AWS, privateLinkServiceAlias on Azure) are only mutable while under review or errored."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "snowflake_eco_schedule_create",
+      "outputSensitivity": "none",
+      "path": "/snowflake-eco-schedules",
+      "requestSchemaSHA256": "a7d254a6fbeacfe49985a9d6075038e93f10421514b7f2b90418eb6b28286399",
+      "requiredScopes": [
+        "snowflake_eco_schedules:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "title": "Create a Snowflake Eco Mode schedule",
+      "triggerDescription": "Creates a schedule of peak hours (time zone, days, start and end time). Outside them, attached pipelines use its off-peak flush rules."
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": true,
+      "inputSensitivity": "none",
+      "method": "delete",
+      "name": "snowflake_eco_schedule_delete",
+      "outputSensitivity": "none",
+      "path": "/snowflake-eco-schedules/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "snowflake_eco_schedules:delete"
+      ],
+      "retrySemantics": "safe-after-state-check",
+      "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
+      "title": "Delete a Snowflake Eco Mode schedule",
+      "triggerDescription": "Deletes a Snowflake Eco Mode schedule that no pipeline uses."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "snowflake_eco_schedule_detail",
+      "outputSensitivity": "none",
+      "path": "/snowflake-eco-schedules/{uuid}",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "snowflake_eco_schedules:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "title": "Get a Snowflake Eco Mode schedule",
+      "triggerDescription": "Returns one Snowflake Eco Mode schedule by UUID."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "snowflake_eco_schedule_list",
+      "outputSensitivity": "none",
+      "path": "/snowflake-eco-schedules",
+      "requestSchemaSHA256": "c7c69ffea7e3e6af99994c9347a2f29c4a558bdf8854ac3b61df817cbadcd1f7",
+      "requiredScopes": [
+        "snowflake_eco_schedules:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "cea9b24ad6556c963196d151da27d58795038611e8055bc254a18a9288df9a27",
+      "title": "List Snowflake Eco Mode schedules",
+      "triggerDescription": "Lists the company's Snowflake Eco Mode schedules. Use a schedule's uuid as snowflakeEcoScheduleUUID on a pipeline update."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "post",
+      "name": "snowflake_eco_schedule_update",
+      "outputSensitivity": "none",
+      "path": "/snowflake-eco-schedules/{uuid}",
+      "requestSchemaSHA256": "2605766b28c7babe04c52c8f567e32576a2a680ea615c5dee3618a7296391175",
+      "requiredScopes": [
+        "snowflake_eco_schedules:write"
+      ],
+      "retrySemantics": "unsafe",
+      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "title": "Update a Snowflake Eco Mode schedule",
+      "triggerDescription": "Replaces a schedule's name and settings."
     },
     {
       "annotations": {
@@ -989,7 +1715,7 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "3dd045eb99749555d0db6afdec6d75b6975287cdc941062528b1e39aa4acdc83",
+      "successSchemaSHA256": "6d505a9d4f68804460d33f8ff99d41e2f7546afe9f07028b859c0b04b040bf5f",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
@@ -1006,12 +1732,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "2301ae28e4bea93f3df6c778e6b4a2ab45ba776af1684777b3c14840628c0092",
+      "requestSchemaSHA256": "9c3a7bc51ed528e505b41a5a9bc32a0b75b7d4203910ebce85aa0ec3bb7fa7d8",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "3dd045eb99749555d0db6afdec6d75b6975287cdc941062528b1e39aa4acdc83",
+      "successSchemaSHA256": "6d505a9d4f68804460d33f8ff99d41e2f7546afe9f07028b859c0b04b040bf5f",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
@@ -1116,14 +1842,14 @@
       "name": "unsaved_connector_ping",
       "outputSensitivity": "none",
       "path": "/connectors/ping",
-      "requestSchemaSHA256": "524dc86d76d0bf859b598f5bd0fc7c04d7c80c3e39199882918b614a3dbe8c40",
+      "requestSchemaSHA256": "367043e7d75216c76f222748b40b178f0b8c75bcbd1280007dea9f2563cb2b6f",
       "requiredScopes": [
-        "connectors:read"
+        "connectors:write"
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Ping a connector",
-      "triggerDescription": "Pings a connector before connector_create. Pass type, sharedConfig (host, user, password, and type-specific fields), and connectionRole (source or destination). This is not a uuid ping \u2014 do not pass a pipeline uuid or sourceReaderUUID. Postgres needs a database name, Oracle a service name, S3 a bucket. Success is {\"success\": true}; a JSON error field means the host or credentials failed."
+      "triggerDescription": "Pings a connector before connector_create. Pass type, sharedConfig (host, user, password, and type-specific fields), and connectionRole (source or destination). This is not a uuid ping \u2014 do not pass a pipeline uuid or sourceReaderUUID. Postgres needs a database name, Oracle a service name, S3 a bucket. Success is {\"success\": true}. A 422 error means the connection failed (unreachable host, bad credentials, missing permissions) and its message says why; a 400 means the request itself is invalid."
     }
   ]
 }
