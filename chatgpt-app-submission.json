@@ -711,7 +711,7 @@
         "openWorldHint": true
       },
       "justifications": {
-        "read_only_justification": "Checks a pipeline source for schema drift without applying destination DDL by itself.",
+        "read_only_justification": "Not read-only: it queues a source check, and on pipelines with auto-replicate or auto-history mode it adds newly found tables to the pipeline and emails a summary.",
         "open_world_justification": "Inspects the customer source for schema drift relative to the configured pipeline.",
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
@@ -1051,11 +1051,11 @@
       "expected_output_url": null
     },
     {
-      "description": "Detect source schema drift on a running pipeline without applying DDL.",
+      "description": "Check for source schema drift on a running pipeline after the user confirms, without applying destination DDL.",
       "user_prompt": "Check whether my prod Postgres pipeline has any source schema changes waiting.",
       "file_attachment_urls": null,
       "tools_triggered": "pipeline_list,pipeline_detect_schema_changes",
-      "expected_output": "Resolves the pipeline UUID and requests schema-drift detection without applying automatic schema changes to the destination.",
+      "expected_output": "Resolves the pipeline UUID, says the check can add newly found tables on auto-replicate pipelines, and requests schema-drift detection only after the user confirms. It does not apply automatic schema changes to the destination.",
       "expected_output_url": null
     }
   ],
