@@ -1,6 +1,7 @@
 {
   "name": "artie",
-  "description": "Create and start CDC pipelines, inspect schema changes, and monitor lag.",
+  "version": "1.1.0",
+  "description": "Set up and monitor Artie CDC pipelines, check Managed and BYOC Kafka clusters and topics, and manage Snowflake Eco Mode schedules.",
   "author": {
     "name": "Artie"
   }
