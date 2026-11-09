@@ -38,7 +38,7 @@ Fewest calls for "is my cluster healthy?":
 
 ## Topic changes
 
-Every change needs explicit user confirmation of the exact cluster, topic and values. Read first: `kafka_topic_list` or `kafka_topic_detail` for current `partitionCount`, `retentionMS`, `tieredStorage` and `artieManaged`.
+Every change needs explicit user confirmation of the exact cluster, topic and values. Topic create, settings, retention, partitions and delete are company-admin only; a 403 means the user isn't one. Read first: `kafka_topic_list` or `kafka_topic_detail` for current `partitionCount`, `retentionMS`, `tieredStorage` and `artieManaged`.
 
 | Change | Tool | Notes |
 |---|---|---|
