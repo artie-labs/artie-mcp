@@ -773,7 +773,7 @@
       "justifications": {
         "read_only_justification": "Replaces full pipeline configuration, including destination and table selection, in the Artie account.",
         "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
-        "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
+        "destructive_justification": "It's a full replace: omitting tables deletes every table on the pipeline, so the agent echoes the current config and confirms first. The current contract still marks it non-destructive; dashboard#13524 marks it destructive."
       }
     },
     "pipeline_update_status": {
@@ -844,7 +844,7 @@
       },
       "justifications": {
         "read_only_justification": "Updates PrivateLink connection fields while the connection is under review or errored.",
-        "open_world_justification": "Updates PrivateLink settings that affect customer network integration.",
+        "open_world_justification": "Edits the stored fields of a PrivateLink connection that is under review or errored. The current contract marks it closed-world, unlike create and delete, which set up or tear down the customer-side connection.",
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
     },
@@ -903,7 +903,7 @@
         "openWorldHint": false
       },
       "justifications": {
-        "read_only_justification": "Replaces a Snowflake Eco Mode schedule's name and peak-hour settings.",
+        "read_only_justification": "Replaces a Snowflake Eco Mode schedule's name, peak hours and off-peak flush rules for every pipeline that uses it.",
         "open_world_justification": "Operates on private Artie account configuration and metadata without publishing to the public internet.",
         "destructive_justification": "Does not delete resources, revoke credentials, or perform irreversible admin actions."
       }
@@ -1022,7 +1022,7 @@
       "description": "Monitor overall pipeline health including status and per-table state.",
       "user_prompt": "Is my production Postgres-to-Snowflake pipeline healthy right now? Show status and any tables that look stuck.",
       "file_attachment_urls": null,
-      "tools_triggered": "pipeline_list,pipeline_detail,analytics_query,pipeline_error_logs",
+      "tools_triggered": "pipeline_list,pipeline_detail,pipeline_error_logs",
       "expected_output": "Resolves the pipeline by name, reports lifecycle status flags, total lag, per-table state, and recent error logs without pausing, resuming, or backfilling.",
       "expected_output_url": null
     },
@@ -1055,7 +1055,7 @@
       "user_prompt": "Check whether my prod Postgres pipeline has any source schema changes waiting.",
       "file_attachment_urls": null,
       "tools_triggered": "pipeline_list,pipeline_detect_schema_changes",
-      "expected_output": "Resolves the pipeline UUID, says the check can add newly found tables on auto-replicate pipelines, and requests schema-drift detection only after the user confirms. It does not apply automatic schema changes to the destination.",
+      "expected_output": "Resolves the pipeline UUID, says the check can add newly found tables on auto-replicate or auto-history pipelines, and requests schema-drift detection only after the user confirms. It does not apply automatic schema changes to the destination.",
       "expected_output_url": null
     }
   ],
