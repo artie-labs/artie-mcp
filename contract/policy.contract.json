@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "7b801eab618d5d0d9c13cbb18e977c71204ffdfd7a3579343f03e245b1b4cd12",
-  "releaseTag": "v1.0.212",
+  "policySHA256": "7465ed6a3a05354ecefdaa7ff6534f2da5054600548e32c38ffa3ad8a03f4281",
+  "releaseTag": "v1.0.216",
   "tools": [
     {
       "annotations": {
@@ -155,7 +155,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "0e8ddbdf346f5c6da8e9e15812547cb6d0c449f64ed38bfd59c2e55f34b8b72b",
       "title": "Create a connector",
-      "triggerDescription": "Creates a saved source or destination connector. Pass type, label, and sharedConfig (host, user, password, and type-specific fields). Keep the returned UUID for pipeline_create_from_source."
+      "triggerDescription": "Creates a saved source or destination connector. Pass type, label, and sharedConfig (host, user, password, and type-specific fields). Keep the returned UUID for pipeline_create_from_source. To copy a saved connector in the same environment, pass its uuid with the sharedConfig from connector_detail: masked secrets (********) are filled in from it, so don't ask the user for them."
     },
     {
       "annotations": {
@@ -1204,12 +1204,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "f29682a0a42f3237a83dcb28cb9ee231922a9bccc2514c05684ca35fd5761f3d",
+      "requestSchemaSHA256": "f390ff1fbea528480b882e0a4ed12c672e44a03759bb156f969a41fb3249d23d",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -1231,7 +1231,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -1275,7 +1275,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -1402,12 +1402,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "81a18f7a06d433eafc790db13d14ca66179f98c15822578568d60258af2b670a",
+      "requestSchemaSHA256": "5c2e3b92a8207bb430c513265552ca2f1e8ac3fb17d4c5613d6e07713906baaf",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -1429,7 +1429,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "fca07f76db4289107ec4be76b72526be96d102a96f7d59b779491b53e0053589",
+      "successSchemaSHA256": "92462bf22d6714ec060a10e645d19bf99e48853cd374fd2d27b459e1953f1ef4",
       "title": "Update pipeline status",
       "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
     },
