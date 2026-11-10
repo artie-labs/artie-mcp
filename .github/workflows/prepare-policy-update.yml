@@ -45,3 +45,5 @@ jobs:
             Updates the pinned Artie API policy release and generated MCP contract.
 
             The release artifact is downloaded, version-checked, checksummed, and compiled before this PR is created.
+
+            If `tests/test_chatgpt_app_submission.py` fails, a tool was added, removed or re-hinted: update `tools` in `chatgpt-app-submission.json` to match `contract/policy.contract.json`. That file is the source for the ChatGPT and Codex listing, which is resubmitted through OpenAI's portal by hand.
