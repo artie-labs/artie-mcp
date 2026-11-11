@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "7465ed6a3a05354ecefdaa7ff6534f2da5054600548e32c38ffa3ad8a03f4281",
-  "releaseTag": "v1.0.216",
+  "policySHA256": "120fa9bce6ab52dd7073edf493d9827d997b6364a409353a6ef04a8a7b49841b",
+  "releaseTag": "v1.0.221",
   "tools": [
     {
       "annotations": {
@@ -67,7 +67,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "fd11fc84376a52ae7dca5ec7ff350d473a6bebd323465511e7e8a21b0654062f",
       "title": "List column hashing salts",
-      "triggerDescription": "Lists column hashing salt names and UUIDs (no secret)."
+      "triggerDescription": "Lists the company's column hashing salts (uuid, name, description; never the salt). A pipeline uses the one in its columnHashingSaltUUID (pipeline_detail) to hash the columnsToHash in each table's advancedSettings. Use a uuid here for column_hashing_salt_preview, _update or _delete."
     },
     {
       "annotations": {
@@ -89,7 +89,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "cb3aec278629a6b160633f319d251348d8fb360e43ea0c657b7803d9d0619a31",
       "title": "Preview a column hashing salt",
-      "triggerDescription": "Hashes a sample string with this salt and returns the hex digest."
+      "triggerDescription": "Hashes a sample value the way pipelines do (HMAC-SHA256 keyed on the salt, or SHA-256 if the salt is empty) and returns the hex digest, without revealing the salt. Use it to check which salt produced a hashed value or to get the hash to look a row up by. The uuid comes from column_hashing_salt_list."
     },
     {
       "annotations": {
@@ -485,7 +485,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "109e753364e1add34c73070b3d6700ba6a42d996c6b6682a2a0e4a77c707060c",
       "title": "List encryption keys",
-      "triggerDescription": "Lists encryption key names and UUIDs (no secret material)."
+      "triggerDescription": "Lists the company's encryption keys (uuid, name, description, type, kmsKeyUUID; never key material). A pipeline uses the one in its encryptionKeyUUID (pipeline_detail) to encrypt the columnsToEncrypt in each table's advancedSettings. Use a uuid here for encryption_key_update or _delete."
     },
     {
       "annotations": {
@@ -529,7 +529,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an ingestion API key",
-      "triggerDescription": "Deletes an ingestion API key by UUID."
+      "triggerDescription": "Deletes an ingestion API key so it stops working after the next deploy: of the source reader's pipelines (they are marked as having undeployed changes), or of the source reader itself if it is shared. There is no list tool, so get the key's uuid from the user."
     },
     {
       "annotations": {
@@ -863,8 +863,8 @@
     },
     {
       "annotations": {
-        "destructiveHint": false,
-        "idempotentHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
         "openWorldHint": false,
         "readOnlyHint": false
       },
@@ -878,7 +878,7 @@
       "requiredScopes": [
         "kafka_admin_users:write"
       ],
-      "retrySemantics": "safe-after-state-check",
+      "retrySemantics": "safe",
       "successSchemaSHA256": "8b3089b23c6683b1ed01f7532bfa8988cbd5c7a379180a76d3724f7c93bd2e87",
       "title": "Change a Managed Kafka cluster's user's ACLs",
       "triggerDescription": "Managed clusters only: replaces a login's ACLs with the acls you send, so any ACL left out is removed. The password stays the same. Read the current ACLs with kafka_managed_user_list and confirm the change with the user first."
@@ -995,7 +995,7 @@
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1189,7 +1189,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Cancel backfill",
-      "triggerDescription": "Cancels an in-progress backfill for the given table UUIDs."
+      "triggerDescription": "Stops a backfill that is queued or running and redeploys the pipeline. Pass table UUIDs from pipeline_detail in tableUUIDs for regular tables and in historyTableUUIDs for history tables; both are required, so send [] for the one you don't need. Returns 400 if none of them are backfilling."
     },
     {
       "annotations": {
@@ -1204,12 +1204,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "f390ff1fbea528480b882e0a4ed12c672e44a03759bb156f969a41fb3249d23d",
+      "requestSchemaSHA256": "444c3f1206566d12c1787b88114fe60a9a446e80822d996efc5ebf19195cb86c",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
+      "successSchemaSHA256": "cc87339d35f881911b5c66e4ad4079fc24ad4a4c2c87314573c9e77fef6e7156",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -1226,12 +1226,12 @@
       "name": "pipeline_create_from_source",
       "outputSensitivity": "none",
       "path": "/pipelines/create-from-source",
-      "requestSchemaSHA256": "61f151850bb45564379e49b2aeecf788f38e6ffa85159613f004703342b0cf02",
+      "requestSchemaSHA256": "d6a19ab7280a4f25f3b2e07bb7f83a0ac474362b865d1f766e4cdf1675389652",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
+      "successSchemaSHA256": "cc87339d35f881911b5c66e4ad4079fc24ad4a4c2c87314573c9e77fef6e7156",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -1255,7 +1255,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete pipeline",
-      "triggerDescription": "Permanently deletes a pipeline by UUID. Does not delete connectors."
+      "triggerDescription": "Permanently deletes a pipeline (uuid from pipeline_list) and tears down its deployment, along with its source reader unless that is shared. Saved connectors stay, except ones made just for a draft pipeline that nothing else uses. To stop syncing but keep the pipeline, pause it with pipeline_update_status."
     },
     {
       "annotations": {
@@ -1275,7 +1275,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
+      "successSchemaSHA256": "cc87339d35f881911b5c66e4ad4079fc24ad4a4c2c87314573c9e77fef6e7156",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -1299,7 +1299,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Detect schema changes",
-      "triggerDescription": "Checks the source for table or schema drift. To apply destination DDL, use pipeline_trigger_automatic_schema_changes."
+      "triggerDescription": "Queues a check of the source for table or schema drift. Not read-only: on pipelines with auto-replicate or auto-history mode, newly found tables are added to the pipeline and a summary is emailed, so confirm with the user first. To apply destination DDL, use pipeline_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
@@ -1391,7 +1391,7 @@
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1402,12 +1402,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "5c2e3b92a8207bb430c513265552ca2f1e8ac3fb17d4c5613d6e07713906baaf",
+      "requestSchemaSHA256": "7576f3347ea33132ff26efc0fb92ec437ec101eca39d47b79edcd1aaaa86699d",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "22b4b3f328b3598a2dc27033c30a43603004ee46a0fc974c262424b8c2186395",
+      "successSchemaSHA256": "cc87339d35f881911b5c66e4ad4079fc24ad4a4c2c87314573c9e77fef6e7156",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -1429,7 +1429,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "92462bf22d6714ec060a10e645d19bf99e48853cd374fd2d27b459e1953f1ef4",
+      "successSchemaSHA256": "ded25c173ab5f7a5b185db49f442058674c6710809eab8bccee9117126cd2411",
       "title": "Update pipeline status",
       "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
     },
@@ -1453,7 +1453,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "782cb20c149417c6d6fe5656df54ba8125e218d75cc60b048a802fe4c53c4b1d",
       "title": "Get pipeline usage",
-      "triggerDescription": "Returns per-table ingestion lag and row counts for a saved pipeline over a time range. Pass the pipeline uuid plus from and to as RFC3339 timestamps; set excludeBackfills=true to leave backfill rows out of row counts. Use when the user asks about lag, throughput, or rows processed. This is not slot health, warehouse correctness, pipeline_list status, pipeline_detail table status, or error logs (pipeline_error_logs)."
+      "triggerDescription": "Returns one ingestion lag (latency) and row count per table for a saved pipeline (uuid from pipeline_list) over from and to (RFC3339); set excludeBackfills=true to count only CDC rows. Its lag is ingestion lag only: for lag over time, or total lag (readerLag plus ingestionLag), use analytics_query. This is not slot health, warehouse correctness, table status (pipeline_detail) or error logs (pipeline_error_logs)."
     },
     {
       "annotations": {
@@ -1497,7 +1497,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a PrivateLink connection",
-      "triggerDescription": "Permanently deletes a PrivateLink connection by UUID."
+      "triggerDescription": "Permanently deletes a PrivateLink connection and tears down its Artie endpoint. Returns 400 naming the connectors or source readers that still use it; move them off it first. The uuid is a connector's privateLinkUUID or snapshotPrivateLinkUUID from connector_list or connector_detail, or the one private_link_connection_create returned."
     },
     {
       "annotations": {
@@ -1519,7 +1519,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Get a PrivateLink connection",
-      "triggerDescription": "Returns one PrivateLink connection by UUID."
+      "triggerDescription": "Returns a PrivateLink connection's status, Private Link target and the Artie endpoint's address (dnsEntry). There is no list tool: the uuid is a connector's privateLinkUUID or snapshotPrivateLinkUUID from connector_list or connector_detail, or the one private_link_connection_create returned."
     },
     {
       "annotations": {
@@ -1585,7 +1585,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a Snowflake Eco Mode schedule",
-      "triggerDescription": "Deletes a Snowflake Eco Mode schedule that no pipeline uses."
+      "triggerDescription": "Deletes a schedule (uuid from snowflake_eco_schedule_list). Returns 400 naming the pipelines that still use it; detach each first by sending its pipeline_detail body back through pipeline_update with snowflakeEcoScheduleUUID set to null."
     },
     {
       "annotations": {
@@ -1607,7 +1607,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
       "title": "Get a Snowflake Eco Mode schedule",
-      "triggerDescription": "Returns one Snowflake Eco Mode schedule by UUID."
+      "triggerDescription": "Returns one schedule's peak hours (timezone, days, startTimeOfDay, endTimeOfDay) and its off-peak flush settings. The uuid comes from snowflake_eco_schedule_list or a pipeline's snowflakeEcoScheduleUUID in pipeline_detail."
     },
     {
       "annotations": {
@@ -1633,7 +1633,7 @@
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1651,7 +1651,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
       "title": "Update a Snowflake Eco Mode schedule",
-      "triggerDescription": "Replaces a schedule's name and settings."
+      "triggerDescription": "Replaces a schedule's name and every setting, so read it with snowflake_eco_schedule_detail first and send it back with only the intended change. The schedule is shared, so the change affects every pipeline attached to it. The uuid comes from snowflake_eco_schedule_list."
     },
     {
       "annotations": {
@@ -1715,13 +1715,13 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "6d505a9d4f68804460d33f8ff99d41e2f7546afe9f07028b859c0b04b040bf5f",
+      "successSchemaSHA256": "0857d71bdeb359f48311ce3f3148b59681ac8bf7264a469e0a95a86521ce845f",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1732,12 +1732,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "9c3a7bc51ed528e505b41a5a9bc32a0b75b7d4203910ebce85aa0ec3bb7fa7d8",
+      "requestSchemaSHA256": "be6ab4da3f5c37d0954b0e249bfd808dc3cc1dfe057d54e75d35e8e498ce60d2",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "6d505a9d4f68804460d33f8ff99d41e2f7546afe9f07028b859c0b04b040bf5f",
+      "successSchemaSHA256": "0857d71bdeb359f48311ce3f3148b59681ac8bf7264a469e0a95a86521ce845f",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
@@ -1783,7 +1783,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an SSH tunnel",
-      "triggerDescription": "Deletes an SSH tunnel unused by any connector or pipeline."
+      "triggerDescription": "Deletes an SSH tunnel. Returns 400 naming the connectors that still use it (ssh_tunnel_detail isInUse shows whether any do). The uuid is a connector's sshTunnelUUID from connector_detail or the one ssh_tunnel_create returned."
     },
     {
       "annotations": {
@@ -1805,7 +1805,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Get an SSH tunnel",
-      "triggerDescription": "Returns one SSH tunnel by UUID (no private key)."
+      "triggerDescription": "Returns an SSH tunnel's host, port, username, publicKey (to add to the bastion's authorized_keys) and isInUse; never a private key. There is no list tool: the uuid is a connector's sshTunnelUUID from connector_list or connector_detail, or the one ssh_tunnel_create returned."
     },
     {
       "annotations": {
@@ -1849,7 +1849,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Ping a connector",
-      "triggerDescription": "Pings a connector before connector_create. Pass type, sharedConfig (host, user, password, and type-specific fields), and connectionRole (source or destination). This is not a uuid ping \u2014 do not pass a pipeline uuid or sourceReaderUUID. Postgres needs a database name, Oracle a service name, S3 a bucket. Success is {\"success\": true}. A 422 error means the connection failed (unreachable host, bad credentials, missing permissions) and its message says why; a 400 means the request itself is invalid."
+      "triggerDescription": "Pings a connector before connector_create. Pass type, sharedConfig (host, user, password, and type-specific fields), and connectionRole (source or destination). This is not a uuid ping \u2014 do not pass a pipeline uuid or sourceReaderUUID. Postgres needs a database name, Oracle a service name, S3 a bucket. Success is HTTP 204 with no body, which this tool returns as {\"success\": true}. A 422 error means the connection failed (unreachable host, bad credentials, missing permissions) and its message says why; a 400 means the request itself is invalid."
     }
   ]
 }
