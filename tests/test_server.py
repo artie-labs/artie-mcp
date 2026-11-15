@@ -99,8 +99,23 @@ class TestServer(unittest.TestCase):
                 self.assertEqual(contract.trigger_description, tool.description)
                 self.assertEqual(
                     contract.annotations,
-                    tool.annotations.model_dump(exclude_none=True),
+                    tool.annotations.model_dump(by_alias=True, exclude_none=True),
                 )
+
+    def test_initialize_sends_server_title_and_description(self):
+        from fastmcp import Client
+
+        async def server_info():
+            async with Client(self.server.mcp, mode="legacy") as client:
+                return client.initialize_result.server_info
+
+        info = asyncio.run(server_info())
+        self.assertEqual("Artie", info.title)
+        self.assertEqual(
+            "Set up and operate Artie real-time CDC pipelines that replicate "
+            "databases into warehouses and lakes.",
+            info.description,
+        )
 
     def test_bodiless_policy_tools_publish_a_success_schema(self):
         tools = {tool.name: tool for tool in self.tools}
@@ -219,15 +234,15 @@ class TestServer(unittest.TestCase):
         from fastmcp import Client
 
         async def initialize():
-            async with Client(self.server.mcp) as client:
+            async with Client(self.server.mcp, mode="legacy") as client:
                 return client.initialize_result
 
         result = asyncio.run(initialize())
-        info = result.serverInfo
+        info = result.server_info
         self.assertEqual("Artie", info.name)
         self.assertEqual(self.server.policy_release_tag.removeprefix("v"), info.version)
-        self.assertEqual("https://www.artie.com/docs/api/mcp", info.websiteUrl)
-        self.assertEqual("image/svg+xml", info.icons[0].mimeType)
+        self.assertEqual("https://www.artie.com/docs/api/mcp", info.website_url)
+        self.assertEqual("image/svg+xml", info.icons[0].mime_type)
         self.assertIn("pipeline_create_from_source", result.instructions)
         # Claude Code truncates server instructions past 2 KB.
         self.assertLess(len(result.instructions.encode()), 2048)

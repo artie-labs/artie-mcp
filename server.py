@@ -470,6 +470,13 @@ mcp = FastMCP.from_openapi(
     mcp_component_fn=_configure_tool,
     strict_input_validation=True,
 )
+# FastMCP has no title/description arguments; the low-level server sends both
+# in the initialize serverInfo when set before the first request.
+mcp._mcp_server.title = "Artie"
+mcp._mcp_server.description = (
+    "Set up and operate Artie real-time CDC pipelines that replicate databases "
+    "into warehouses and lakes."
+)
 mcp_metrics = OpenTelemetryMetrics.create()
 atexit.register(mcp_metrics.shutdown)
 mcp.add_middleware(
