@@ -122,15 +122,17 @@ class TestServer(unittest.TestCase):
         for contract in self.server.policy_contract.tools:
             if contract.bodiless_success:
                 with self.subTest(tool=contract.name):
-                    self.assertEqual(
-                        {
-                            "type": "object",
-                            "properties": {"success": {"const": True}},
-                            "required": ["success"],
-                            "additionalProperties": False,
-                        },
-                        tools[contract.name].output_schema,
+                    schema = tools[contract.name].output_schema
+                    success = schema["properties"]["success"]
+                    self.assertEqual(True, success["const"])
+                    expected = (
+                        "in the background"
+                        if contract.success[0]["status"] == "202"
+                        else "the request succeeded"
                     )
+                    self.assertIn(expected, success["description"])
+                    self.assertEqual(["success"], schema["required"])
+                    self.assertFalse(schema["additionalProperties"])
 
     def test_failed_upstream_response_is_replaced_before_fastmcp_formats_it(self):
         response = httpx.Response(
