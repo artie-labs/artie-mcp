@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "694cc1869301392bd4eff37bb6954c6e4803a3e8089280c65338dde549a4fff0",
-  "releaseTag": "v1.0.225",
+  "policySHA256": "821eeefc7294cfab8073a6e810e18d11ef007631860558ef85114982cf473f7b",
+  "releaseTag": "v1.0.232",
   "tools": [
     {
       "annotations": {
@@ -947,7 +947,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d3534ec14c0afd04011f1c800514865e21b0c7158fc666a71db32c2ef5e9030c",
       "title": "Get Kafka topic detail",
-      "triggerDescription": "One topic's per-partition sizes, replication, leaders and offsets, plus the Artie pipelines (names and uuids) that read it. topic comes from kafka_topic_list. Use before changing or deleting a topic to see what depends on it."
+      "triggerDescription": "One topic's per-partition sizes, replication, leaders and offsets, plus the Artie pipelines (names and uuids) on the source reader that writes it. topic comes from kafka_topic_list. Use before changing or deleting a topic to see what depends on it."
     },
     {
       "annotations": {
