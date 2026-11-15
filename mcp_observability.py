@@ -75,6 +75,16 @@ class MCPObservability(Middleware):
     ) -> types.InitializeResult | None:
         return await self._observe("initialize", None, lambda: call_next(context))
 
+    async def on_discover(
+        self,
+        context: MiddlewareContext[types.DiscoverRequest],
+        call_next: CallNext[
+            types.DiscoverRequest, types.DiscoverResult | dict[str, Any]
+        ],
+    ) -> types.DiscoverResult | dict[str, Any]:
+        # server/discover replaces initialize for clients on the newer protocol.
+        return await self._observe("discover", None, lambda: call_next(context))
+
     async def on_call_tool(
         self,
         context: MiddlewareContext[types.CallToolRequestParams],

@@ -48,6 +48,19 @@ class TestMCPObservability(unittest.TestCase):
             set(json.loads(logs.records[0].getMessage())),
         )
 
+    def test_records_successful_discovery(self):
+        async def call_next(_context):
+            return {}
+
+        context = MiddlewareContext(
+            message=types.DiscoverRequest.model_construct(), method="server/discover"
+        )
+        with self.assertLogs("artie-mcp", level="INFO"):
+            asyncio.run(self.middleware.on_discover(context, call_next))
+
+        self.assertEqual("discover", self.metrics.records[0]["operation"])
+        self.assertEqual("success", self.metrics.records[0]["outcome"])
+
     def test_records_a_redacted_initialization_failure(self):
         async def call_next(_context):
             raise RuntimeError("unlogged-error-detail")
