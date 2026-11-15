@@ -441,9 +441,16 @@ def _configure_tool(route, component):
     component.description = tool.trigger_description
     component.annotations = ToolAnnotations(**tool.annotations)
     if tool.bodiless_success:
+        # BODILESS_SUCCESS_PLANS admits exactly one 202 or 204 response.
+        if tool.success[0]["status"] == "202":
+            meaning = "Always true: Artie accepted the request and finishes it in the background."
+        else:
+            meaning = (
+                "Always true: the request succeeded. The API returns no other data."
+            )
         component.output_schema = {
             "type": "object",
-            "properties": {"success": {"const": True}},
+            "properties": {"success": {"const": True, "description": meaning}},
             "required": ["success"],
             "additionalProperties": False,
         }
