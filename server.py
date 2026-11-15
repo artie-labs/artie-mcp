@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.workos import AuthKitProvider
 from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType
-from mcp.types import ToolAnnotations
+from mcp.types import Icon, ToolAnnotations
 from starlette.middleware import Middleware
 from starlette.responses import Response
 from starlette.routing import Route
@@ -39,6 +39,25 @@ _BUNDLE_DIR = Path(__file__).with_name("contract")
 _UPSTREAM_DETAIL_LIMIT = 500
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
 _OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
+_WEBSITE_URL = "https://www.artie.com/docs/api/mcp"
+_ICONS = [
+    {
+        "src": "https://www.artie.com/brand/logo.svg",
+        "mimeType": "image/svg+xml",
+        "sizes": ["any"],
+    }
+]
+# Sent in the initialize result. Keep it under Claude Code's 2 KB limit.
+_INSTRUCTIONS = """Artie runs real-time CDC pipelines that replicate a source database into a warehouse or lake.
+
+- Resolve names to UUIDs with connector_list (includeSourceConnectors=true for sources) and pipeline_list. Never guess a UUID. Take UUIDs from app.artie.com URLs instead of fetching them.
+- connector_fetch_* tools take a connector UUID, not a pipeline or source reader UUID.
+- New pipeline from a saved source: pipeline_create_from_source, then pipeline_update with the destination and a non-empty tables list in one body, then pipeline_start.
+- pipeline_update replaces the whole pipeline. Start from pipeline_detail; omitting tables removes every table.
+- Lag and rows processed: pipeline_usage. Failures: pipeline_error_logs. pipeline_list status is lifecycle, not health.
+- Ask the user before any delete, key rotation, replication slot drop, or automatic schema change.
+- pipeline_start success means the pipeline deployed, not that rows landed in the destination.
+- Never echo secrets or connector passwords."""
 _SERVER_CARD = {
     "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     "name": "com.artie/mcp",
@@ -48,14 +67,8 @@ _SERVER_CARD = {
         "authorization server via protected-resource metadata on this origin."
     ),
     "title": "Artie MCP Server",
-    "websiteUrl": "https://artie.com/docs/api/overview",
-    "icons": [
-        {
-            "src": "https://www.artie.com/brand/logo.svg",
-            "mimeType": "image/svg+xml",
-            "sizes": ["any"],
-        }
-    ],
+    "websiteUrl": _WEBSITE_URL,
+    "icons": _ICONS,
     # Remotes carry no required API-key header so discovery clients follow
     # AuthKit via /.well-known/oauth-protected-resource.
     "remotes": [
@@ -447,6 +460,10 @@ mcp = FastMCP.from_openapi(
     openapi_spec=openapi_spec,
     client=client,
     name="Artie",
+    instructions=_INSTRUCTIONS,
+    version=_SERVER_CARD["version"],
+    website_url=_WEBSITE_URL,
+    icons=[Icon(**icon) for icon in _ICONS],
     auth=_build_auth_provider(),
     mcp_names={tool.name: tool.name for tool in policy_contract.tools},
     route_map_fn=_route_map,
