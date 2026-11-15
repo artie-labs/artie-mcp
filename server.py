@@ -579,6 +579,49 @@ async def openai_apps_challenge(_request):
     return Response(_OPENAI_APPS_CHALLENGE_TOKEN, media_type="text/plain")
 
 
+# Browsers and directory checkers that open the MCP URL get setup steps
+# instead of a bare 405. No inline styles: the CSP is default-src 'self'.
+_SETUP_PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artie MCP server</title>
+</head>
+<body>
+<h1>Artie MCP server</h1>
+<p>This is the Model Context Protocol endpoint for <a href="https://www.artie.com">Artie</a>.
+Add it to an MCP client that supports remote Streamable HTTP servers and OAuth.
+You'll be asked to sign in to Artie on first use. Don't add an API key or bearer token.</p>
+<pre>https://mcp.artie.com/mcp</pre>
+<h2>Claude Code</h2>
+<pre>claude mcp add --transport http artie https://mcp.artie.com/mcp</pre>
+<h2>Cursor, Codex, and other clients</h2>
+<pre>{
+  "mcpServers": {
+    "artie": {
+      "url": "https://mcp.artie.com/mcp"
+    }
+  }
+}</pre>
+<p>Full setup guide and tool list: <a href="https://www.artie.com/docs/api/mcp">artie.com/docs/api/mcp</a></p>
+</body>
+</html>
+"""
+
+
+async def mcp_setup_page(request):
+    # Stateless Streamable HTTP has no GET stream; MCP clients asking for one
+    # keep getting the 405 they already handle.
+    if "text/event-stream" in request.headers.get("accept", ""):
+        return Response(
+            "Method Not Allowed",
+            status_code=405,
+            headers={"allow": "POST, DELETE"},
+        )
+    return Response(_SETUP_PAGE, media_type="text/html")
+
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(_request):
     return Response(status_code=200)
@@ -655,6 +698,7 @@ app.router.routes = [
         oauth_authorization_server_metadata,
         methods=["GET"],
     ),
+    Route("/mcp", mcp_setup_page, methods=["GET"]),
     *[
         route
         for route in app.routes
