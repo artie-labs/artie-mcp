@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "da9572375e4d1025183e825a5da3bf648810334786fafc61a569a33a3166cd91",
-  "releaseTag": "v1.0.235",
+  "policySHA256": "8eaa07fb5c75a9e9043e976be506bd91a793dd8c72f08183d556a2f954d3debb",
+  "releaseTag": "v1.0.236",
   "tools": [
     {
       "annotations": {
@@ -88,7 +88,7 @@
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "cb3aec278629a6b160633f319d251348d8fb360e43ea0c657b7803d9d0619a31",
-      "title": "Preview a column hashing salt",
+      "title": "Hash a value with a column hashing salt",
       "triggerDescription": "Hashes a sample value the way pipelines do (HMAC-SHA256 keyed on the salt, or SHA-256 if the salt is empty) and returns the hex digest, without revealing the salt. Use it to check which salt produced a hashed value or to get the hash to look a row up by. The uuid comes from column_hashing_salt_list."
     },
     {
@@ -243,7 +243,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "7d5901957823ee9a883d9e4ec77f59378a468450f8e9c3dbe52a2225d3f99d8a",
       "title": "Fetch databases for a saved connector",
-      "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
+      "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID. Returns items with each database's name, plus metadata for catalogs that have catalog-level properties, such as an Iceberg S3 Tables bucket."
     },
     {
       "annotations": {
@@ -285,7 +285,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "94e7bce6443a28638d35bdf5fada9e984b5e05d5bbd0272c4b2e03322e669927",
+      "successSchemaSHA256": "d56e30d0b34ccc290749df23c3b05346588b5c650c8a9a7e9b0db75ecfae8077",
       "title": "Fetch PostgreSQL settings",
       "triggerDescription": "Returns replication-relevant server settings (name, value, unit, category) for a saved Postgres source, such as wal_level, max_replication_slots, max_wal_senders, and max_slot_wal_keep_size. uuid must come from connector_list with includeSourceConnectors=true. Use to check CDC prerequisites (wal_level must be logical) before pipeline_start or after it fails. Settings are changed on the database, not through Artie."
     },
@@ -309,7 +309,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "a5c309d0287ccde74910166d52951ac8447534adb6c5f6e4cabc3f4cf82c33b4",
       "title": "Fetch schemas for a saved connector",
-      "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it."
+      "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it. Returns items, each with the schema name and whether the connector's user can read it (unreadable, with unreadableReason when the source gives one)."
     },
     {
       "annotations": {
@@ -353,7 +353,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "2c88e595fa8de8b5e55dc843f046977c115dccb6d956106aecc643c151867a4a",
       "title": "Fetch tables for a saved connector",
-      "triggerDescription": "Lists tables on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Use to choose names for pipeline_update.tables."
+      "triggerDescription": "Lists tables on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Use to choose names for pipeline_update.tables. Returns items with each table's name, schema, isView, unreadable flag and, when the source reports them, creation and modification times; columns are usually left empty, so use connector_fetch_table_detail for them."
     },
     {
       "annotations": {
@@ -375,7 +375,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b3e1ee9f7de80a9546fb1ac5acdb7dcb80a4eb7583d5c931632d892f86b12fec",
       "title": "Generate Oracle shadow table script",
-      "triggerDescription": "Returns a SQL script for the user to run on a saved Oracle source. The script creates a locked SHADOW user, a shadow table per source table, grants, and AFTER triggers on the source tables that copy changes into the shadow tables. The tool itself changes nothing. Pass up to 10 tables with their columns (from connector_fetch_table_detail); a table without columns returns 400. Oracle sources only."
+      "triggerDescription": "Returns a SQL script for the user to run on a saved Oracle source. The script creates a locked SHADOW user, a shadow table per source table, grants, and AFTER triggers on the source tables that copy changes into the shadow tables. The tool itself changes nothing. Pass up to 10 tables with their columns (from connector_fetch_table_detail); a table without columns returns 400. Oracle sources only. The result's script field holds the SQL text."
     },
     {
       "annotations": {
@@ -419,7 +419,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "473dfd0473c3322ef49784e58d58b254c0556f037642935c3e25c72c016a6393",
       "title": "Start a DynamoDB export",
-      "triggerDescription": "Starts a DynamoDB point-in-time export of a saved DynamoDB source's table to the given S3 bucket and prefix, and returns the export's ARN. Point-in-time recovery must be on for the table. DynamoDB sources only; for SQL CDC use pipeline_start."
+      "triggerDescription": "Starts a DynamoDB point-in-time export of a saved DynamoDB source's table to the given S3 bucket and prefix, and returns the export's ARN. Point-in-time recovery must be on for the table. DynamoDB sources only; for SQL CDC use pipeline_start. The export runs in AWS with the connector's credentials after the call returns, writes a full copy of the table under the prefix, and is billed by AWS, so confirm with the user first."
     },
     {
       "annotations": {
@@ -595,7 +595,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
       "title": "Get an admin Kafka user",
-      "triggerDescription": "One admin Kafka user on a BYOC cluster, without its password. There is no admin user list: find the userUUID in kafka_user_list where accessProfile is admin."
+      "triggerDescription": "One admin Kafka user on a BYOC cluster, without its password: its uuid, username, accessProfile (admin), status (pending, active or deleting) and createdAt. consumerGroupPrefix is also returned but doesn't limit an admin user, which can read any group. There is no admin user list: find the userUUID in kafka_user_list where accessProfile is admin."
     },
     {
       "annotations": {
@@ -792,7 +792,7 @@
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "6f9e7ada9d1df99eaaa8448a0e0559beb93bcae3c91e41a8e64ab4e5828a2210",
-      "title": "Get every Kafka consumer group's detail",
+      "title": "List Kafka consumer group details",
       "triggerDescription": "Managed clusters only (400 otherwise): every consumer group's members and per-topic offset lag in one call. Use instead of calling kafka_consumer_group_detail once per group."
     },
     {
@@ -896,7 +896,7 @@
       "name": "kafka_topic_create",
       "outputSensitivity": "none",
       "path": "/kafka-clusters/{uuid}/topics",
-      "requestSchemaSHA256": "dc1af16de016bb3658e18f573b3438c27848e160d44bf5679184576afc76679e",
+      "requestSchemaSHA256": "1c0c2291850d5c4f47781be0969d0a85296bd8d82be4c99bfa43b4cc73df2ca6",
       "requiredScopes": [
         "kafka:write"
       ],
@@ -1123,7 +1123,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
       "title": "Get a Kafka user",
-      "triggerDescription": "One producer_consumer Kafka user on a BYOC cluster, without its password. userUUID comes from kafka_user_list. Passwords aren't available through MCP; the user can copy one from the Artie dashboard."
+      "triggerDescription": "One producer_consumer Kafka user on a BYOC cluster, without its password: its uuid, username, accessProfile, status (pending, active or deleting), createdAt and the consumerGroupPrefix its consumer group IDs must start with. userUUID comes from kafka_user_list. Passwords aren't available through MCP; the user can copy one from the Artie dashboard."
     },
     {
       "annotations": {
@@ -1167,7 +1167,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Backfill pipeline tables",
-      "triggerDescription": "Re-reads whole tables from the source into the destination and redeploys the pipeline. Pass table UUIDs from pipeline_detail (not connector_fetch_tables) of tables already on the running pipeline; to attach tables, use pipeline_update. beforeBackfill can truncate, drop, or rebuild-and-swap the destination tables first, which deletes their current rows, so confirm with the user. Returns 204 once queued; 400 if no listed table could start (not found, already backfilling, or replication disabled); 429 past 2,500 tables per company per hour."
+      "triggerDescription": "Re-reads whole tables from the source into the destination and redeploys the pipeline. Pass table UUIDs from pipeline_detail (not connector_fetch_tables) of tables already on the running pipeline; to attach tables, use pipeline_update. beforeBackfill can truncate, drop, or rebuild-and-swap the destination tables first, which deletes their current rows, so confirm with the user. Returns 204 once queued; 400 if no listed table could start (not found, already backfilling, or replication disabled); 429 past 2,500 tables per company per hour. backfillBatchSize and backfillDefaults are saved on the pipeline for later backfills too, and are rejected when the source reader is shared."
     },
     {
       "annotations": {
@@ -1188,7 +1188,7 @@
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
-      "title": "Cancel backfill",
+      "title": "Cancel table backfills",
       "triggerDescription": "Stops a backfill that is queued or running and redeploys the pipeline. Pass table UUIDs from pipeline_detail in tableUUIDs for regular tables and in historyTableUUIDs for history tables; both are required, so send [] for the one you don't need. Returns 400 if none of them are backfilling."
     },
     {
@@ -1343,7 +1343,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "8917bca0b9dd01df1acd2e2f73e4e9f8286cd0c923e730086fa7b0612ef8fa9e",
       "title": "List pipelines",
-      "triggerDescription": "Lists pipelines with uuid, name, and status. This is not a full configuration \u2014 do not send it to pipeline_update. Full config, per-table status, and table UUIDs are pipeline_detail. Failure messages are pipeline_error_logs, not status. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
+      "triggerDescription": "Lists pipelines with their uuid, name, status, source and destination IDs, deploy state (hasUndeployedChanges, isDeploying, lastDeployError) and each table's latest backfill stage. It isn't a full configuration and has no table list, so don't send it to pipeline_update; full config, tables and table UUIDs are pipeline_detail. lastDeployError only covers deploys; runtime failures are in pipeline_error_logs. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
     },
     {
       "annotations": {
@@ -1475,7 +1475,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Create a PrivateLink connection",
-      "triggerDescription": "Creates a PrivateLink connection: pass vpcServiceName and availabilityZoneIds for an AWS data plane, or privateLinkServiceAlias for an Azure one. Keep the returned UUID; there is no list tool."
+      "triggerDescription": "Creates a PrivateLink connection: pass vpcServiceName and availabilityZoneIds for an AWS data plane, or privateLinkServiceAlias for an Azure one. Keep the returned UUID; there is no list tool. It returns the connection with status under review: Artie reviews it and creates the endpoint, the service owner may need to accept it (pending acceptance), and dnsEntry, the host connectors use, is set once it's available. Check progress with private_link_connection_detail."
     },
     {
       "annotations": {
@@ -1556,12 +1556,12 @@
       "name": "snowflake_eco_schedule_create",
       "outputSensitivity": "none",
       "path": "/snowflake-eco-schedules",
-      "requestSchemaSHA256": "a7d254a6fbeacfe49985a9d6075038e93f10421514b7f2b90418eb6b28286399",
+      "requestSchemaSHA256": "11f31b6fbcec15e900166df5a67fce087ecf3f9fba1dfd49f7ca6d3fa2373077",
       "requiredScopes": [
         "snowflake_eco_schedules:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "successSchemaSHA256": "5b08dd3f1e4ff3b64f446bdc5d5a78ed864d32b2554dd4a26818d3ba96dfba16",
       "title": "Create a Snowflake Eco Mode schedule",
       "triggerDescription": "Creates a schedule of peak hours (time zone, days, start and end time). Outside them, attached pipelines use its off-peak flush rules."
     },
@@ -1605,7 +1605,7 @@
         "snowflake_eco_schedules:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "successSchemaSHA256": "5b08dd3f1e4ff3b64f446bdc5d5a78ed864d32b2554dd4a26818d3ba96dfba16",
       "title": "Get a Snowflake Eco Mode schedule",
       "triggerDescription": "Returns one schedule's peak hours (timezone, days, startTimeOfDay, endTimeOfDay) and its off-peak flush settings. The uuid comes from snowflake_eco_schedule_list or a pipeline's snowflakeEcoScheduleUUID in pipeline_detail."
     },
@@ -1627,9 +1627,9 @@
         "snowflake_eco_schedules:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "cea9b24ad6556c963196d151da27d58795038611e8055bc254a18a9288df9a27",
+      "successSchemaSHA256": "94f66372a8c302371b77adc4e09226cd8dd5caa35d228c7c110b8740436a42d2",
       "title": "List Snowflake Eco Mode schedules",
-      "triggerDescription": "Lists the company's Snowflake Eco Mode schedules. Use a schedule's uuid as snowflakeEcoScheduleUUID on a pipeline update."
+      "triggerDescription": "Lists the company's Snowflake Eco Mode schedules. Use a schedule's uuid as snowflakeEcoScheduleUUID on a pipeline update. Returns items with each schedule's uuid, name, environmentUUID, timestamps and settings: the peak hours and the flush rules used outside them."
     },
     {
       "annotations": {
@@ -1644,12 +1644,12 @@
       "name": "snowflake_eco_schedule_update",
       "outputSensitivity": "none",
       "path": "/snowflake-eco-schedules/{uuid}",
-      "requestSchemaSHA256": "2605766b28c7babe04c52c8f567e32576a2a680ea615c5dee3618a7296391175",
+      "requestSchemaSHA256": "9734e4533cd415db05c0cc04a423de01e2bb27d71e2b0c1cf889fd31b4bbabb1",
       "requiredScopes": [
         "snowflake_eco_schedules:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "successSchemaSHA256": "5b08dd3f1e4ff3b64f446bdc5d5a78ed864d32b2554dd4a26818d3ba96dfba16",
       "title": "Update a Snowflake Eco Mode schedule",
       "triggerDescription": "Replaces a schedule's name and every setting, so read it with snowflake_eco_schedule_detail first and send it back with only the intended change. The schedule is shared, so the change affects every pipeline attached to it. The uuid comes from snowflake_eco_schedule_list."
     },
@@ -1695,7 +1695,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Deploy a source reader",
-      "triggerDescription": "Validates a shared source reader against its source and queues a deploy of the reader, so changes such as a source_reader_update take effect. Returns 204 once queued; 400 with the validation error, or if the reader isn't shared (a dedicated reader deploys with its pipeline via pipeline_start). The uuid comes from pipeline_detail.sourceReaderUUID."
+      "triggerDescription": "Validates a shared source reader against its source and queues a deploy of the reader, so changes such as a source_reader_update take effect. Returns 204 once queued; 400 with the validation error, or if the reader isn't shared (a dedicated reader deploys with its pipeline via pipeline_start). The uuid comes from pipeline_detail.sourceReaderUUID. The deploy applies to every pipeline that shares the reader."
     },
     {
       "annotations": {
@@ -1761,7 +1761,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Create an SSH tunnel",
-      "triggerDescription": "Creates an SSH tunnel record with a new key pair and returns it, including the publicKey the user must add to the bastion host's authorized_keys before connectors can use it. A company can have at most 100 tunnels. Keep the returned UUID; there is no list tool."
+      "triggerDescription": "Creates an SSH tunnel record with a new key pair and returns it, including the publicKey the user must add to the bastion host's authorized_keys before connectors can use it. A company can have at most 100 tunnels. Keep the returned UUID; there is no list tool. The result also has the tunnel's uuid, name, host, port, username and environmentUUID."
     },
     {
       "annotations": {
