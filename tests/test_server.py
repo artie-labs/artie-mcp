@@ -215,6 +215,23 @@ class TestServer(unittest.TestCase):
         self.assertNotIn("headers", remote)
         self.assertIn("OAuth", card["description"])
 
+    def test_initialize_advertises_server_metadata_and_instructions(self):
+        from fastmcp import Client
+
+        async def initialize():
+            async with Client(self.server.mcp) as client:
+                return client.initialize_result
+
+        result = asyncio.run(initialize())
+        info = result.serverInfo
+        self.assertEqual("Artie", info.name)
+        self.assertEqual(self.server.policy_release_tag.removeprefix("v"), info.version)
+        self.assertEqual("https://www.artie.com/docs/api/mcp", info.websiteUrl)
+        self.assertEqual("image/svg+xml", info.icons[0].mimeType)
+        self.assertIn("pipeline_create_from_source", result.instructions)
+        # Claude Code truncates server instructions past 2 KB.
+        self.assertLess(len(result.instructions.encode()), 2048)
+
     def test_agent_auth_metadata_describes_supported_registration(self):
         self.assertEqual(
             {
