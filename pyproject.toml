@@ -5,7 +5,7 @@ description = "Artie's hosted MCP server for managing data pipelines"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "fastmcp>=3.4.4",
+    "fastmcp>=4.2.0",
     "httpx>=0.28.1",
     "opentelemetry-exporter-otlp-proto-http>=1.40.0",
     "opentelemetry-sdk>=1.40.0",

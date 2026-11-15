@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 import httpx
+import httpx2
 from fastmcp.exceptions import NotFoundError
 from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 from mcp import types
@@ -139,7 +140,8 @@ def _failure_class(error: Exception) -> str:
             return "unknown_tool"
         if isinstance(current, httpx.TimeoutException):
             return "upstream_timeout"
-        if isinstance(current, httpx.HTTPStatusError):
+        # FastMCP raises httpx2 status errors even for an httpx client.
+        if isinstance(current, httpx2.HTTPStatusError):
             return "upstream_http_error"
         current = current.__cause__
     return "internal"

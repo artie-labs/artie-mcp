@@ -2,6 +2,8 @@ import asyncio
 import json
 import unittest
 
+import httpx2
+
 from fastmcp.server.middleware import MiddlewareContext
 from mcp import types
 from pydantic import ValidationError as PydanticValidationError
@@ -87,6 +89,28 @@ class TestMCPObservability(unittest.TestCase):
         self.assertEqual("pipeline_list", record["tool"])
         self.assertNotIn("secret-token", logs.output[0])
         self.assertNotIn("credential", logs.output[0])
+
+    def test_upstream_status_error_is_classified(self):
+        request = httpx2.Request("GET", "https://api.artie.com/pipelines")
+
+        async def call_next(_context):
+            # The error FastMCP's OpenAPI tools raise for a non-2xx upstream.
+            raise httpx2.HTTPStatusError(
+                "HTTP error 500",
+                request=request,
+                response=httpx2.Response(500, request=request),
+            )
+
+        context = MiddlewareContext(
+            message=types.CallToolRequestParams(name="pipeline_list"),
+            method="tools/call",
+        )
+        with self.assertRaises(httpx2.HTTPStatusError):
+            asyncio.run(self.middleware.on_call_tool(context, call_next))
+
+        self.assertEqual(
+            "upstream_http_error", self.metrics.records[0]["failure_class"]
+        )
 
     def test_unknown_tool_is_not_emitted_as_a_metric_tag(self):
         async def call_next(_context):
