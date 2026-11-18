@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "d7299c2a1dcd444e03e463ea66530b04d8334db0b4d147a688680246ec089144",
-  "releaseTag": "v1.0.241",
+  "policySHA256": "427c7724d1654acfb0e5bbf27bd73a2b9abdbc75e742be0017d942fbed5ad185",
+  "releaseTag": "v1.0.246",
   "tools": [
     {
       "annotations": {
@@ -1204,12 +1204,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "dc3350cfb351905301f98ca815732fd8bb0285bf47e57cc937cc2ab00d860f13",
+      "requestSchemaSHA256": "b5e721e92473d63bbd747bcb6fe647b8e13f93e2011323f9303653918d76dd1f",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "04249a4c9d3f40599e9c65f69ba9ee4db0568252b5a20b71697860d81d0a0126",
+      "successSchemaSHA256": "c02a58ac95cd5211d51a2ea399172f5bb391bf63a0a3538f62294d0f029b46b9",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -1231,7 +1231,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "04249a4c9d3f40599e9c65f69ba9ee4db0568252b5a20b71697860d81d0a0126",
+      "successSchemaSHA256": "c02a58ac95cd5211d51a2ea399172f5bb391bf63a0a3538f62294d0f029b46b9",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -1275,7 +1275,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "04249a4c9d3f40599e9c65f69ba9ee4db0568252b5a20b71697860d81d0a0126",
+      "successSchemaSHA256": "c02a58ac95cd5211d51a2ea399172f5bb391bf63a0a3538f62294d0f029b46b9",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -1402,12 +1402,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "e3fe5db1fbc0fc704587958ac219113c496d0539aaff1eb0ff6dc01cf78aaad3",
+      "requestSchemaSHA256": "e2d6ca9142fdcf0a68e5f9f10798aa044250ec6d551de13a72be843bf8d40a34",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "04249a4c9d3f40599e9c65f69ba9ee4db0568252b5a20b71697860d81d0a0126",
+      "successSchemaSHA256": "c02a58ac95cd5211d51a2ea399172f5bb391bf63a0a3538f62294d0f029b46b9",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -1429,7 +1429,7 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "b4bd85fb81f68df97fe7cf47bf0486972985f5dfb385430ae7371d800223dbc4",
+      "successSchemaSHA256": "1858b46248270c5e0815f0d646a1343632296adc813785198cc7f2cda6b7a0d3",
       "title": "Update pipeline status",
       "triggerDescription": "Pauses or resumes an already-deployed pipeline and queues a deploy. status paused stops the pipeline's capture and writes (a shared source reader keeps capturing for its other pipelines); transfer paused stops writing to the destination while the source keeps being read (not allowed for Kafka destinations); running resumes after validating the pipeline and the company's table limit. Returns 409 if the pipeline already has that status. For a first deploy, use pipeline_start."
     },
@@ -1715,7 +1715,7 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "0857d71bdeb359f48311ce3f3148b59681ac8bf7264a469e0a95a86521ce845f",
+      "successSchemaSHA256": "f43021d6e1d6b3f95cf800e2f8d53056cb23578114f8fbb855df7199c93df6e5",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
@@ -1732,12 +1732,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "be6ab4da3f5c37d0954b0e249bfd808dc3cc1dfe057d54e75d35e8e498ce60d2",
+      "requestSchemaSHA256": "281d474cb16a22d6e32ab7c6d8248a0f359c3c4703f26642bb0829f148abd61f",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "0857d71bdeb359f48311ce3f3148b59681ac8bf7264a469e0a95a86521ce845f",
+      "successSchemaSHA256": "f43021d6e1d6b3f95cf800e2f8d53056cb23578114f8fbb855df7199c93df6e5",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
