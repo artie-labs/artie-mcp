@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "d7299c2a1dcd444e03e463ea66530b04d8334db0b4d147a688680246ec089144",
-  "releaseTag": "v1.0.241",
+  "policySHA256": "58fa2db58667cf72ead46464feb58e4e12031595c2c23a240adb3e7801c3bfdd",
+  "releaseTag": "v1.0.244",
   "tools": [
     {
       "annotations": {
@@ -1715,7 +1715,7 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "0857d71bdeb359f48311ce3f3148b59681ac8bf7264a469e0a95a86521ce845f",
+      "successSchemaSHA256": "f43021d6e1d6b3f95cf800e2f8d53056cb23578114f8fbb855df7199c93df6e5",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
@@ -1732,12 +1732,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "be6ab4da3f5c37d0954b0e249bfd808dc3cc1dfe057d54e75d35e8e498ce60d2",
+      "requestSchemaSHA256": "281d474cb16a22d6e32ab7c6d8248a0f359c3c4703f26642bb0829f148abd61f",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "0857d71bdeb359f48311ce3f3148b59681ac8bf7264a469e0a95a86521ce845f",
+      "successSchemaSHA256": "f43021d6e1d6b3f95cf800e2f8d53056cb23578114f8fbb855df7199c93df6e5",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
