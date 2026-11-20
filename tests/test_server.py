@@ -43,13 +43,38 @@ class TestServer(unittest.TestCase):
                 ) as client:
                     return await client.get(path)
 
-        # A normal route, the MCP endpoint's 405 and the router's 404.
-        for path, status in (("/health", 200), ("/mcp", 405), ("/no-such-path", 404)):
+        # A normal route, the MCP setup page and the router's 404.
+        for path, status in (("/health", 200), ("/mcp", 200), ("/no-such-path", 404)):
             with self.subTest(path=path):
                 response = asyncio.run(get(path))
                 self.assertEqual(status, response.status_code)
                 for name, value in self.server._SECURITY_HEADERS:
                     self.assertEqual(value.decode(), response.headers[name.decode()])
+
+    def test_get_mcp_serves_setup_page_but_not_an_event_stream(self):
+        app = self.server.app
+
+        async def get(accept):
+            transport = httpx.ASGITransport(app=app)
+            async with app.router.lifespan_context(app):
+                async with httpx.AsyncClient(
+                    transport=transport, base_url="http://test"
+                ) as client:
+                    if accept is None:
+                        return await client.post("/mcp", json={})
+                    return await client.get("/mcp", headers={"accept": accept})
+
+        page = asyncio.run(get("text/html"))
+        self.assertEqual(200, page.status_code)
+        self.assertTrue(page.headers["content-type"].startswith("text/html"))
+        self.assertIn("https://mcp.artie.com/mcp", page.text)
+
+        stream = asyncio.run(get("text/event-stream"))
+        self.assertEqual(405, stream.status_code)
+        self.assertEqual("POST, DELETE", stream.headers["allow"])
+
+        # POST still reaches the authenticated MCP endpoint.
+        self.assertEqual(401, asyncio.run(get(None)).status_code)
 
     def test_server_publishes_exactly_the_policy_tools(self):
         names = [tool.name for tool in self.tools]
@@ -74,23 +99,40 @@ class TestServer(unittest.TestCase):
                 self.assertEqual(contract.trigger_description, tool.description)
                 self.assertEqual(
                     contract.annotations,
-                    tool.annotations.model_dump(exclude_none=True),
+                    tool.annotations.model_dump(by_alias=True, exclude_none=True),
                 )
+
+    def test_initialize_sends_server_title_and_description(self):
+        from fastmcp import Client
+
+        async def server_info():
+            async with Client(self.server.mcp, mode="legacy") as client:
+                return client.initialize_result.server_info
+
+        info = asyncio.run(server_info())
+        self.assertEqual("Artie", info.title)
+        self.assertEqual(
+            "Set up and operate Artie real-time CDC pipelines that replicate "
+            "databases into warehouses and lakes.",
+            info.description,
+        )
 
     def test_bodiless_policy_tools_publish_a_success_schema(self):
         tools = {tool.name: tool for tool in self.tools}
         for contract in self.server.policy_contract.tools:
             if contract.bodiless_success:
                 with self.subTest(tool=contract.name):
-                    self.assertEqual(
-                        {
-                            "type": "object",
-                            "properties": {"success": {"const": True}},
-                            "required": ["success"],
-                            "additionalProperties": False,
-                        },
-                        tools[contract.name].output_schema,
+                    schema = tools[contract.name].output_schema
+                    success = schema["properties"]["success"]
+                    self.assertEqual(True, success["const"])
+                    expected = (
+                        "in the background"
+                        if contract.success[0]["status"] == "202"
+                        else "the request succeeded"
                     )
+                    self.assertIn(expected, success["description"])
+                    self.assertEqual(["success"], schema["required"])
+                    self.assertFalse(schema["additionalProperties"])
 
     def test_failed_upstream_response_is_replaced_before_fastmcp_formats_it(self):
         response = httpx.Response(
@@ -189,6 +231,23 @@ class TestServer(unittest.TestCase):
         self.assertEqual("https://mcp.artie.com/mcp", remote["url"])
         self.assertNotIn("headers", remote)
         self.assertIn("OAuth", card["description"])
+
+    def test_initialize_advertises_server_metadata_and_instructions(self):
+        from fastmcp import Client
+
+        async def initialize():
+            async with Client(self.server.mcp, mode="legacy") as client:
+                return client.initialize_result
+
+        result = asyncio.run(initialize())
+        info = result.server_info
+        self.assertEqual("Artie", info.name)
+        self.assertEqual(self.server.policy_release_tag.removeprefix("v"), info.version)
+        self.assertEqual("https://www.artie.com/docs/api/mcp", info.website_url)
+        self.assertEqual("image/svg+xml", info.icons[0].mime_type)
+        self.assertIn("pipeline_create_from_source", result.instructions)
+        # Claude Code truncates server instructions past 2 KB.
+        self.assertLess(len(result.instructions.encode()), 2048)
 
     def test_agent_auth_metadata_describes_supported_registration(self):
         self.assertEqual(
