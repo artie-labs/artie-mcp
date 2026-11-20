@@ -6,7 +6,7 @@ This remote MCP server is middleware to the [Artie API](https://www.artie.com/do
 
 ## Getting Started
 
-OAuth is the supported auth path. Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata, signs you in, and on first tool use may ask you to link an Artie environment and scopes in the Dashboard. Artie API keys are not accepted.
+OAuth is the supported auth path. Point an OAuth-capable client (Claude Code, Cursor, Codex, and similar) at the server URL. The client discovers AuthKit from protected-resource metadata and signs you in; during sign-in you choose the Artie environment and scopes in the browser. Artie API keys are not accepted.
 
 Use the hosted service:
 
@@ -41,7 +41,7 @@ Add the marketplace from this repository (`.cursor-plugin/marketplace.json`) and
 }
 ```
 
-On first tool use, Artie may ask you to sign in, link an environment, and approve scopes. Do not add an API key for a new setup.
+When you connect, Artie asks you to sign in and choose an environment and scopes. Do not add an API key for a new setup.
 
 Codex and other OAuth clients: see the [MCP documentation](https://www.artie.com/docs/api/mcp).
 
