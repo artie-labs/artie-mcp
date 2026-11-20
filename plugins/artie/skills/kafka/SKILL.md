@@ -17,7 +17,7 @@ Call `kafka_cluster_list` and match `name` or `uuid` — never guess. `isManaged
 
 | | Managed (`isManaged: true`) | BYOC (`isManaged: false`) |
 |---|---|---|
-| Config | `kafka_cluster_detail` (adds `managed`: brokers, instance type, storage, retention, `pendingChange`) | `kafka_cluster_settings` (Strimzi only; MSK gets `supported: false`) |
+| Config | `kafka_cluster_detail` (adds `managed`: brokers, instance type, storage, retention, `pendingChange`); `kafka_cluster_broker_defaults` for broker configs Artie doesn't set, with Kafka's default (409 unless `status` is `active`) | `kafka_cluster_settings` (Strimzi only; MSK gets `supported: false`) |
 | Throughput | `kafka_cluster_rates` (`range` `1h` or `6h`; 409 unless `status` is `active`) | not available |
 | Consumer lag | `kafka_consumer_group_details` (every group in one call) | `kafka_consumer_group_list` → `kafka_consumer_group_detail` per group |
 | Users | `kafka_managed_user_list` (with ACLs) | `kafka_user_list`; detail via `kafka_user_detail` (`producer_consumer`) or `kafka_admin_user_detail` (`admin`) by `accessProfile` |
