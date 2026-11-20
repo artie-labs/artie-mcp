@@ -42,7 +42,7 @@ Copy this checklist and mark steps as you go. Stop at a failed gate. Do not skip
 
 - Ping a connector, not a pipeline uuid or `sourceReaderUUID`.
 - Postgres ping/create needs top-level `defaultDatabase` (database name). Oracle: that same field is the service name. S3: that same field is the bucket. Do not put it inside `sharedConfig`.
-- `unsaved_connector_ping` succeeds with `{"success": true}`. If it errors with `response status 200 is not approved by the policy`, the host or password is wrong. Do not switch to a different saved connector. Stop.
+- `unsaved_connector_ping` succeeds with `{"success": true}`. A 422 means the connection failed (unreachable host, bad credentials, missing permissions); quote its error, which says why. A 400 means the request body is wrong — fix the body, not the credentials. Do not switch to a different saved connector. Stop on a 422.
 - Do not echo the password. Do not call `unsaved_connector_fetch_*` — fetch after the connector is saved.
 - If `connector_create` or `unsaved_connector_ping` is missing from `tools/list`, send them to the [Artie Dashboard](https://app.artie.com) to save the connector, then resume.
 

@@ -1,6 +1,6 @@
 # artie-mcp
 
-Artie's MCP service is for human-in-the-loop coding agents. Tool selection is focused on pipeline setup, connector metadata, and infrastructure operations — not every Dashboard or API action.
+Artie's MCP service is for human-in-the-loop coding agents. Tool selection is focused on setting up and monitoring CDC pipelines, connector metadata, Managed and BYOC Kafka clusters and topics, Snowflake Eco Mode schedules, and infrastructure operations — not every Dashboard or API action.
 
 This remote MCP server is middleware to the [Artie API](https://www.artie.com/docs/api/overview). Artie Dashboard remains authoritative for identity, grants, environment binding, scopes, audit, and resource authorization.
 
