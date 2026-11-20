@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 import httpx
+import httpx2
 from fastmcp.exceptions import NotFoundError
 from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 from mcp import types
@@ -74,6 +75,16 @@ class MCPObservability(Middleware):
     ) -> types.InitializeResult | None:
         return await self._observe("initialize", None, lambda: call_next(context))
 
+    async def on_discover(
+        self,
+        context: MiddlewareContext[types.DiscoverRequest],
+        call_next: CallNext[
+            types.DiscoverRequest, types.DiscoverResult | dict[str, Any]
+        ],
+    ) -> types.DiscoverResult | dict[str, Any]:
+        # server/discover replaces initialize for clients on the newer protocol.
+        return await self._observe("discover", None, lambda: call_next(context))
+
     async def on_call_tool(
         self,
         context: MiddlewareContext[types.CallToolRequestParams],
@@ -139,7 +150,8 @@ def _failure_class(error: Exception) -> str:
             return "unknown_tool"
         if isinstance(current, httpx.TimeoutException):
             return "upstream_timeout"
-        if isinstance(current, httpx.HTTPStatusError):
+        # FastMCP raises httpx2 status errors even for an httpx client.
+        if isinstance(current, httpx2.HTTPStatusError):
             return "upstream_http_error"
         current = current.__cause__
     return "internal"

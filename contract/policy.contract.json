@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "ae919b09d13f298352160ed1e7e80150f02e9fb5ce1f3ea5b03394b77f08e4ad",
-  "releaseTag": "v1.0.211",
+  "policySHA256": "304f85a88f0da4a605f574227a83c8467b466fd4f4db392da409fbcbe26a65e2",
+  "releaseTag": "v1.0.251",
   "tools": [
     {
       "annotations": {
@@ -45,7 +45,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a column hashing salt",
-      "triggerDescription": "Deletes a column hashing salt by UUID. Does not unhash already-landed columns."
+      "triggerDescription": "Permanently deletes a column hashing salt. Returns 400 naming the pipelines that still use it; switch them to another salt first. Values already hashed with it stay hashed. The uuid comes from column_hashing_salt_list."
     },
     {
       "annotations": {
@@ -67,7 +67,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "fd11fc84376a52ae7dca5ec7ff350d473a6bebd323465511e7e8a21b0654062f",
       "title": "List column hashing salts",
-      "triggerDescription": "Lists column hashing salt names and UUIDs (no secret)."
+      "triggerDescription": "Lists the company's column hashing salts (uuid, name, description; never the salt). A pipeline uses the one in its columnHashingSaltUUID (pipeline_detail) to hash the columnsToHash in each table's advancedSettings. Use a uuid here for column_hashing_salt_preview, _update or _delete."
     },
     {
       "annotations": {
@@ -88,8 +88,8 @@
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "cb3aec278629a6b160633f319d251348d8fb360e43ea0c657b7803d9d0619a31",
-      "title": "Preview a column hashing salt",
-      "triggerDescription": "Hashes a sample string with this salt and returns the hex digest."
+      "title": "Hash a value with a column hashing salt",
+      "triggerDescription": "Hashes a sample value the way pipelines do (HMAC-SHA256 keyed on the salt, or SHA-256 if the salt is empty) and returns the hex digest, without revealing the salt. Use it to check which salt produced a hashed value or to get the hash to look a row up by. The uuid comes from column_hashing_salt_list."
     },
     {
       "annotations": {
@@ -111,7 +111,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "8da01cc3a0de29d8d762d03c516f163c912ce759b46ffd85f9dbb44a13b5bd3e",
       "title": "Update a column hashing salt",
-      "triggerDescription": "Updates the name and description of an existing column hashing salt. Does not rotate the secret."
+      "triggerDescription": "Replaces a column hashing salt's name and description; send both, since a missing one is blanked. The secret stays the same, so values pipelines already hashed don't change. There is no tool to rotate or create a salt. The uuid comes from column_hashing_salt_list."
     },
     {
       "annotations": {
@@ -133,7 +133,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "46cf34d5514c20016a93eeadc9144687b1c228f1667b39f4d9ecae0e2763fa63",
       "title": "Trigger automatic schema changes for a company",
-      "triggerDescription": "Enqueues automatic schema changes for all eligible running pipelines. For one pipeline, use pipeline_trigger_automatic_schema_changes."
+      "triggerDescription": "Queues the automatic schema change job for every running, unlocked pipeline in the company (or in the current environment): each adds columns the source has and the destination lacks, drops columns deleted from the source on pipelines with advancedSettings.dropDeletedColumns on (irreversible), and emails a summary. Confirm with the user first. A pipeline whose job ran or that was deployed in the last two hours is skipped silently, and the call still returns 202. Returns 403 if the company hasn't enabled automatic schema changes. For one pipeline, or to skip the two-hour wait, use pipeline_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
@@ -155,7 +155,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "0e8ddbdf346f5c6da8e9e15812547cb6d0c449f64ed38bfd59c2e55f34b8b72b",
       "title": "Create a connector",
-      "triggerDescription": "Creates a saved source or destination connector. Pass type, label, and sharedConfig (host, user, password, and type-specific fields). Keep the returned UUID for pipeline_create_from_source."
+      "triggerDescription": "Creates a saved source or destination connector. Pass type, label, and sharedConfig (host, user, password, and type-specific fields). Keep the returned UUID for pipeline_create_from_source. To copy a saved connector in the same environment, pass its uuid with the sharedConfig from connector_detail: masked secrets (********) are filled in from it, so don't ask the user for them."
     },
     {
       "annotations": {
@@ -243,7 +243,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "7d5901957823ee9a883d9e4ec77f59378a468450f8e9c3dbe52a2225d3f99d8a",
       "title": "Fetch databases for a saved connector",
-      "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID."
+      "triggerDescription": "Lists database names a saved source can see. uuid must come from connector_list with includeSourceConnectors=true. Do not pass a pipeline uuid or sourceReaderUUID. Returns items with each database's name, plus metadata for catalogs that have catalog-level properties, such as an Iceberg S3 Tables bucket."
     },
     {
       "annotations": {
@@ -285,7 +285,7 @@
         "connectors:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "94e7bce6443a28638d35bdf5fada9e984b5e05d5bbd0272c4b2e03322e669927",
+      "successSchemaSHA256": "d56e30d0b34ccc290749df23c3b05346588b5c650c8a9a7e9b0db75ecfae8077",
       "title": "Fetch PostgreSQL settings",
       "triggerDescription": "Returns replication-relevant server settings (name, value, unit, category) for a saved Postgres source, such as wal_level, max_replication_slots, max_wal_senders, and max_slot_wal_keep_size. uuid must come from connector_list with includeSourceConnectors=true. Use to check CDC prerequisites (wal_level must be logical) before pipeline_start or after it fails. Settings are changed on the database, not through Artie."
     },
@@ -309,7 +309,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "a5c309d0287ccde74910166d52951ac8447534adb6c5f6e4cabc3f4cf82c33b4",
       "title": "Fetch schemas for a saved connector",
-      "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it."
+      "triggerDescription": "Lists schemas on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Pass schemaName into connector_fetch_tables when the destination requires it. Returns items, each with the schema name and whether the connector's user can read it (unreadable, with unreadableReason when the source gives one)."
     },
     {
       "annotations": {
@@ -353,7 +353,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "2c88e595fa8de8b5e55dc843f046977c115dccb6d956106aecc643c151867a4a",
       "title": "Fetch tables for a saved connector",
-      "triggerDescription": "Lists tables on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Use to choose names for pipeline_update.tables."
+      "triggerDescription": "Lists tables on a saved connector. uuid must come from connector_list. Do not pass a pipeline uuid or sourceReaderUUID. Use to choose names for pipeline_update.tables. Returns items with each table's name, schema, isView, unreadable flag and, when the source reports them, creation and modification times; columns are usually left empty, so use connector_fetch_table_detail for them."
     },
     {
       "annotations": {
@@ -375,7 +375,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b3e1ee9f7de80a9546fb1ac5acdb7dcb80a4eb7583d5c931632d892f86b12fec",
       "title": "Generate Oracle shadow table script",
-      "triggerDescription": "Returns SQL to create Oracle shadow tables for CDC. Oracle sources only."
+      "triggerDescription": "Returns a SQL script for the user to run on a saved Oracle source. The script creates a locked SHADOW user, a shadow table per source table, grants, and AFTER triggers on the source tables that copy changes into the shadow tables. The tool itself changes nothing. Pass up to 10 tables with their columns (from connector_fetch_table_detail); a table without columns returns 400. Oracle sources only. The result's script field holds the SQL text."
     },
     {
       "annotations": {
@@ -419,7 +419,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "473dfd0473c3322ef49784e58d58b254c0556f037642935c3e25c72c016a6393",
       "title": "Start a DynamoDB export",
-      "triggerDescription": "Starts a DynamoDB point-in-time export. DynamoDB sources only; for SQL CDC use pipeline_start."
+      "triggerDescription": "Starts a DynamoDB point-in-time export of a saved DynamoDB source's table to the given S3 bucket and prefix, and returns the export's ARN. Point-in-time recovery must be on for the table. DynamoDB sources only; for SQL CDC use pipeline_start. The export runs in AWS with the connector's credentials after the call returns, writes a full copy of the table under the prefix, and is billed by AWS, so confirm with the user first."
     },
     {
       "annotations": {
@@ -441,7 +441,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3b6b8868532da58282acb00514e97fd301f0e68294f1e2d4c76233847bfd2875",
       "title": "Search the data catalog",
-      "triggerDescription": "Searches ingested catalog metadata. For live source tables, use connector_fetch_tables."
+      "triggerDescription": "Searches the metadata Artie has ingested from the company's connectors (in the current environment, if one is set). Returns matches grouped by connector and then by kind, each with the connectorUUID, a score, and the database, schema, or table it found (names only, no rows or columns). Results are capped at about 10 connectors and 10 matches of each kind per connector, so a missing table may simply have been cut off; narrow the query. The catalog can lag the source; for a live list of a connector's tables use connector_fetch_tables."
     },
     {
       "annotations": {
@@ -463,7 +463,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an encryption key",
-      "triggerDescription": "Deletes an encryption key by UUID. Does not decrypt already-landed columns."
+      "triggerDescription": "Permanently deletes an encryption key. Values already encrypted with it can no longer be decrypted through Artie. Returns 400 naming the pipelines that still use it; switch them to another key first. Confirm with the user. The uuid comes from encryption_key_list."
     },
     {
       "annotations": {
@@ -485,7 +485,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "109e753364e1add34c73070b3d6700ba6a42d996c6b6682a2a0e4a77c707060c",
       "title": "List encryption keys",
-      "triggerDescription": "Lists encryption key names and UUIDs (no secret material)."
+      "triggerDescription": "Lists the company's encryption keys (uuid, name, description, type, kmsKeyUUID; never key material). A pipeline uses the one in its encryptionKeyUUID (pipeline_detail) to encrypt the columnsToEncrypt in each table's advancedSettings. Use a uuid here for encryption_key_update or _delete."
     },
     {
       "annotations": {
@@ -529,7 +529,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an ingestion API key",
-      "triggerDescription": "Deletes an ingestion API key by UUID."
+      "triggerDescription": "Deletes an ingestion API key so it stops working after the next deploy: of the source reader's pipelines (they are marked as having undeployed changes), or of the source reader itself if it is shared. There is no list tool, so get the key's uuid from the user."
     },
     {
       "annotations": {
@@ -551,7 +551,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "6790d03ccc110df09d0e0558d21388f48247dac4a625733939b61703d9bf8c39",
       "title": "Update an ingestion API key",
-      "triggerDescription": "Updates metadata on an existing ingestion API key. Does not mint a new key."
+      "triggerDescription": "Replaces an ingestion API key's name and expiresAt and returns the key; it doesn't mint a new key. Send both fields: a missing name blanks it, and a missing expiresAt removes the expiry (expiresAt must be in the future and is ignored on an already-expired key). Only an expiry change needs a redeploy to take effect: the source reader's pipelines are marked as having undeployed changes, and a shared reader needs source_reader_deploy instead."
     },
     {
       "annotations": {
@@ -573,7 +573,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d54a17c2c97c39e0f62eb68f2a6570268e4e0b3984416c9712ab241bce4d61a4",
       "title": "Delete an admin Kafka user",
-      "triggerDescription": "Use when you need to delete an admin Kafka user."
+      "triggerDescription": "Deletes an admin Kafka user on a BYOC cluster. Kafka revokes its access within seconds, so clients using it stop working. userUUID comes from kafka_user_list where accessProfile is admin. Confirm with the user first."
     },
     {
       "annotations": {
@@ -595,7 +595,29 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
       "title": "Get an admin Kafka user",
-      "triggerDescription": "Use when you need to get an admin Kafka user."
+      "triggerDescription": "One admin Kafka user on a BYOC cluster, without its password: its uuid, username, accessProfile (admin), status (pending, active or deleting) and createdAt. consumerGroupPrefix is also returned but doesn't limit an admin user, which can read any group. There is no admin user list: find the userUUID in kafka_user_list where accessProfile is admin."
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "bodilessSuccess": false,
+      "inputSensitivity": "none",
+      "method": "get",
+      "name": "kafka_cluster_broker_defaults",
+      "outputSensitivity": "none",
+      "path": "/kafka-clusters/{uuid}/broker-defaults",
+      "requestSchemaSHA256": "875ea54612c84cfea8df5acaec80bd44a58c6aedc76c9060eecb500c12914ba5",
+      "requiredScopes": [
+        "kafka:read"
+      ],
+      "retrySemantics": "safe",
+      "successSchemaSHA256": "7bc6ff0ebdd1bf69146affb11a9296e79bcf09c64d6f402f4e0dfd69d7d15532",
+      "title": "List the Kafka defaults a Managed Kafka cluster runs with",
+      "triggerDescription": "Managed clusters only, and the cluster must be active (400 or 409 otherwise). The broker configs Artie doesn't set, each with Kafka's default value. Use for what a broker config is when Artie leaves it alone; for the ones Artie sets use kafka_cluster_detail."
     },
     {
       "annotations": {
@@ -617,7 +639,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "575b8c5886e61072eb276a9d14ab67da8b0efab55125d5bb55b0483d24180ad1",
       "title": "Get a Kafka cluster",
-      "triggerDescription": "Use when you need to get a Kafka cluster."
+      "triggerDescription": "Gets one Kafka cluster by the uuid from kafka_cluster_list. For a Managed cluster it also returns the cluster's saved configuration; for a BYOC cluster it matches its kafka_cluster_list entry."
     },
     {
       "annotations": {
@@ -639,7 +661,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "c2c2d3309706290774ed203ee973d93b11eda5d31ecc9fdb9a3a8a3385537983",
       "title": "List Kafka clusters",
-      "triggerDescription": "Use when you need to list Kafka clusters."
+      "triggerDescription": "Start here for any Kafka question: lists the company's Kafka clusters with uuid, name, status and isManaged. Every other kafka_* tool takes that uuid. isManaged decides which tools work: Managed clusters use kafka_managed_user_*, kafka_cluster_rates and kafka_consumer_group_details; BYOC clusters (isManaged false) use kafka_user_*, kafka_admin_user_* and kafka_cluster_settings."
     },
     {
       "annotations": {
@@ -661,7 +683,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "bbbff1576459ff95bcf0345c2b56760b16600f5c7b28b322f17cf211784df4af",
       "title": "Get Kafka metrics graphs",
-      "triggerDescription": "Use when you need to get Kafka metrics graphs."
+      "triggerDescription": "Broker, topic and partition metrics and per-broker CPU over time, between from and to, for a Strimzi cluster. Use for trends and CPU questions; for current throughput and consumer lag on a Managed cluster, kafka_cluster_rates is quicker."
     },
     {
       "annotations": {
@@ -683,7 +705,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3e68be0c88cb7e1340b5f8382012201284e88e1c89cb269232b7fc1c454cea79",
       "title": "Get Managed Kafka cluster rates",
-      "triggerDescription": "Use when you need to get Managed Kafka cluster rates."
+      "triggerDescription": "Managed clusters only, and the cluster must be active (400 or 409 otherwise). Shows current messages in and bytes out per second, each topic's message rate, and each consumer group's lag per topic over range (1h or 6h). Use first for whether a Managed cluster is busy or any consumer is behind."
     },
     {
       "annotations": {
@@ -705,7 +727,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "b3b8eb40e0c22d6711536aa5b658211c223c5a871983667f2fc4982fd325e17f",
       "title": "Get a BYOC Kafka cluster's settings",
-      "triggerDescription": "Use when you need to get a BYOC Kafka cluster's settings."
+      "triggerDescription": "BYOC Strimzi clusters only: Kafka version, broker count, and disk size and storage class per broker. Managed and MSK clusters return supported false; for a Managed cluster's configuration use kafka_cluster_detail."
     },
     {
       "annotations": {
@@ -727,7 +749,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "be6036acdeb474ef8a472044d33176f8b7d890a7ac16b9fc57485edb41a203d2",
       "title": "Get Kafka storage graph",
-      "triggerDescription": "Use when you need to get Kafka storage graph."
+      "triggerDescription": "Broker disk usage over time, between from and to. Use for whether the disk is filling up; follow with kafka_topic_sizes to see which topics use the space."
     },
     {
       "annotations": {
@@ -749,7 +771,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "9d12f13fd2f0f3da23c4ce8c77a5b12aa0efdd4b76be4d48ca6b8fd832b4ea48",
       "title": "Get Kafka cluster summary",
-      "triggerDescription": "Use when you need to get Kafka cluster summary."
+      "triggerDescription": "Returns only two counts for a cluster: topics and consumer groups. For status or configuration use kafka_cluster_detail."
     },
     {
       "annotations": {
@@ -771,7 +793,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "599e7273d3e9590662b1363fa24477ec7effc3c7269058227a18f2e5a7fb310a",
       "title": "Get Kafka consumer group detail",
-      "triggerDescription": "Use when you need to get Kafka consumer group detail."
+      "triggerDescription": "One consumer group's members and per-topic offset lag, on any cluster type. Use for whether a specific consumer is behind. groupID comes from kafka_consumer_group_list."
     },
     {
       "annotations": {
@@ -792,8 +814,8 @@
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "6f9e7ada9d1df99eaaa8448a0e0559beb93bcae3c91e41a8e64ab4e5828a2210",
-      "title": "Get every Kafka consumer group's detail",
-      "triggerDescription": "Use when you need to get every Kafka consumer group's detail."
+      "title": "List Kafka consumer group details",
+      "triggerDescription": "Managed clusters only (400 otherwise): every consumer group's members and per-topic offset lag in one call. Use instead of calling kafka_consumer_group_detail once per group."
     },
     {
       "annotations": {
@@ -815,7 +837,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "85c2fd147d1e5be242fd06dab2331269351b7795c95c6d39dfe6401f024f5275",
       "title": "List Kafka consumer groups",
-      "triggerDescription": "Use when you need to list Kafka consumer groups."
+      "triggerDescription": "Lists consumer group IDs on a cluster, without lag. groupID is what kafka_consumer_group_detail takes. For lag on every group of a Managed cluster in one call, use kafka_consumer_group_details instead."
     },
     {
       "annotations": {
@@ -837,7 +859,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a Managed Kafka cluster's user",
-      "triggerDescription": "Use when you need to delete a Managed Kafka cluster's user."
+      "triggerDescription": "Managed clusters only: deletes a login. Kafka rejects its password within seconds, so clients using it stop working. Confirm with the user first."
     },
     {
       "annotations": {
@@ -859,12 +881,12 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "697abb3ef298c2902db2246f26be73cd7af5b5478fbcf92ee1a6cd27aec606e7",
       "title": "List a Managed Kafka cluster's users",
-      "triggerDescription": "Use when you need to list a Managed Kafka cluster's users."
+      "triggerDescription": "Managed clusters only: lists the cluster's extra Kafka logins with their ACLs, without passwords. userUUID is what kafka_managed_user_update and kafka_managed_user_delete take."
     },
     {
       "annotations": {
-        "destructiveHint": false,
-        "idempotentHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
         "openWorldHint": false,
         "readOnlyHint": false
       },
@@ -878,10 +900,10 @@
       "requiredScopes": [
         "kafka_admin_users:write"
       ],
-      "retrySemantics": "safe-after-state-check",
+      "retrySemantics": "safe",
       "successSchemaSHA256": "8b3089b23c6683b1ed01f7532bfa8988cbd5c7a379180a76d3724f7c93bd2e87",
       "title": "Change a Managed Kafka cluster's user's ACLs",
-      "triggerDescription": "Use when you need to change a Managed Kafka cluster's user's ACLs."
+      "triggerDescription": "Managed clusters only: replaces a login's ACLs with the acls you send, so any ACL left out is removed. The password stays the same. Read the current ACLs with kafka_managed_user_list and confirm the change with the user first."
     },
     {
       "annotations": {
@@ -896,14 +918,14 @@
       "name": "kafka_topic_create",
       "outputSensitivity": "none",
       "path": "/kafka-clusters/{uuid}/topics",
-      "requestSchemaSHA256": "dc1af16de016bb3658e18f573b3438c27848e160d44bf5679184576afc76679e",
+      "requestSchemaSHA256": "1c0c2291850d5c4f47781be0969d0a85296bd8d82be4c99bfa43b4cc73df2ca6",
       "requiredScopes": [
         "kafka:write"
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "44aab98754d9fbb6436df3bba003acc79dce72b412b8510b15284cbcd88037aa",
       "title": "Create a Kafka topic",
-      "triggerDescription": "Use when you need to create a Kafka topic."
+      "triggerDescription": "Creates a topic with topic, partitionCount, replicationFactor and optional configEntries. On a BYOC cluster the name must start with <companyUUID>.customer.; on a Managed cluster any name works except the cluster's own (__ and strimzi.cruisecontrol.*), and the cluster must be active. Confirm the settings with the user first."
     },
     {
       "annotations": {
@@ -925,7 +947,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a Kafka topic",
-      "triggerDescription": "Use when you need to delete a Kafka topic."
+      "triggerDescription": "Deletes a topic and every message in it; this can't be undone. Don't delete a topic with artieManaged true (it feeds Artie pipelines) unless the user asked for that exact topic. Confirm the topic name with the user first."
     },
     {
       "annotations": {
@@ -947,7 +969,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d3534ec14c0afd04011f1c800514865e21b0c7158fc666a71db32c2ef5e9030c",
       "title": "Get Kafka topic detail",
-      "triggerDescription": "Use when you need to get Kafka topic detail."
+      "triggerDescription": "One topic's per-partition sizes, replication, leaders and offsets, plus the Artie pipelines (names and uuids) on the source reader that writes it. topic comes from kafka_topic_list. Use before changing or deleting a topic to see what depends on it."
     },
     {
       "annotations": {
@@ -969,7 +991,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "a8493b48d1274a28e9bdcbdc2865564036f73597abf76af3df21d2e0099c7bb4",
       "title": "Get latest Kafka topic message",
-      "triggerDescription": "Use when you need to get latest Kafka topic message."
+      "triggerDescription": "Returns the contents of the newest message on partition 0 of a topic. It can be customer data, so call it only when the user asks to see a message, and quote no more than needed. Fails unless the company allows reading Kafka messages."
     },
     {
       "annotations": {
@@ -991,11 +1013,11 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f728cd2238bc17ef8535c334245c0d774537cee583f8b06939a1f30dd5dba115",
       "title": "List Kafka topics",
-      "triggerDescription": "Use when you need to list Kafka topics."
+      "triggerDescription": "Lists a cluster's topics with partitionCount, retention, tiered storage and artieManaged. artieManaged true means the topic carries Artie CDC data that pipelines read. The topic name is the topic other topic tools take. Cached for 2 minutes; pass forceRefresh after creating a topic."
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1013,7 +1035,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Increase Kafka topic partitions",
-      "triggerDescription": "Use when you need to increase Kafka topic partitions."
+      "triggerDescription": "Adds partitions to a topic; this can't be undone and changes which partition each key lands on. Refused on artieManaged topics. Send currentPartitionCount from kafka_topic_list and the new total as newPartitionCount. Confirm with the user first."
     },
     {
       "annotations": {
@@ -1035,7 +1057,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Change Kafka topic retention",
-      "triggerDescription": "Use when you need to change Kafka topic retention."
+      "triggerDescription": "Sets only a topic's retention.ms. Prefer kafka_topic_settings_update, which also handles local retention and tiered storage. Shorter retention deletes older messages for good. Confirm the change with the user first."
     },
     {
       "annotations": {
@@ -1057,7 +1079,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "7e9ed3f13f8f5c6bf2501808745adfae0c07b09ae7d17f168a659cacd8d06400",
       "title": "Change Kafka topic settings",
-      "triggerDescription": "Use when you need to change Kafka topic settings."
+      "triggerDescription": "Changes a topic's retentionMS, localRetentionMS and tieredStorage; send only what changes. Shorter retention deletes older messages for good, and on an artieManaged topic can drop change events before pipelines read them. Confirm the change with the user first."
     },
     {
       "annotations": {
@@ -1079,7 +1101,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "9048ac059b420799063ca4b0db13f25d48dcf3c1d40142df3b94f785265be4f1",
       "title": "Get Kafka topic partition sizes",
-      "triggerDescription": "Use when you need to get Kafka topic partition sizes."
+      "triggerDescription": "Bytes used by every topic on a cluster, per partition, in one call. Use to find which topics fill the disk. Cached unless forceRefresh is true."
     },
     {
       "annotations": {
@@ -1101,7 +1123,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "d54a17c2c97c39e0f62eb68f2a6570268e4e0b3984416c9712ab241bce4d61a4",
       "title": "Delete a Kafka user",
-      "triggerDescription": "Use when you need to delete a Kafka user."
+      "triggerDescription": "Deletes a producer_consumer Kafka user on a BYOC cluster. Kafka revokes its access within seconds, so clients using it stop working. userUUID comes from kafka_user_list. Confirm with the user first."
     },
     {
       "annotations": {
@@ -1123,7 +1145,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "5b1d6c44448a3542df9712c10ef6bce91a303509b93eefcddf2b1d6a9f8d9a24",
       "title": "Get a Kafka user",
-      "triggerDescription": "Use when you need to get a Kafka user."
+      "triggerDescription": "One producer_consumer Kafka user on a BYOC cluster, without its password: its uuid, username, accessProfile, status (pending, active or deleting), createdAt and the consumerGroupPrefix its consumer group IDs must start with. userUUID comes from kafka_user_list. Passwords aren't available through MCP; the user can copy one from the Artie dashboard."
     },
     {
       "annotations": {
@@ -1145,7 +1167,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "bdb38b5e05d8804a4e938c1ba7162a3f3c6afe85d335e0993de86ecca49e8fb8",
       "title": "List Kafka users",
-      "triggerDescription": "Use when you need to list Kafka users."
+      "triggerDescription": "BYOC clusters only; Managed clusters return 400, so use kafka_managed_user_list there. Lists Kafka users of both access profiles, without passwords. accessProfile picks the tools for a user: producer_consumer uses kafka_user_detail and kafka_user_delete, admin uses kafka_admin_user_detail and kafka_admin_user_delete."
     },
     {
       "annotations": {
@@ -1160,14 +1182,14 @@
       "name": "pipeline_backfill_tables",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}/backfill",
-      "requestSchemaSHA256": "36528bf4e8230273e9c0a135566d4649d9ce2a264f21ac39bde2665a6ff1f725",
+      "requestSchemaSHA256": "4a9c9bad5e4c69fcec8e6c433581f88c0786a1356787bd7f47b2576869cfc218",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Backfill pipeline tables",
-      "triggerDescription": "Backfills tables already on a running pipeline by table UUID from pipeline_detail (not connector_fetch_tables). To attach tables, use pipeline_update."
+      "triggerDescription": "Re-reads whole tables from the source into the destination and redeploys the pipeline. Pass table UUIDs from pipeline_detail (not connector_fetch_tables) of tables already on the running pipeline; to attach tables, use pipeline_update. beforeBackfill can truncate, drop, or rebuild-and-swap the destination tables first, which deletes their current rows, so confirm with the user. Returns 204 once queued; 400 if no listed table could start (not found, already backfilling, or replication disabled); 429 past 2,500 tables per company per hour. backfillBatchSize and backfillDefaults are saved on the pipeline for later backfills too, and are rejected when the source reader is shared."
     },
     {
       "annotations": {
@@ -1188,8 +1210,8 @@
       ],
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
-      "title": "Cancel backfill",
-      "triggerDescription": "Cancels an in-progress backfill for the given table UUIDs."
+      "title": "Cancel table backfills",
+      "triggerDescription": "Stops a backfill that is queued or running and redeploys the pipeline. Pass table UUIDs from pipeline_detail in tableUUIDs for regular tables and in historyTableUUIDs for history tables; both are required, so send [] for the one you don't need. Returns 400 if none of them are backfilling."
     },
     {
       "annotations": {
@@ -1204,12 +1226,12 @@
       "name": "pipeline_create",
       "outputSensitivity": "none",
       "path": "/pipelines",
-      "requestSchemaSHA256": "f29682a0a42f3237a83dcb28cb9ee231922a9bccc2514c05684ca35fd5761f3d",
+      "requestSchemaSHA256": "3628271d4f960573b762a767219b73c7b28bf80467d509ac7a1a433b46b75f36",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "ee84b151659ffe263e55c1c7a7ded3d5728b0271c18e11ede5d54720fbd303b6",
       "title": "Create a pipeline on an existing source reader",
       "triggerDescription": "Attaches a new pipeline to an existing sourceReaderUUID. The reader must be unused or already shared (fan-out: one CDC capture, many destinations). To start a new capture from a source connector, use pipeline_create_from_source."
     },
@@ -1226,12 +1248,12 @@
       "name": "pipeline_create_from_source",
       "outputSensitivity": "none",
       "path": "/pipelines/create-from-source",
-      "requestSchemaSHA256": "61f151850bb45564379e49b2aeecf788f38e6ffa85159613f004703342b0cf02",
+      "requestSchemaSHA256": "d6a19ab7280a4f25f3b2e07bb7f83a0ac474362b865d1f766e4cdf1675389652",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "ee84b151659ffe263e55c1c7a7ded3d5728b0271c18e11ede5d54720fbd303b6",
       "title": "Create a new pipeline from a source",
       "triggerDescription": "Creates a draft pipeline plus a new dedicated (non-shared) source reader. Pass sourceConnectorUUID to reuse a saved source; sourceType alone inserts an empty connector. For Postgres, Cockroach, and Oracle, pass database (from connector_fetch_databases) so the new reader can start. For a second destination on the same capture, use pipeline_create on a shared reader."
     },
@@ -1255,7 +1277,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete pipeline",
-      "triggerDescription": "Permanently deletes a pipeline by UUID. Does not delete connectors."
+      "triggerDescription": "Permanently deletes a pipeline (uuid from pipeline_list) and tears down its deployment, along with its source reader unless that is shared. Saved connectors stay, except ones made just for a draft pipeline that nothing else uses. To stop syncing but keep the pipeline, pause it with pipeline_update_status."
     },
     {
       "annotations": {
@@ -1275,7 +1297,7 @@
         "pipelines:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "ee84b151659ffe263e55c1c7a7ded3d5728b0271c18e11ede5d54720fbd303b6",
       "title": "Get pipeline configuration",
       "triggerDescription": "Returns FullPipeline for a uuid from pipeline_list: tables (uuid, name, schema, status), destinationUUID, specificDestCfg, and sourceReaderUUID. Echo this into pipeline_update; do not send pipeline_list. Use for per-table status and backfill table UUIDs. sourceReaderUUID is the uuid for source_reader_detail and source_reader_update, not a connector uuid. This is not lag (pipeline_usage) or error logs (pipeline_error_logs). Omit includeRelatedObjects \u2014 that Dashboard flag wraps connectors and is not this tool's success shape."
     },
@@ -1299,7 +1321,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Detect schema changes",
-      "triggerDescription": "Checks the source for table or schema drift. To apply destination DDL, use pipeline_trigger_automatic_schema_changes."
+      "triggerDescription": "Queues a check of the source for table or schema drift. Not read-only: on pipelines with auto-replicate or auto-history mode, newly found tables are added to the pipeline and a summary is emailed, so confirm with the user first. To apply destination DDL, use pipeline_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
@@ -1343,7 +1365,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "8917bca0b9dd01df1acd2e2f73e4e9f8286cd0c923e730086fa7b0612ef8fa9e",
       "title": "List pipelines",
-      "triggerDescription": "Lists pipelines with uuid, name, and status. This is not a full configuration \u2014 do not send it to pipeline_update. Full config, per-table status, and table UUIDs are pipeline_detail. Failure messages are pipeline_error_logs, not status. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
+      "triggerDescription": "Lists pipelines with their uuid, name, status, source and destination IDs, deploy state (hasUndeployedChanges, isDeploying, lastDeployError) and each table's latest backfill stage. It isn't a full configuration and has no table list, so don't send it to pipeline_update; full config, tables and table UUIDs are pipeline_detail. lastDeployError only covers deploys; runtime failures are in pipeline_error_logs. sourceReaderUUID is not a connector id; call connector_list before connector_fetch_table_detail or other connector_fetch_* tools."
     },
     {
       "annotations": {
@@ -1387,11 +1409,11 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "46cf34d5514c20016a93eeadc9144687b1c228f1667b39f4d9ecae0e2763fa63",
       "title": "Trigger automatic schema changes for a pipeline",
-      "triggerDescription": "Applies detected source DDL on one pipeline. For every eligible pipeline, use company_trigger_automatic_schema_changes."
+      "triggerDescription": "Queues a job that brings one running pipeline's destination tables in line with the source: it adds columns the source has and the destination lacks, drops columns deleted from the source when advancedSettings.dropDeletedColumns is on (irreversible), and emails a summary of the DDL it ran. Confirm with the user first. Runs at most once every two hours per pipeline unless forceRefresh is true. Returns 202 once queued, not when the DDL finishes, and 409 if the pipeline isn't running, is locked, or the company hasn't enabled automatic schema changes. For every eligible pipeline at once, use company_trigger_automatic_schema_changes."
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1402,12 +1424,12 @@
       "name": "pipeline_update",
       "outputSensitivity": "none",
       "path": "/pipelines/{uuid}",
-      "requestSchemaSHA256": "81a18f7a06d433eafc790db13d14ca66179f98c15822578568d60258af2b670a",
+      "requestSchemaSHA256": "60334c1256064becc9ac8979eb342c86896ffe3da970f2289998fbd5b6700275",
       "requiredScopes": [
         "pipelines:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "7ab29a39820380040cb7496939526977b02ffda42d2bfbc4eba8a8a82deb6b11",
+      "successSchemaSHA256": "ee84b151659ffe263e55c1c7a7ded3d5728b0271c18e11ede5d54720fbd303b6",
       "title": "Update pipeline",
       "triggerDescription": "Replaces the full pipeline configuration (not a PATCH). Echo the last FullPipeline from pipeline_create_from_source, pipeline_update, or pipeline_detail \u2014 not pipeline_list \u2014 and send destinationUUID and tables together; a destination-only body is rejected and omitting tables deletes all tables."
     },
@@ -1429,9 +1451,9 @@
         "pipelines:write"
       ],
       "retrySemantics": "safe-after-state-check",
-      "successSchemaSHA256": "fca07f76db4289107ec4be76b72526be96d102a96f7d59b779491b53e0053589",
+      "successSchemaSHA256": "acdae8f5b534b710d12a22c99c733c92a004d52073c2d83a062ac5fec92e605a",
       "title": "Update pipeline status",
-      "triggerDescription": "Pauses or resumes an already-configured pipeline. For first deploy, use pipeline_start."
+      "triggerDescription": "Pauses or resumes an already-deployed pipeline and queues a deploy. status paused stops the pipeline's capture and writes (a shared source reader keeps capturing for its other pipelines); transfer paused stops writing to the destination while the source keeps being read (not allowed for Kafka destinations); running resumes after validating the pipeline and the company's table limit. Returns 409 if the pipeline already has that status. For a first deploy, use pipeline_start."
     },
     {
       "annotations": {
@@ -1453,7 +1475,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "782cb20c149417c6d6fe5656df54ba8125e218d75cc60b048a802fe4c53c4b1d",
       "title": "Get pipeline usage",
-      "triggerDescription": "Returns per-table ingestion lag and row counts for a saved pipeline over a time range. Pass the pipeline uuid plus from and to as RFC3339 timestamps; set excludeBackfills=true to leave backfill rows out of row counts. Use when the user asks about lag, throughput, or rows processed. This is not slot health, warehouse correctness, pipeline_list status, pipeline_detail table status, or error logs (pipeline_error_logs)."
+      "triggerDescription": "Returns one ingestion lag (latency) and row count per table for a saved pipeline (uuid from pipeline_list) over from and to (RFC3339); set excludeBackfills=true to count only CDC rows. Its lag is ingestion lag only: for lag over time, or total lag (readerLag plus ingestionLag), use analytics_query. This is not slot health, warehouse correctness, table status (pipeline_detail) or error logs (pipeline_error_logs)."
     },
     {
       "annotations": {
@@ -1475,7 +1497,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Create a PrivateLink connection",
-      "triggerDescription": "Creates a PrivateLink connection: pass vpcServiceName and availabilityZoneIds for an AWS data plane, or privateLinkServiceAlias for an Azure one. Keep the returned UUID; there is no list tool."
+      "triggerDescription": "Creates a PrivateLink connection: pass vpcServiceName and availabilityZoneIds for an AWS data plane, or privateLinkServiceAlias for an Azure one. Keep the returned UUID; there is no list tool. It returns the connection with status under review: Artie reviews it and creates the endpoint, the service owner may need to accept it (pending acceptance), and dnsEntry, the host connectors use, is set once it's available. Check progress with private_link_connection_detail."
     },
     {
       "annotations": {
@@ -1497,7 +1519,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a PrivateLink connection",
-      "triggerDescription": "Permanently deletes a PrivateLink connection by UUID."
+      "triggerDescription": "Permanently deletes a PrivateLink connection and tears down its Artie endpoint. Returns 400 naming the connectors or source readers that still use it; move them off it first. The uuid is a connector's privateLinkUUID or snapshotPrivateLinkUUID from connector_list or connector_detail, or the one private_link_connection_create returned."
     },
     {
       "annotations": {
@@ -1519,7 +1541,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Get a PrivateLink connection",
-      "triggerDescription": "Returns one PrivateLink connection by UUID."
+      "triggerDescription": "Returns a PrivateLink connection's status, Private Link target and the Artie endpoint's address (dnsEntry). There is no list tool: the uuid is a connector's privateLinkUUID or snapshotPrivateLinkUUID from connector_list or connector_detail, or the one private_link_connection_create returned."
     },
     {
       "annotations": {
@@ -1541,7 +1563,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "bbadb83e30552d3e5264412614fd530e29e257d2652e4000f72e451443fc7b15",
       "title": "Update a PrivateLink connection",
-      "triggerDescription": "Updates a PrivateLink connection. The data plane and Private Link target (VPC service name and AZs on AWS, privateLinkServiceAlias on Azure) are only mutable while under review or errored."
+      "triggerDescription": "Updates a PrivateLink connection, validates it against its data plane, and returns it. The data plane and Private Link target (VPC service name and AZs on AWS, privateLinkServiceAlias on Azure) only change while the connection is under review or errored and has no endpoint yet; otherwise the current ones are kept. The uuid is a connector's privateLinkUUID or snapshotPrivateLinkUUID from connector_detail, or the one private_link_connection_create returned."
     },
     {
       "annotations": {
@@ -1556,12 +1578,12 @@
       "name": "snowflake_eco_schedule_create",
       "outputSensitivity": "none",
       "path": "/snowflake-eco-schedules",
-      "requestSchemaSHA256": "a7d254a6fbeacfe49985a9d6075038e93f10421514b7f2b90418eb6b28286399",
+      "requestSchemaSHA256": "11f31b6fbcec15e900166df5a67fce087ecf3f9fba1dfd49f7ca6d3fa2373077",
       "requiredScopes": [
         "snowflake_eco_schedules:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "successSchemaSHA256": "5b08dd3f1e4ff3b64f446bdc5d5a78ed864d32b2554dd4a26818d3ba96dfba16",
       "title": "Create a Snowflake Eco Mode schedule",
       "triggerDescription": "Creates a schedule of peak hours (time zone, days, start and end time). Outside them, attached pipelines use its off-peak flush rules."
     },
@@ -1585,7 +1607,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete a Snowflake Eco Mode schedule",
-      "triggerDescription": "Deletes a Snowflake Eco Mode schedule that no pipeline uses."
+      "triggerDescription": "Deletes a schedule (uuid from snowflake_eco_schedule_list). Returns 400 naming the pipelines that still use it; detach each first by sending its pipeline_detail body back through pipeline_update with snowflakeEcoScheduleUUID set to null."
     },
     {
       "annotations": {
@@ -1605,9 +1627,9 @@
         "snowflake_eco_schedules:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "successSchemaSHA256": "5b08dd3f1e4ff3b64f446bdc5d5a78ed864d32b2554dd4a26818d3ba96dfba16",
       "title": "Get a Snowflake Eco Mode schedule",
-      "triggerDescription": "Returns one Snowflake Eco Mode schedule by UUID."
+      "triggerDescription": "Returns one schedule's peak hours (timezone, days, startTimeOfDay, endTimeOfDay) and its off-peak flush settings. The uuid comes from snowflake_eco_schedule_list or a pipeline's snowflakeEcoScheduleUUID in pipeline_detail."
     },
     {
       "annotations": {
@@ -1627,13 +1649,13 @@
         "snowflake_eco_schedules:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "cea9b24ad6556c963196d151da27d58795038611e8055bc254a18a9288df9a27",
+      "successSchemaSHA256": "94f66372a8c302371b77adc4e09226cd8dd5caa35d228c7c110b8740436a42d2",
       "title": "List Snowflake Eco Mode schedules",
-      "triggerDescription": "Lists the company's Snowflake Eco Mode schedules. Use a schedule's uuid as snowflakeEcoScheduleUUID on a pipeline update."
+      "triggerDescription": "Lists the company's Snowflake Eco Mode schedules. Use a schedule's uuid as snowflakeEcoScheduleUUID on a pipeline update. Returns items with each schedule's uuid, name, environmentUUID, timestamps and settings: the peak hours and the flush rules used outside them."
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1644,14 +1666,14 @@
       "name": "snowflake_eco_schedule_update",
       "outputSensitivity": "none",
       "path": "/snowflake-eco-schedules/{uuid}",
-      "requestSchemaSHA256": "2605766b28c7babe04c52c8f567e32576a2a680ea615c5dee3618a7296391175",
+      "requestSchemaSHA256": "9734e4533cd415db05c0cc04a423de01e2bb27d71e2b0c1cf889fd31b4bbabb1",
       "requiredScopes": [
         "snowflake_eco_schedules:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8a3cceb7e7e0f09103618a8ed22b52b3070149c9fd767df5fe970d8cc56d8a24",
+      "successSchemaSHA256": "5b08dd3f1e4ff3b64f446bdc5d5a78ed864d32b2554dd4a26818d3ba96dfba16",
       "title": "Update a Snowflake Eco Mode schedule",
-      "triggerDescription": "Replaces a schedule's name and settings."
+      "triggerDescription": "Replaces a schedule's name and every setting, so read it with snowflake_eco_schedule_detail first and send it back with only the intended change. The schedule is shared, so the change affects every pipeline attached to it. The uuid comes from snowflake_eco_schedule_list."
     },
     {
       "annotations": {
@@ -1695,7 +1717,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Deploy a source reader",
-      "triggerDescription": "Deploys a shared, validated source reader. To take a draft pipeline live, use pipeline_start."
+      "triggerDescription": "Validates a shared source reader against its source and queues a deploy of the reader, so changes such as a source_reader_update take effect. Returns 204 once queued; 400 with the validation error, or if the reader isn't shared (a dedicated reader deploys with its pipeline via pipeline_start). The uuid comes from pipeline_detail.sourceReaderUUID. The deploy applies to every pipeline that shares the reader."
     },
     {
       "annotations": {
@@ -1715,13 +1737,13 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "6d505a9d4f68804460d33f8ff99d41e2f7546afe9f07028b859c0b04b040bf5f",
+      "successSchemaSHA256": "8a9f5e0b73b36eeabab087e6791dc560eba74616cca1ee6b72754cce355afb82",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
     {
       "annotations": {
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -1732,12 +1754,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "9c3a7bc51ed528e505b41a5a9bc32a0b75b7d4203910ebce85aa0ec3bb7fa7d8",
+      "requestSchemaSHA256": "18163f8ebee915900a9c493ae59607ea1954a4fcb9c669417bd67c2e82d7beea",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "6d505a9d4f68804460d33f8ff99d41e2f7546afe9f07028b859c0b04b040bf5f",
+      "successSchemaSHA256": "8a9f5e0b73b36eeabab087e6791dc560eba74616cca1ee6b72754cce355afb82",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
@@ -1761,7 +1783,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Create an SSH tunnel",
-      "triggerDescription": "Creates an SSH tunnel record. Keep the returned UUID; there is no list tool."
+      "triggerDescription": "Creates an SSH tunnel record with a new key pair and returns it, including the publicKey the user must add to the bastion host's authorized_keys before connectors can use it. A company can have at most 100 tunnels. Keep the returned UUID; there is no list tool. The result also has the tunnel's uuid, name, host, port, username and environmentUUID."
     },
     {
       "annotations": {
@@ -1783,7 +1805,7 @@
       "retrySemantics": "safe-after-state-check",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Delete an SSH tunnel",
-      "triggerDescription": "Deletes an SSH tunnel unused by any connector or pipeline."
+      "triggerDescription": "Deletes an SSH tunnel. Returns 400 naming the connectors that still use it (ssh_tunnel_detail isInUse shows whether any do). The uuid is a connector's sshTunnelUUID from connector_detail or the one ssh_tunnel_create returned."
     },
     {
       "annotations": {
@@ -1805,7 +1827,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Get an SSH tunnel",
-      "triggerDescription": "Returns one SSH tunnel by UUID (no private key)."
+      "triggerDescription": "Returns an SSH tunnel's host, port, username, publicKey (to add to the bastion's authorized_keys) and isInUse; never a private key. There is no list tool: the uuid is a connector's sshTunnelUUID from connector_list or connector_detail, or the one ssh_tunnel_create returned."
     },
     {
       "annotations": {
@@ -1827,7 +1849,7 @@
       "retrySemantics": "unsafe",
       "successSchemaSHA256": "3e02f44963052b3a9b1885b99a85927eaee3d8b5c836f9ebdc9b03597295fefe",
       "title": "Update an SSH tunnel",
-      "triggerDescription": "Updates name, host, port, or username on an existing SSH tunnel. Does not rotate keys."
+      "triggerDescription": "Replaces an SSH tunnel's name, host, and port, and its username when one is sent (an empty username keeps the saved one), then returns the tunnel. Send every field, starting from ssh_tunnel_detail. The key pair doesn't change, so the bastion's authorized_keys entry stays valid. Every pipeline whose connectors use the tunnel is marked as having undeployed changes and needs a redeploy to pick up the change."
     },
     {
       "annotations": {
@@ -1849,7 +1871,7 @@
       "retrySemantics": "safe",
       "successSchemaSHA256": "f18c5d90ca6160a537a56aafc834a3fdcc2b13a078b49a42ee0a5c5187f46b4d",
       "title": "Ping a connector",
-      "triggerDescription": "Pings a connector before connector_create. Pass type, sharedConfig (host, user, password, and type-specific fields), and connectionRole (source or destination). This is not a uuid ping \u2014 do not pass a pipeline uuid or sourceReaderUUID. Postgres needs a database name, Oracle a service name, S3 a bucket. Success is {\"success\": true}. A 422 error means the connection failed (unreachable host, bad credentials, missing permissions) and its message says why; a 400 means the request itself is invalid."
+      "triggerDescription": "Pings a connector before connector_create. Pass type, sharedConfig (host, user, password, and type-specific fields), and connectionRole (source or destination). This is not a uuid ping \u2014 do not pass a pipeline uuid or sourceReaderUUID. Postgres needs a database name, Oracle a service name, S3 a bucket. Success is HTTP 204 with no body, which this tool returns as {\"success\": true}. A 422 error means the connection failed (unreachable host, bad credentials, missing permissions) and its message says why; a 400 means the request itself is invalid."
     }
   ]
 }
