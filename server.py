@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.workos import AuthKitProvider
 from fastmcp.server.dependencies import get_access_token, get_http_headers
 from fastmcp.server.providers.openapi import MCPType
-from mcp.types import ToolAnnotations
+from mcp.types import Icon, ToolAnnotations
 from starlette.middleware import Middleware
 from starlette.responses import Response
 from starlette.routing import Route
@@ -39,6 +39,25 @@ _BUNDLE_DIR = Path(__file__).with_name("contract")
 _UPSTREAM_DETAIL_LIMIT = 500
 _SERVER_CARD_MEDIA_TYPE = "application/mcp-server-card+json"
 _OPENAI_APPS_CHALLENGE_TOKEN = "1kqGXSE8W91ZoiNotedhP3QeSzKShfsvP88VE_epI-A"
+_WEBSITE_URL = "https://www.artie.com/docs/api/mcp"
+_ICONS = [
+    {
+        "src": "https://www.artie.com/brand/logo.svg",
+        "mimeType": "image/svg+xml",
+        "sizes": ["any"],
+    }
+]
+# Sent in the initialize result. Keep it under Claude Code's 2 KB limit.
+_INSTRUCTIONS = """Artie runs real-time CDC pipelines that replicate a source database into a warehouse or lake.
+
+- Resolve names to UUIDs with connector_list (includeSourceConnectors=true for sources) and pipeline_list. Never guess a UUID. Take UUIDs from app.artie.com URLs instead of fetching them.
+- connector_fetch_* tools take a connector UUID, not a pipeline or source reader UUID.
+- New pipeline from a saved source: pipeline_create_from_source, then pipeline_update with the destination and a non-empty tables list in one body, then pipeline_start.
+- pipeline_update replaces the whole pipeline. Start from pipeline_detail; omitting tables removes every table.
+- Lag and rows processed: pipeline_usage. Failures: pipeline_error_logs. pipeline_list status is lifecycle, not health.
+- Ask the user before any delete, key rotation, replication slot drop, or automatic schema change.
+- pipeline_start success means the pipeline deployed, not that rows landed in the destination.
+- Never echo secrets or connector passwords."""
 _SERVER_CARD = {
     "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
     "name": "com.artie/mcp",
@@ -48,14 +67,8 @@ _SERVER_CARD = {
         "authorization server via protected-resource metadata on this origin."
     ),
     "title": "Artie MCP Server",
-    "websiteUrl": "https://artie.com/docs/api/overview",
-    "icons": [
-        {
-            "src": "https://www.artie.com/brand/logo.svg",
-            "mimeType": "image/svg+xml",
-            "sizes": ["any"],
-        }
-    ],
+    "websiteUrl": _WEBSITE_URL,
+    "icons": _ICONS,
     # Remotes carry no required API-key header so discovery clients follow
     # AuthKit via /.well-known/oauth-protected-resource.
     "remotes": [
@@ -428,9 +441,16 @@ def _configure_tool(route, component):
     component.description = tool.trigger_description
     component.annotations = ToolAnnotations(**tool.annotations)
     if tool.bodiless_success:
+        # BODILESS_SUCCESS_PLANS admits exactly one 202 or 204 response.
+        if tool.success[0]["status"] == "202":
+            meaning = "Always true: Artie accepted the request and finishes it in the background."
+        else:
+            meaning = (
+                "Always true: the request succeeded. The API returns no other data."
+            )
         component.output_schema = {
             "type": "object",
-            "properties": {"success": {"const": True}},
+            "properties": {"success": {"const": True, "description": meaning}},
             "required": ["success"],
             "additionalProperties": False,
         }
@@ -447,11 +467,22 @@ mcp = FastMCP.from_openapi(
     openapi_spec=openapi_spec,
     client=client,
     name="Artie",
+    instructions=_INSTRUCTIONS,
+    version=_SERVER_CARD["version"],
+    website_url=_WEBSITE_URL,
+    icons=[Icon(**icon) for icon in _ICONS],
     auth=_build_auth_provider(),
     mcp_names={tool.name: tool.name for tool in policy_contract.tools},
     route_map_fn=_route_map,
     mcp_component_fn=_configure_tool,
     strict_input_validation=True,
+)
+# FastMCP has no title/description arguments; the low-level server sends both
+# in the initialize serverInfo when set before the first request.
+mcp._mcp_server.title = "Artie"
+mcp._mcp_server.description = (
+    "Set up and operate Artie real-time CDC pipelines that replicate databases "
+    "into warehouses and lakes."
 )
 mcp_metrics = OpenTelemetryMetrics.create()
 atexit.register(mcp_metrics.shutdown)
@@ -562,6 +593,49 @@ async def openai_apps_challenge(_request):
     return Response(_OPENAI_APPS_CHALLENGE_TOKEN, media_type="text/plain")
 
 
+# Browsers and directory checkers that open the MCP URL get setup steps
+# instead of a bare 405. No inline styles: the CSP is default-src 'self'.
+_SETUP_PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artie MCP server</title>
+</head>
+<body>
+<h1>Artie MCP server</h1>
+<p>This is the Model Context Protocol endpoint for <a href="https://www.artie.com">Artie</a>.
+Add it to an MCP client that supports remote Streamable HTTP servers and OAuth.
+You'll be asked to sign in to Artie on first use. Don't add an API key or bearer token.</p>
+<pre>https://mcp.artie.com/mcp</pre>
+<h2>Claude Code</h2>
+<pre>claude mcp add --transport http artie https://mcp.artie.com/mcp</pre>
+<h2>Cursor, Codex, and other clients</h2>
+<pre>{
+  "mcpServers": {
+    "artie": {
+      "url": "https://mcp.artie.com/mcp"
+    }
+  }
+}</pre>
+<p>Full setup guide and tool list: <a href="https://www.artie.com/docs/api/mcp">artie.com/docs/api/mcp</a></p>
+</body>
+</html>
+"""
+
+
+async def mcp_setup_page(request):
+    # Stateless Streamable HTTP has no GET stream; MCP clients asking for one
+    # keep getting the 405 they already handle.
+    if "text/event-stream" in request.headers.get("accept", ""):
+        return Response(
+            "Method Not Allowed",
+            status_code=405,
+            headers={"allow": "POST, DELETE"},
+        )
+    return Response(_SETUP_PAGE, media_type="text/html")
+
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(_request):
     return Response(status_code=200)
@@ -638,6 +712,7 @@ app.router.routes = [
         oauth_authorization_server_metadata,
         methods=["GET"],
     ),
+    Route("/mcp", mcp_setup_page, methods=["GET"]),
     *[
         route
         for route in app.routes
