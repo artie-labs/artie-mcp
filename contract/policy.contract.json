@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
-  "policySHA256": "304f85a88f0da4a605f574227a83c8467b466fd4f4db392da409fbcbe26a65e2",
-  "releaseTag": "v1.0.251",
+  "policySHA256": "d03bee96892c70feb805a70a95c17a37c9c61ecebe9fe45dbb675b53f218ccd4",
+  "releaseTag": "v1.0.253",
   "tools": [
     {
       "annotations": {
@@ -16,14 +16,14 @@
       "name": "analytics_query",
       "outputSensitivity": "none",
       "path": "/analytics",
-      "requestSchemaSHA256": "1b2dc8c80caa2e1d9f278e2b55683b6ce3620b0b174e55b405898c2333344206",
+      "requestSchemaSHA256": "0b5ed675ad162bcf9e75d443fc5a2623cdf678efb60e7c5eb7095a1bd6693211",
       "requiredScopes": [
         "pipelines:read"
       ],
       "retrySemantics": "safe",
       "successSchemaSHA256": "14a55add6344f772438112daeb1eb2d29c3989d64851cbb66198690d6440be95",
       "title": "Query analytics",
-      "triggerDescription": "Returns time series for named datasets (datasets[]) such as rowsSyncedByTime, ingestionLag, readerLag, rowLag and flushTime over from/to (RFC3339). Pass pipelineUUID from pipeline_list to scope to one pipeline; it is required for environment-scoped keys. Total lag is readerLag plus ingestionLag at each timestamp. Use for lag or throughput over time. For one per-table lag number and row count, use pipeline_usage."
+      "triggerDescription": "Returns time series for named datasets (datasets, repeated) such as rowsSyncedByTime, ingestionLag, readerLag, rowLag and flushTime over from/to (RFC3339). Pass pipelineUUID from pipeline_list to scope to one pipeline; it is required for environment-scoped keys. Total lag is readerLag plus ingestionLag at each timestamp. Use for lag or throughput over time. For one per-table lag number and row count, use pipeline_usage."
     },
     {
       "annotations": {
@@ -1737,7 +1737,7 @@
         "source_readers:read"
       ],
       "retrySemantics": "safe",
-      "successSchemaSHA256": "8a9f5e0b73b36eeabab087e6791dc560eba74616cca1ee6b72754cce355afb82",
+      "successSchemaSHA256": "d48664e4db3a358515f5897806a65861d607a78a48710e3d0da9dc657ee80ed7",
       "title": "Get a source reader",
       "triggerDescription": "Returns a source reader by uuid from pipeline_detail.sourceReaderUUID, not a pipeline uuid or connector uuid. Includes database, tablesConfig, and settings (replicationSlotOverride, publicationNameOverride, heartbeats). Sensitive fields may be present. Echo this into source_reader_update; do not invent a partial body. If pipeline_start 400s that two readers share slot artie, GET this, set settings.replicationSlotOverride to a unique lowercase name (digits and underscores, <=63), POST source_reader_update, then retry start."
     },
@@ -1754,12 +1754,12 @@
       "name": "source_reader_update",
       "outputSensitivity": "restricted-credentials",
       "path": "/source-readers/{uuid}",
-      "requestSchemaSHA256": "18163f8ebee915900a9c493ae59607ea1954a4fcb9c669417bd67c2e82d7beea",
+      "requestSchemaSHA256": "f9c212da9f3e1299d844a68ca570d2912a7365e09eda2e956fec2951caf28943",
       "requiredScopes": [
         "source_readers:write"
       ],
       "retrySemantics": "unsafe",
-      "successSchemaSHA256": "8a9f5e0b73b36eeabab087e6791dc560eba74616cca1ee6b72754cce355afb82",
+      "successSchemaSHA256": "d48664e4db3a358515f5897806a65861d607a78a48710e3d0da9dc657ee80ed7",
       "title": "Update a source reader",
       "triggerDescription": "Applies a SourceReader from source_reader_detail. Echo the last GET and change only the intended fields. Omitting name, database, or connectorUUID blanks them. To fix a duplicate Postgres slot (pipeline_start 400 that two readers share artie), set settings.replicationSlotOverride to a unique lowercase name, then pipeline_start. This is not pipeline_update or connector_update."
     },
