@@ -107,6 +107,39 @@ class TestServer(unittest.TestCase):
                 with self.subTest(tool=tool.name, name=name):
                     self.assertRegex(name, r"^[a-zA-Z0-9_.-]{1,64}$")
 
+    def test_analytics_query_repeats_datasets_in_the_query_string(self):
+        # The API reads datasets=a&datasets=b; a comma-joined value would be ignored as one unknown name.
+        from fastmcp import Client
+
+        urls = []
+
+        def handler(request):
+            urls.append(request.url)
+            return httpx.Response(200, json={"datasets": {}})
+
+        async def call():
+            async with Client(self.server.mcp) as client:
+                await client.call_tool(
+                    "analytics_query",
+                    {
+                        "from": "2026-11-20T00:00:00Z",
+                        "to": "2026-11-20T01:00:00Z",
+                        "datasets": ["readerLag", "ingestionLag"],
+                    },
+                )
+
+        with (
+            patch.object(
+                self.server.client, "_transport", httpx.MockTransport(handler)
+            ),
+            patch.object(self.server.client, "_auth", None),
+        ):
+            asyncio.run(call())
+
+        self.assertEqual(
+            ["readerLag", "ingestionLag"], urls[0].params.get_list("datasets")
+        )
+
     def test_generated_tools_use_policy_metadata(self):
         contracts = {tool.name: tool for tool in self.server.policy_contract.tools}
         for tool in self.tools:
