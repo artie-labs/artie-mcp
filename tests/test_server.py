@@ -90,6 +90,23 @@ class TestServer(unittest.TestCase):
         self.assertIn("source_reader_update", names)
         self.assertNotIn("Ping_a_connector", names)
 
+    def test_tool_input_names_are_valid_for_claude(self):
+        # Claude drops a whole tool when any input property name has other characters, e.g. datasets[].
+        def property_names(schema):
+            if isinstance(schema, list):
+                for item in schema:
+                    yield from property_names(item)
+            elif isinstance(schema, dict):
+                for key, value in schema.items():
+                    if key == "properties" and isinstance(value, dict):
+                        yield from value
+                    yield from property_names(value)
+
+        for tool in self.tools:
+            for name in property_names(tool.parameters):
+                with self.subTest(tool=tool.name, name=name):
+                    self.assertRegex(name, r"^[a-zA-Z0-9_.-]{1,64}$")
+
     def test_generated_tools_use_policy_metadata(self):
         contracts = {tool.name: tool for tool in self.server.policy_contract.tools}
         for tool in self.tools:
